@@ -1,9 +1,9 @@
-import { execFile } from "node:child_process";
+import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { requestPermission } from "../lib/permissions.js";
 import type { ToolDefinition } from "./types.js";
 
-const execFileAsync = promisify(execFile);
+const execAsync = promisify(exec);
 
 export const runShellTool: ToolDefinition = {
   name: "run_shell",
@@ -18,7 +18,12 @@ export const runShellTool: ToolDefinition = {
     const command = String(args.command);
     await requestPermission({ category: "shell", description: `Run: ${command}` });
     try {
-      const { stdout, stderr } = await execFileAsync("/bin/sh", ["-c", command], {
+      // node:child_process picks the OS's default shell automatically
+      // (/bin/sh on POSIX, cmd.exe on Windows) - do not hardcode a shell
+      // path, it doesn't exist on Windows. Command syntax that only works
+      // in bash (e.g. "&&" chains needing bash-specific quoting) may still
+      // behave differently under cmd.exe.
+      const { stdout, stderr } = await execAsync(command, {
         cwd: ctx.projectRoot,
         timeout: 60_000,
         maxBuffer: 5 * 1024 * 1024,

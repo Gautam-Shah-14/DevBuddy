@@ -1,8 +1,61 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join, relative, basename } from "node:path";
 import type { ToolDefinition } from "./types.js";
 
 const execFileAsync = promisify(execFile);
+
+const IGNORED_DIRS = new Set(["node_modules", ".git", "dist", "build", ".next", ".devbuddy", "coverage"]);
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // skip files over 2MB - likely binary or generated
+
+function globToRegExp(glob: string): RegExp {
+  const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".");
+  return new RegExp(`^${escaped}$`);
+}
+
+function walk(dir: string, out: string[]): void {
+  let entries;
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (IGNORED_DIRS.has(entry.name)) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) walk(full, out);
+    else if (entry.isFile()) out.push(full);
+  }
+}
+
+/**
+ * Pure-Node fallback used when neither ripgrep nor grep are available
+ * (e.g. a stock Windows machine with no WSL/Git Bash). Slower than rg but
+ * needs no external tool, so search always works everywhere.
+ */
+function searchWithNodeFallback(root: string, pattern: string, glob?: string): string {
+  const regex = new RegExp(pattern);
+  const globRegex = glob ? globToRegExp(glob) : null;
+  const files: string[] = [];
+  walk(root, files);
+
+  const results: string[] = [];
+  for (const file of files) {
+    if (globRegex && !globRegex.test(basename(file))) continue;
+    try {
+      if (statSync(file).size > MAX_FILE_SIZE) continue;
+      const content = readFileSync(file, "utf-8");
+      const rel = relative(root, file);
+      content.split("\n").forEach((line, i) => {
+        if (regex.test(line)) results.push(`${rel}:${i + 1}:${line}`);
+      });
+    } catch {
+      continue; // unreadable or binary file - skip
+    }
+  }
+  return results.join("\n").trim() || "(no matches)";
+}
 
 export const searchFilesTool: ToolDefinition = {
   name: "search_files",
@@ -16,8 +69,11 @@ export const searchFilesTool: ToolDefinition = {
     required: ["pattern"],
   },
   async execute(args, ctx) {
-    const rgArgs = ["-n", "-e", String(args.pattern)];
-    if (args.glob) rgArgs.push("--glob", String(args.glob));
+    const pattern = String(args.pattern);
+    const glob = args.glob ? String(args.glob) : undefined;
+
+    const rgArgs = ["-n", "-e", pattern];
+    if (glob) rgArgs.push("--glob", glob);
     rgArgs.push(".");
     try {
       const { stdout } = await execFileAsync("rg", rgArgs, {
@@ -26,24 +82,31 @@ export const searchFilesTool: ToolDefinition = {
       });
       return stdout.trim() || "(no matches)";
     } catch (err) {
-      const e = err as { code?: number; stdout?: string; message: string };
+      const e = err as { code?: number; message: string };
+      if (e.code === 1) return "(no matches)"; // rg found nothing - not an error
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") return `search failed: ${e.message}`;
+    }
+
+    // ripgrep not installed - try grep (POSIX only, not on stock Windows)
+    try {
+      const grepArgs = ["-rn", "-E", pattern, "."];
+      const { stdout } = await execFileAsync("grep", grepArgs, {
+        cwd: ctx.projectRoot,
+        maxBuffer: 5 * 1024 * 1024,
+      });
+      return stdout.trim() || "(no matches)";
+    } catch (err) {
+      const e = err as { code?: number; message: string };
       if (e.code === 1) return "(no matches)";
-      if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-        // ripgrep not installed on this machine - fall back to grep
-        try {
-          const grepArgs = ["-rn", "-E", String(args.pattern), "."];
-          const { stdout } = await execFileAsync("grep", grepArgs, {
-            cwd: ctx.projectRoot,
-            maxBuffer: 5 * 1024 * 1024,
-          });
-          return stdout.trim() || "(no matches)";
-        } catch (grepErr) {
-          const ge = grepErr as { code?: number; message: string };
-          if (ge.code === 1) return "(no matches)";
-          return `search failed: ${ge.message}`;
-        }
-      }
-      return `search failed: ${e.message}`;
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") return `search failed: ${e.message}`;
+    }
+
+    // Neither external tool is available - fall back to a pure-Node search
+    // so this always works, including on a stock Windows machine.
+    try {
+      return searchWithNodeFallback(ctx.projectRoot, pattern, glob);
+    } catch (err) {
+      return `search failed: ${(err as Error).message}`;
     }
   },
 };
