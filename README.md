@@ -94,6 +94,10 @@ this development happens on a Windows machine directly.
 - `devbuddy history show <session-id>` — full transcript of one session.
 - `devbuddy history search <text> [--all]` — search message content in
   the current project, or every project with `--all`.
+- `devbuddy doctor` — one-command environment check: Node version, config
+  file, `~/.devbuddy` write access and free disk space, git, ripgrep/grep
+  availability, connectivity for all three providers, and license/plan
+  status. Exits non-zero if anything critical is broken.
 
 ## Providers
 
@@ -240,6 +244,4 @@ check one.
   one-shot scripting
 - Undo/checkpoint — snapshot before each write so "revert last agent
   action" is one command
-- `devbuddy doctor` — one command to check Ollama reachability, API keys,
-  Node version, and disk space in one report
 - Context compaction for very long chat sessions
