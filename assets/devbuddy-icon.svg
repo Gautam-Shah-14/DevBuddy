@@ -1,6 +1,6 @@
 <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-  <defs><radialGradient id="fg" cx="50%" cy="78%" r="70%">
+  <defs><linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
     <stop offset="0%" stop-color="#7FD1FF"/><stop offset="55%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#4C1D95"/>
-  </radialGradient></defs>
+  </linearGradient></defs>
   <path d="M120,24 C148,52 162,82 156,110 C154,120 146,126 148,136 C160,130 168,116 166,100 C186,124 192,154 178,178 C164,202 134,214 108,206 C82,198 66,174 70,148 C72,134 82,126 78,112 C68,120 62,132 62,146 C46,124 44,96 58,72 C64,60 74,52 72,40 C88,48 98,62 98,76 C104,54 108,36 120,24 Z" fill="url(#fg)"/>
 </svg>
