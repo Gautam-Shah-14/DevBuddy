@@ -62,8 +62,8 @@ this development happens on a Windows machine directly.
   directory (this is the project DevBuddy operates on).
 - `devbuddy models` — list Ollama models installed locally.
 - `devbuddy config` — view current configuration.
-- `devbuddy config set <key> <value>` — set `host`, `model`, or
-  `systemPrompt`.
+- `devbuddy config set <key> <value>` — set `host`, `model`,
+  `systemPrompt`, or `verifyCommand` (see Self-verification below).
 - `devbuddy skills` — list available skills.
 - `devbuddy skills create <name> [--project]` — scaffold a new skill
   (global by default, or project-local with `--project`).
@@ -132,6 +132,17 @@ devbuddy chat
   commands, git push) prompt for approval before running. You can approve
   a category for the rest of the session, except deletes and pushes, which
   always ask.
+- **Diff preview**: the write/edit/delete permission prompt shows a colored,
+  `git diff`-style preview of the exact change (with a couple of lines of
+  context around each hunk) before you approve it — you see what's about to
+  happen, not just a file path.
+- **Self-verification**: after a turn where the agent edited or deleted
+  files, DevBuddy automatically runs a verification command and, if it
+  fails, feeds the failure straight back to the model to fix (up to 2
+  retries per turn, so it can't loop forever). By default this auto-detects
+  `npm test` when the project's `package.json` has a real test script;
+  override it with `devbuddy config set verifyCommand "npm run build"`, or
+  turn it off entirely with `devbuddy config set verifyCommand off`.
 - **Plan mode**: for larger tasks, the agent writes a plan to
   `~/.devbuddy/projects/<id>/plans/` and pauses for your approval before
   touching anything.
@@ -225,7 +236,10 @@ check one.
 
 - Additional providers (Gemini, Bedrock, etc.) behind the same
   `ChatProvider` interface
-- Diff preview before an edit is applied, rather than only after
 - Non-interactive / scriptable mode (`devbuddy run "<prompt>"`) for CI and
   one-shot scripting
+- Undo/checkpoint — snapshot before each write so "revert last agent
+  action" is one command
+- `devbuddy doctor` — one command to check Ollama reachability, API keys,
+  Node version, and disk space in one report
 - Context compaction for very long chat sessions

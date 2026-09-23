@@ -124,6 +124,16 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
             const preview = result.length > 300 ? result.slice(0, 300) + "..." : result;
             console.log(chalk.dim(`  ← ${name}: ${preview}`));
           },
+          onVerify: (event) => {
+            if (spinner.isSpinning) spinner.stop();
+            if (event.status === "running") {
+              console.log(chalk.dim(`\n  ⏵ Self-check: running \`${event.command}\`...`));
+            } else if (event.status === "passed") {
+              console.log(chalk.green(`  ✓ Self-check passed (${event.command})`));
+            } else {
+              console.log(chalk.red(`  ✗ Self-check failed (${event.command}) - asking DevBuddy to fix it`));
+            }
+          },
         });
         if (!printedAny) {
           spinner.stop();

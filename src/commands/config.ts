@@ -8,6 +8,7 @@ const SETTABLE_KEYS: (keyof DevBuddyConfig)[] = [
   "systemPrompt",
   "openaiApiKey",
   "openaiBaseUrl",
+  "verifyCommand",
 ];
 
 export function configCommand(args: string[]): void {
