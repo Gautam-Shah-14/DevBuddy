@@ -98,6 +98,11 @@ this development happens on a Windows machine directly.
   file, `~/.devbuddy` write access and free disk space, git, ripgrep/grep
   availability, connectivity for all three providers, and license/plan
   status. Exits non-zero if anything critical is broken.
+- `devbuddy undo` — revert the agent's most recent file change (write,
+  edit, or delete) in the current project. Run it again to keep walking
+  back further changes.
+- `devbuddy undo list [n]` — show the last `n` (default 20) recorded file
+  changes, newest first, with which have already been reverted.
 
 ## Providers
 
@@ -147,6 +152,12 @@ devbuddy chat
   `npm test` when the project's `package.json` has a real test script;
   override it with `devbuddy config set verifyCommand "npm run build"`, or
   turn it off entirely with `devbuddy config set verifyCommand off`.
+- **Undo**: every write/edit/delete records the file's content just before
+  the change (or that it didn't exist yet, for a new file) in the project's
+  memory database. `devbuddy undo` reverts the most recent one and can be
+  run repeatedly to keep walking back further; `devbuddy undo list` shows
+  the recorded history. This is a per-project change log, not a git
+  operation, so it works even outside a git repo.
 - **Plan mode**: for larger tasks, the agent writes a plan to
   `~/.devbuddy/projects/<id>/plans/` and pauses for your approval before
   touching anything.
@@ -231,7 +242,7 @@ check one.
 └── projects/
     └── <hash-of-project-path>/
         ├── meta.json
-        ├── memory.db          # sessions + messages (SQLite)
+        ├── memory.db          # sessions + messages + undo checkpoints (SQLite)
         ├── skills/             # project-level skills
         └── plans/              # proposed plans, as markdown
 ```
@@ -242,6 +253,4 @@ check one.
   `ChatProvider` interface
 - Non-interactive / scriptable mode (`devbuddy run "<prompt>"`) for CI and
   one-shot scripting
-- Undo/checkpoint — snapshot before each write so "revert last agent
-  action" is one command
 - Context compaction for very long chat sessions

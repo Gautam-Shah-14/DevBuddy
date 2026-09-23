@@ -31,6 +31,18 @@ CREATE TABLE IF NOT EXISTS plans (
   updated_at TEXT NOT NULL,
   FOREIGN KEY (session_id) REFERENCES sessions(id)
 );
+
+CREATE TABLE IF NOT EXISTS checkpoints (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id INTEGER NOT NULL,
+  tool_name TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  existed_before INTEGER NOT NULL,
+  content_before TEXT,
+  reverted INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (session_id) REFERENCES sessions(id)
+);
 `;
 
 export class ProjectMemory {
@@ -101,6 +113,44 @@ export class ProjectMemory {
 
   getStats(): ProjectStats {
     return computeStats(this.db);
+  }
+
+  /**
+   * Records the pre-mutation state of a file right before a write/edit/
+   * delete tool changes it, so `devbuddy undo` can restore it later.
+   * `contentBefore` is null when the file didn't exist yet (a new file) -
+   * undoing that checkpoint deletes the file instead of restoring content.
+   */
+  addCheckpoint(
+    sessionId: number,
+    toolName: string,
+    filePath: string,
+    existedBefore: boolean,
+    contentBefore: string | null
+  ): number {
+    const result = this.db
+      .prepare(
+        "INSERT INTO checkpoints (session_id, tool_name, file_path, existed_before, content_before, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+      )
+      .run(sessionId, toolName, filePath, existedBefore ? 1 : 0, contentBefore, new Date().toISOString());
+    return Number(result.lastInsertRowid);
+  }
+
+  /** Most recent not-yet-reverted checkpoint in this project, across every session. */
+  getLatestCheckpoint(): Checkpoint | null {
+    const row = this.db
+      .prepare("SELECT * FROM checkpoints WHERE reverted = 0 ORDER BY id DESC LIMIT 1")
+      .get() as unknown as CheckpointRow | undefined;
+    return row ? toCheckpoint(row) : null;
+  }
+
+  listCheckpoints(limit = 20): Checkpoint[] {
+    const rows = this.db.prepare("SELECT * FROM checkpoints ORDER BY id DESC LIMIT ?").all(limit) as unknown as CheckpointRow[];
+    return rows.map(toCheckpoint);
+  }
+
+  markCheckpointReverted(id: number): void {
+    this.db.prepare("UPDATE checkpoints SET reverted = 1 WHERE id = ?").run(id);
   }
 
   listSessions(limit = 20): SessionSummary[] {
@@ -196,6 +246,41 @@ function computeStats(db: DatabaseSync): ProjectStats {
     exactCompletionTokens: totals.c,
     messagesWithoutUsage: missing.length,
     estimatedTokensForMissing: estimatedTokens,
+  };
+}
+
+export interface Checkpoint {
+  id: number;
+  sessionId: number;
+  toolName: string;
+  filePath: string;
+  existedBefore: boolean;
+  contentBefore: string | null;
+  reverted: boolean;
+  createdAt: string;
+}
+
+interface CheckpointRow {
+  id: number;
+  session_id: number;
+  tool_name: string;
+  file_path: string;
+  existed_before: number;
+  content_before: string | null;
+  reverted: number;
+  created_at: string;
+}
+
+function toCheckpoint(r: CheckpointRow): Checkpoint {
+  return {
+    id: r.id,
+    sessionId: r.session_id,
+    toolName: r.tool_name,
+    filePath: r.file_path,
+    existedBefore: r.existed_before === 1,
+    contentBefore: r.content_before,
+    reverted: r.reverted === 1,
+    createdAt: r.created_at,
   };
 }
 

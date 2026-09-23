@@ -41,6 +41,7 @@ export const writeFileTool: ToolDefinition = {
       description: `${isNew ? "Create" : "Overwrite"} file: ${args.path}`,
       diff: formatDiff(oldContent, newContent),
     });
+    ctx.memory.addCheckpoint(ctx.sessionId, "write_file", String(args.path), !isNew, isNew ? null : oldContent);
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, newContent);
     return `Wrote ${newContent.length} bytes to ${args.path}`;
@@ -71,6 +72,7 @@ export const editFileTool: ToolDefinition = {
 
     const newContent = content.replace(oldStr, String(args.new_string));
     await requestPermission({ category: "write", description: `Edit file: ${args.path}`, diff: formatDiff(content, newContent) });
+    ctx.memory.addCheckpoint(ctx.sessionId, "edit_file", String(args.path), true, content);
     writeFileSync(path, newContent);
     return `Edited ${args.path}`;
   },
@@ -93,6 +95,7 @@ export const deleteFileTool: ToolDefinition = {
       description: `Delete file: ${args.path}`,
       diff: formatDiff(content, ""),
     });
+    ctx.memory.addCheckpoint(ctx.sessionId, "delete_file", String(args.path), true, content);
     rmSync(path);
     return `Deleted ${args.path}`;
   },

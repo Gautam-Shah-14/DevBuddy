@@ -16,6 +16,7 @@ import { guardrailsCommand } from "./commands/guardrails.js";
 import { statsCommand } from "./commands/stats.js";
 import { historyCommand } from "./commands/history.js";
 import { doctorCommand } from "./commands/doctor.js";
+import { undoCommand } from "./commands/undo.js";
 import { printBanner } from "./lib/banner.js";
 
 if (process.argv.length <= 2) printBanner();
@@ -108,5 +109,13 @@ program
   .command("doctor")
   .description("Check Ollama/API connectivity, Node version, git, disk space, and config in one report")
   .action(() => doctorCommand());
+
+program
+  .command("undo [action] [n]")
+  .description("Revert the agent's last file change in this project (or: undo list [n])")
+  .action((action?: string, n?: string) => {
+    const args = [action, n].filter((v): v is string => v !== undefined);
+    undoCommand(args);
+  });
 
 program.parseAsync(process.argv);
