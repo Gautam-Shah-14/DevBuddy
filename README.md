@@ -72,15 +72,20 @@ this development happens on a Windows machine directly.
 - `devbuddy config set <key> <value>` — set `host`, `model`,
   `systemPrompt`, or `verifyCommand` (see Self-verification below).
 - `devbuddy skills` — list available skills.
-- `devbuddy skills create <name> [--project]` — scaffold a new skill
-  (global by default, or project-local with `--project`).
+- `devbuddy skills create <name> [--project|--shared]` — scaffold a new
+  skill: global by default, private to this project with `--project`, or
+  team-shared (written to `.devbuddy/skills/`, commit it) with `--shared`.
 - `devbuddy connector list` — list configured MCP connectors.
-- `devbuddy connector add <name> --command "<cmd>" [--args "a b c"] [--env KEY=VALUE]`
+- `devbuddy connector add <name> --command "<cmd>" [--args "a b c"] [--env KEY=VALUE] [--shared]`
   — register an MCP server, e.g.:
   ```
   devbuddy connector add filesystem --command "npx" --args "-y @modelcontextprotocol/server-filesystem /path/to/project"
   ```
+  `--shared` writes it to the project's committed `.devbuddy/connectors.json`
+  instead of your own `~/.devbuddy` — see Team-shared project config below.
 - `devbuddy connector enable|disable|remove <name>` — manage connectors.
+- `devbuddy project init` — scaffold this project's team-shared
+  `.devbuddy/` directory (see Team-shared project config below).
 - `devbuddy provider list` — show configured providers and which is active.
 - `devbuddy provider use <ollama|openai|anthropic>` — switch the active
   provider.
@@ -173,14 +178,50 @@ devbuddy chat
   SQLite database under `~/.devbuddy/projects/<id>/memory.db`, keyed by a
   hash of the project's absolute path. Nothing leaves your machine.
 - **Skills**: markdown files with a small frontmatter header (`name`,
-  `description`) under `~/.devbuddy/skills/` (global) or a project's
-  `skills/` directory (project-local, overrides a global skill of the same
-  name). The agent sees the list of available skills in its system prompt
-  and calls `use_skill` to load one's full instructions on demand.
+  `description`), loaded from three places from least to most specific -
+  `~/.devbuddy/skills/` (global, this machine only), a project's committed
+  `.devbuddy/skills/` (shared with your team via git), and a project's
+  private `skills/` directory (this user only) - a more specific skill
+  overrides a same-named less specific one. The agent sees the list of
+  available skills in its system prompt and calls `use_skill` to load one's
+  full instructions on demand.
 - **Connectors (MCP client)**: DevBuddy connects to any MCP server
-  registered in `~/.devbuddy/connectors/connectors.json` and exposes its
-  tools to the agent, namespaced as `mcp__<connector>__<tool>`. Calling an
-  MCP tool goes through the same permission system as built-in tools.
+  registered in `~/.devbuddy/connectors/connectors.json` (yours) or a
+  project's committed `.devbuddy/connectors.json` (shared, overrides a
+  same-named one of yours) and exposes its tools to the agent, namespaced
+  as `mcp__<connector>__<tool>`. Calling an MCP tool goes through the same
+  permission system as built-in tools.
+
+## Team-shared project config
+
+Everything above defaults to living under your own `~/.devbuddy`, private
+to your machine. Run `devbuddy project init` in a repo to also set up a
+**project-local `.devbuddy/` directory that's meant to be committed to
+git**, so everyone who checks out the repo gets the same setup instead of
+each person reconfiguring DevBuddy from scratch:
+
+```
+devbuddy project init
+```
+
+This creates:
+
+- `.devbuddy/config.json` — non-secret defaults layered on top of your own
+  config when DevBuddy runs in this project: `provider`, `model`,
+  `systemPrompt`, `verifyCommand`, `guardrailsMode`. `devbuddy config`
+  shows you when a value is overridden this way.
+- `.devbuddy/skills/` — skills shared with the team (`devbuddy skills
+  create <name> --shared`).
+- `.devbuddy/connectors.json` — MCP connectors shared with the team
+  (`devbuddy connector add <name> --command "..." --shared`).
+
+**This directory never holds secrets.** API keys, license keys, and
+endpoint URLs always come from your own `~/.devbuddy/config.json` - the
+allowlist of keys `.devbuddy/config.json` can override doesn't include any
+of them, and a connector needing credentials should reference an
+environment variable rather than embed one. It's git-committed content, so
+treat it the same as any other file in the repo: reviewed on PRs, visible
+to everyone with repo access, and permanent in history.
 
 ## Guardrails
 
@@ -242,24 +283,29 @@ check one.
 ## Data layout
 
 ```
-~/.devbuddy/
+~/.devbuddy/                   # yours, private to this machine
 ├── config.json
-├── skills/                  # global skills
+├── skills/                    # global skills
 ├── connectors/
-│   └── connectors.json      # MCP server registry
+│   └── connectors.json        # your MCP server registry
 └── projects/
     └── <hash-of-project-path>/
         ├── meta.json
         ├── memory.db          # sessions + messages + undo checkpoints (SQLite)
-        ├── skills/             # project-level skills
+        ├── skills/             # your private per-project skills
         └── plans/              # proposed plans, as markdown
+
+<project-repo>/.devbuddy/      # committed to git, shared with your team
+├── config.json                 # non-secret overrides (see Team-shared project config)
+├── skills/                     # skills shared with the team
+└── connectors.json             # MCP connectors shared with the team
 ```
 
 ## Roadmap
 
 - Additional providers (Gemini, Bedrock, etc.) behind the same
   `ChatProvider` interface
-- `devbuddy init` — scan the project and seed memory/system prompt with
-  its language/test-runner/lint context automatically
+- Auto-detect project context (language, test runner, lint config) to seed
+  memory/system prompt automatically, instead of starting cold each session
 - Context compaction for very long chat sessions
 - Cost/budget guard — a per-session token or dollar cap for paid providers

@@ -1,8 +1,8 @@
 import { resolve } from "node:path";
 import chalk from "chalk";
-import { getConfig } from "../lib/config.js";
+import { getEffectiveConfig } from "../lib/config.js";
 import { getProvider } from "../providers/index.js";
-import { ensureProject } from "../lib/project.js";
+import { ensureProject, repoSkillsDir } from "../lib/project.js";
 import { ProjectMemory } from "../lib/memory.js";
 import { buildSystemPrompt, runAgentTurn } from "../lib/agent.js";
 import { builtinTools } from "../tools/index.js";
@@ -36,10 +36,10 @@ export async function runCommand(prompt: string, options: RunOptions): Promise<v
 
   if (options.yes) setAutoApprove(true);
 
-  const config = getConfig();
-  const model = options.model ?? config.model;
   const projectRoot = resolve(options.projectRootOverride ?? process.cwd());
-  const provider = getProvider();
+  const config = getEffectiveConfig(projectRoot);
+  const model = options.model ?? config.model;
+  const provider = getProvider(config.provider);
 
   const connected = await provider.checkConnection();
   if (!connected) {
@@ -51,13 +51,13 @@ export async function runCommand(prompt: string, options: RunOptions): Promise<v
   const paths = ensureProject(projectRoot);
   const memory = new ProjectMemory(projectRoot);
   const sessionId = memory.startSession(provider.name, model);
-  const skills = loadSkills(paths.skillsDir);
+  const skills = loadSkills(paths.skillsDir, repoSkillsDir(projectRoot));
 
   const mcpManager = new McpManager();
-  const mcpTools = await mcpManager.connectAll();
+  const mcpTools = await mcpManager.connectAll(projectRoot);
   const tools = [...builtinTools, ...mcpTools];
 
-  const systemMessage: ChatMessage = { role: "system", content: buildSystemPrompt(tools, skills) };
+  const systemMessage: ChatMessage = { role: "system", content: buildSystemPrompt(tools, skills, config.systemPrompt) };
   const userMessage: ChatMessage = { role: "user", content: prompt };
   const messages: ChatMessage[] = [systemMessage, userMessage];
   memory.addMessage(sessionId, systemMessage);
@@ -80,6 +80,7 @@ export async function runCommand(prompt: string, options: RunOptions): Promise<v
       memory,
       sessionId,
       guardrails,
+      verifyCommand: config.verifyCommand,
       onToken: (token) => {
         if (options.json) return; // JSON mode prints the final content once, not the stream
         streamedAny = true;

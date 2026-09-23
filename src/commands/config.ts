@@ -1,5 +1,15 @@
+import { resolve } from "node:path";
 import chalk from "chalk";
-import { configFilePath, getConfig, maskSecret, setConfigValue, SECRET_KEYS, type DevBuddyConfig } from "../lib/config.js";
+import {
+  configFilePath,
+  getConfig,
+  loadProjectConfigOverrides,
+  maskSecret,
+  setConfigValue,
+  SECRET_KEYS,
+  type DevBuddyConfig,
+} from "../lib/config.js";
+import { repoConfigFile } from "../lib/project.js";
 
 const SETTABLE_KEYS: (keyof DevBuddyConfig)[] = [
   "provider",
@@ -14,10 +24,20 @@ const SETTABLE_KEYS: (keyof DevBuddyConfig)[] = [
 export function configCommand(args: string[]): void {
   if (args.length === 0) {
     const config = getConfig();
+    const projectRoot = resolve(process.cwd());
+    const overrides = loadProjectConfigOverrides(projectRoot);
     console.log(chalk.bold(`Config file: ${configFilePath()}\n`));
     for (const key of SETTABLE_KEYS) {
       const isSecret = (SECRET_KEYS as string[]).includes(key);
-      console.log(`${chalk.cyan(key)}: ${isSecret ? maskSecret(config[key]) : config[key]}`);
+      const display = (v: string) => (isSecret ? maskSecret(v) : v);
+      const overridden = key in overrides;
+      console.log(
+        `${chalk.cyan(key)}: ${display(config[key])}` +
+          (overridden ? chalk.magenta(`  (project overrides to: ${display(String(overrides[key]))})`) : "")
+      );
+    }
+    if (Object.keys(overrides).length > 0) {
+      console.log(chalk.dim(`\nProject overrides come from ${repoConfigFile(projectRoot)} - these are what actually run here.`));
     }
     return;
   }

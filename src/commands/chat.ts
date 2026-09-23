@@ -2,9 +2,9 @@ import { createInterface } from "node:readline/promises";
 import { resolve } from "node:path";
 import chalk from "chalk";
 import ora from "ora";
-import { getConfig } from "../lib/config.js";
+import { getEffectiveConfig } from "../lib/config.js";
 import { getProvider } from "../providers/index.js";
-import { ensureProject } from "../lib/project.js";
+import { ensureProject, repoSkillsDir } from "../lib/project.js";
 import { ProjectMemory } from "../lib/memory.js";
 import { buildSystemPrompt, runAgentTurn } from "../lib/agent.js";
 import { builtinTools } from "../tools/index.js";
@@ -19,10 +19,10 @@ import type { ChatMessage } from "../providers/index.js";
 export async function chatCommand(options: { model?: string }): Promise<void> {
   printBanner();
 
-  const config = getConfig();
-  const model = options.model ?? config.model;
   const projectRoot = resolve(process.cwd());
-  const provider = getProvider();
+  const config = getEffectiveConfig(projectRoot);
+  const model = options.model ?? config.model;
+  const provider = getProvider(config.provider);
 
   const connected = await provider.checkConnection();
   if (!connected) {
@@ -50,13 +50,13 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
   const paths = ensureProject(projectRoot);
   const memory = new ProjectMemory(projectRoot);
   const sessionId = memory.startSession(provider.name, model);
-  const skills = loadSkills(paths.skillsDir);
+  const skills = loadSkills(paths.skillsDir, repoSkillsDir(projectRoot));
 
   const mcpManager = new McpManager();
-  const mcpTools = await mcpManager.connectAll();
+  const mcpTools = await mcpManager.connectAll(projectRoot);
   const tools = [...builtinTools, ...mcpTools];
 
-  let messages: ChatMessage[] = [{ role: "system", content: buildSystemPrompt(tools, skills) }];
+  let messages: ChatMessage[] = [{ role: "system", content: buildSystemPrompt(tools, skills, config.systemPrompt) }];
   memory.addMessage(sessionId, messages[0]);
 
   // Guardrails (PII/secret masking or blocking before AI calls) are a Pro
@@ -111,6 +111,7 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
           memory,
           sessionId,
           guardrails,
+          verifyCommand: config.verifyCommand,
           onToken: (token) => {
             if (spinner.isSpinning) spinner.stop();
             printedAny = true;

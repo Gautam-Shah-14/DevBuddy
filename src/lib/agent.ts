@@ -31,8 +31,8 @@ call a tool by responding with ONLY a single fenced block, nothing else:
 Wait for the tool result before continuing. Never fabricate tool results yourself.
 `;
 
-export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[]): string {
-  const { systemPrompt } = getConfig();
+export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[], systemPrompt?: string): string {
+  const effectiveSystemPrompt = systemPrompt ?? getConfig().systemPrompt;
   const toolList = tools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
   const skillList =
     skills.length > 0
@@ -40,7 +40,7 @@ export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[]): str
         skills.map((s) => `- ${s.name}: ${s.description}`).join("\n")
       : "";
   return [
-    systemPrompt,
+    effectiveSystemPrompt,
     "",
     "You have access to the following tools:",
     toolList,
@@ -75,6 +75,9 @@ export interface RunAgentTurnOptions {
   memory: ProjectMemory;
   sessionId: number;
   guardrails?: GuardrailsEngine;
+  /** Overrides getConfig().verifyCommand - callers that resolve an effective,
+   *  project-config-aware verifyCommand should pass it through here. */
+  verifyCommand?: string;
   onToken: (token: string) => void;
   onToolStart?: (name: string, args: Record<string, unknown>) => void;
   onToolResult?: (name: string, result: string) => void;
@@ -97,7 +100,7 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
   const messages = [...opts.messages];
   const toolSpecs = tools.map(toOllamaToolSpec);
   const getTool = (name: string) => tools.find((t) => t.name === name);
-  const verifyCommand = detectVerifyCommand(projectRoot, getConfig().verifyCommand);
+  const verifyCommand = detectVerifyCommand(projectRoot, opts.verifyCommand ?? getConfig().verifyCommand);
   let filesMutatedSinceVerify = false;
   let verifyAttempts = 0;
 

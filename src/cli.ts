@@ -18,6 +18,7 @@ import { historyCommand } from "./commands/history.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { undoCommand } from "./commands/undo.js";
 import { runCommand } from "./commands/run.js";
+import { projectCommand } from "./commands/project.js";
 import { printBanner } from "./lib/banner.js";
 
 if (process.argv.length <= 2) printBanner();
@@ -126,5 +127,10 @@ program
   .option("-m, --model <model>", "Ollama model to use (overrides config default)")
   .option("--json", 'Print {sessionId, model, provider, content} as JSON instead of streaming plain text')
   .action((prompt: string, options: { yes?: boolean; model?: string; json?: boolean }) => runCommand(prompt, options));
+
+program
+  .command("project [action]")
+  .description("Set up this project's team-shared .devbuddy/ directory (project init)")
+  .action((action?: string) => projectCommand([action].filter((v): v is string => v !== undefined)));
 
 program.parseAsync(process.argv);

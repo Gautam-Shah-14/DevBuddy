@@ -1,9 +1,9 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import chalk from "chalk";
-import { configFilePath, getConfig } from "../lib/config.js";
+import { configFilePath, getConfig, getEffectiveConfig, type DevBuddyConfig } from "../lib/config.js";
 import { devbuddyHome } from "../lib/project.js";
 import { getPlan } from "../lib/license.js";
 import { OllamaProvider } from "../providers/ollama.js";
@@ -108,8 +108,11 @@ async function checkSearchTooling(): Promise<CheckResult> {
   };
 }
 
-async function checkProvider(name: "ollama" | "openai" | "anthropic", isActive: boolean): Promise<CheckResult> {
-  const config = getConfig();
+async function checkProvider(
+  name: "ollama" | "openai" | "anthropic",
+  isActive: boolean,
+  config: DevBuddyConfig = getConfig()
+): Promise<CheckResult> {
   const label = `provider: ${name}${isActive ? " (active)" : ""}`;
 
   if (name === "ollama") {
@@ -142,8 +145,7 @@ async function checkProvider(name: "ollama" | "openai" | "anthropic", isActive: 
   };
 }
 
-export function checkLicense(): CheckResult {
-  const config = getConfig();
+export function checkLicense(config: DevBuddyConfig = getConfig()): CheckResult {
   const plan = getPlan();
   const guardrails = config.guardrailsMode !== "off" ? `, guardrails: ${config.guardrailsMode}` : "";
   return { label: "License/plan", status: "ok", detail: `${plan}${guardrails}` };
@@ -151,7 +153,8 @@ export function checkLicense(): CheckResult {
 
 export async function doctorCommand(): Promise<void> {
   console.log(chalk.bold("DevBuddy doctor\n"));
-  const config = getConfig();
+  const projectRoot = resolve(process.cwd());
+  const config = getEffectiveConfig(projectRoot);
 
   const checks = await Promise.all([
     checkNode(),
@@ -160,10 +163,10 @@ export async function doctorCommand(): Promise<void> {
     checkDiskSpace(),
     checkGit(),
     checkSearchTooling(),
-    checkProvider("ollama", config.provider === "ollama"),
-    checkProvider("openai", config.provider === "openai"),
-    checkProvider("anthropic", config.provider === "anthropic"),
-    checkLicense(),
+    checkProvider("ollama", config.provider === "ollama", config),
+    checkProvider("openai", config.provider === "openai", config),
+    checkProvider("anthropic", config.provider === "anthropic", config),
+    checkLicense(config),
   ]);
 
   for (const c of checks) {
