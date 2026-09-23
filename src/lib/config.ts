@@ -17,6 +17,9 @@ export interface DevBuddyConfig {
   anthropicBaseUrl: string; // Anthropic Messages API endpoint
   licenseKey: string; // empty = free plan; a valid signed key unlocks Pro features
   guardrailsMode: GuardrailsMode; // Pro-only: PII/secret masking or blocking before AI calls
+  /** Command run after the agent edits files, to self-verify the change. Empty = auto-detect
+   *  `npm test` from package.json; "off" disables verification entirely. */
+  verifyCommand: string;
 }
 
 /** Config keys whose values should never be printed in full (API keys, secrets). */
@@ -34,6 +37,7 @@ const DEFAULT_CONFIG: DevBuddyConfig = {
   anthropicBaseUrl: "https://api.anthropic.com/v1",
   licenseKey: "",
   guardrailsMode: "off",
+  verifyCommand: "",
 };
 
 const CONFIG_DIR = join(homedir(), ".devbuddy");

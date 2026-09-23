@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { dirname } from "node:path";
 import { requestPermission } from "../lib/permissions.js";
 import { resolveInSandbox } from "../lib/sandbox.js";
+import { formatDiff } from "../lib/diff.js";
 import type { ToolDefinition } from "./types.js";
 
 export const readFileTool: ToolDefinition = {
@@ -33,13 +34,16 @@ export const writeFileTool: ToolDefinition = {
   async execute(args, ctx) {
     const path = resolveInSandbox(ctx.projectRoot, String(args.path));
     const isNew = !existsSync(path);
+    const newContent = String(args.content);
+    const oldContent = isNew ? "" : readFileSync(path, "utf-8");
     await requestPermission({
       category: "write",
       description: `${isNew ? "Create" : "Overwrite"} file: ${args.path}`,
+      diff: formatDiff(oldContent, newContent),
     });
     mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, String(args.content));
-    return `Wrote ${String(args.content).length} bytes to ${args.path}`;
+    writeFileSync(path, newContent);
+    return `Wrote ${newContent.length} bytes to ${args.path}`;
   },
 };
 
@@ -65,8 +69,9 @@ export const editFileTool: ToolDefinition = {
     if (occurrences === 0) return `Error: old_string not found in ${args.path}`;
     if (occurrences > 1) return `Error: old_string matches ${occurrences} times in ${args.path}, must be unique`;
 
-    await requestPermission({ category: "write", description: `Edit file: ${args.path}` });
-    writeFileSync(path, content.replace(oldStr, String(args.new_string)));
+    const newContent = content.replace(oldStr, String(args.new_string));
+    await requestPermission({ category: "write", description: `Edit file: ${args.path}`, diff: formatDiff(content, newContent) });
+    writeFileSync(path, newContent);
     return `Edited ${args.path}`;
   },
 };
@@ -82,7 +87,12 @@ export const deleteFileTool: ToolDefinition = {
   async execute(args, ctx) {
     const path = resolveInSandbox(ctx.projectRoot, String(args.path));
     if (!existsSync(path)) return `Error: file not found: ${args.path}`;
-    await requestPermission({ category: "delete", description: `Delete file: ${args.path}` });
+    const content = readFileSync(path, "utf-8");
+    await requestPermission({
+      category: "delete",
+      description: `Delete file: ${args.path}`,
+      diff: formatDiff(content, ""),
+    });
     rmSync(path);
     return `Deleted ${args.path}`;
   },

@@ -9,8 +9,16 @@ import { SandboxViolation } from "./sandbox.js";
 import { PermissionDenied } from "./permissions.js";
 import type { Skill } from "./skills.js";
 import { GuardrailsBlocked, type GuardrailsEngine } from "./guardrails/engine.js";
+import { detectVerifyCommand, runVerification, MUTATING_TOOLS, type VerifyResult } from "./verify.js";
 
 const MAX_TOOL_ITERATIONS = 15;
+const MAX_VERIFY_ATTEMPTS = 2;
+
+export interface VerifyEvent {
+  command: string;
+  status: "running" | "passed" | "failed";
+  output?: string;
+}
 
 const REACT_FALLBACK_INSTRUCTIONS = `
 If your model runtime does not support structured tool calling, you may instead
@@ -70,6 +78,7 @@ export interface RunAgentTurnOptions {
   onToken: (token: string) => void;
   onToolStart?: (name: string, args: Record<string, unknown>) => void;
   onToolResult?: (name: string, result: string) => void;
+  onVerify?: (event: VerifyEvent) => void;
 }
 
 /**
@@ -88,6 +97,9 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
   const messages = [...opts.messages];
   const toolSpecs = tools.map(toOllamaToolSpec);
   const getTool = (name: string) => tools.find((t) => t.name === name);
+  const verifyCommand = detectVerifyCommand(projectRoot, getConfig().verifyCommand);
+  let filesMutatedSinceVerify = false;
+  let verifyAttempts = 0;
 
   for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
     // Guardrails apply at the boundary right before content leaves the
@@ -145,6 +157,25 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
     );
 
     if (toolCalls.length === 0) {
+      if (verifyCommand && filesMutatedSinceVerify && verifyAttempts < MAX_VERIFY_ATTEMPTS) {
+        verifyAttempts++;
+        filesMutatedSinceVerify = false;
+        opts.onVerify?.({ command: verifyCommand, status: "running" });
+        const verifyResult: VerifyResult = await runVerification(projectRoot, verifyCommand);
+        opts.onVerify?.({ command: verifyCommand, status: verifyResult.passed ? "passed" : "failed", output: verifyResult.output });
+
+        if (!verifyResult.passed) {
+          const feedback: ChatMessage = {
+            role: "user",
+            content:
+              `Self-verification failed. Running \`${verifyCommand}\` after your changes produced:\n\n` +
+              `${verifyResult.output}\n\nFix the issue, then give your final answer again.`,
+          };
+          messages.push(feedback);
+          memory.addMessage(sessionId, feedback);
+          continue;
+        }
+      }
       return { content: restoredContent, messages };
     }
 
@@ -171,6 +202,10 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
             resultText = `Error running ${call.function.name}: ${(err as Error).message}`;
           }
         }
+      }
+
+      if (MUTATING_TOOLS.has(call.function.name) && !resultText.startsWith("Error")) {
+        filesMutatedSinceVerify = true;
       }
 
       opts.onToolResult?.(call.function.name, resultText);

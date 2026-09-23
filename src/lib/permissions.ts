@@ -31,6 +31,7 @@ export type PermissionCategory = "shell" | "write" | "delete" | "git_push" | "ne
 export interface PermissionRequest {
   category: PermissionCategory;
   description: string; // human-readable summary of the exact action, e.g. the shell command
+  diff?: string | null; // pre-rendered, colored diff to show before the confirm prompt
 }
 
 /**
@@ -67,6 +68,7 @@ export async function requestPermission(req: PermissionRequest): Promise<void> {
 
   console.log(chalk.yellow(`\nDevBuddy wants to perform a ${chalk.bold(req.category)} action:`));
   console.log(chalk.dim(req.description));
+  if (req.diff) console.log(`\n${req.diff}\n`);
   const canRemember = !ALWAYS_CONFIRM.has(req.category);
   const prompt = canRemember
     ? "Allow? [y]es / [n]o / [a]lways this session: "
