@@ -26,7 +26,7 @@ async function ask(prompt: string): Promise<string> {
   }
 }
 
-export type PermissionCategory = "shell" | "write" | "delete" | "git_push" | "network" | "mcp";
+export type PermissionCategory = "shell" | "write" | "delete" | "git_push" | "network" | "mcp" | "mcp_connect";
 
 export interface PermissionRequest {
   category: PermissionCategory;
