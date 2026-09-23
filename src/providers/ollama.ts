@@ -5,6 +5,9 @@ interface OllamaChatChunk {
   message?: { role: string; content: string; tool_calls?: ToolCall[] };
   done: boolean;
   error?: string;
+  // Present on the final chunk (done: true) - exact token counts for this turn.
+  prompt_eval_count?: number;
+  eval_count?: number;
 }
 
 interface OllamaTagsResponse {
@@ -60,6 +63,7 @@ export class OllamaProvider implements ChatProvider {
     let buffer = "";
     let full = "";
     let toolCalls: ToolCall[] = [];
+    let usage: { promptTokens?: number; completionTokens?: number } | undefined;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -81,9 +85,12 @@ export class OllamaProvider implements ChatProvider {
         if (chunk.message?.tool_calls?.length) {
           toolCalls = chunk.message.tool_calls;
         }
+        if (chunk.done && (chunk.prompt_eval_count !== undefined || chunk.eval_count !== undefined)) {
+          usage = { promptTokens: chunk.prompt_eval_count, completionTokens: chunk.eval_count };
+        }
       }
     }
 
-    return { content: full, toolCalls };
+    return { content: full, toolCalls, usage };
   }
 }

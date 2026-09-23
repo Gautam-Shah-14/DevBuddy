@@ -49,7 +49,7 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
 
   const paths = ensureProject(projectRoot);
   const memory = new ProjectMemory(projectRoot);
-  const sessionId = memory.startSession();
+  const sessionId = memory.startSession(provider.name, model);
   const skills = loadSkills(paths.skillsDir);
 
   const mcpManager = new McpManager();

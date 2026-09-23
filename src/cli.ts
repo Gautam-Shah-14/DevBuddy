@@ -13,6 +13,7 @@ import { connectorsCommand } from "./commands/connectors.js";
 import { providerCommand } from "./commands/provider.js";
 import { licenseCommand } from "./commands/license.js";
 import { guardrailsCommand } from "./commands/guardrails.js";
+import { statsCommand } from "./commands/stats.js";
 import { printBanner } from "./lib/banner.js";
 
 if (process.argv.length <= 2) printBanner();
@@ -84,5 +85,11 @@ program
     const args = [action, value].filter((v): v is string => v !== undefined);
     guardrailsCommand(args);
   });
+
+program
+  .command("stats")
+  .description("Show session/message/token counts for the current project (or --all for every project)")
+  .option("--all", "Show stats across every project DevBuddy has been used in")
+  .action((options) => statsCommand(options));
 
 program.parseAsync(process.argv);

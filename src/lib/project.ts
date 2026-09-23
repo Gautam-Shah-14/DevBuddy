@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -62,6 +62,34 @@ export function ensureProject(absPath: string): ProjectPaths {
   }
   writeFileSync(paths.metaFile, JSON.stringify(meta, null, 2));
   return paths;
+}
+
+/** Every project DevBuddy has ever been opened in, with its stored paths, for cross-project reporting. */
+export function listAllProjects(): { meta: ProjectMeta; paths: ProjectPaths }[] {
+  const projectsDir = join(DEVBUDDY_HOME, "projects");
+  if (!existsSync(projectsDir)) return [];
+
+  const results: { meta: ProjectMeta; paths: ProjectPaths }[] = [];
+  for (const id of readdirSync(projectsDir)) {
+    const metaFile = join(projectsDir, id, "meta.json");
+    if (!existsSync(metaFile)) continue;
+    try {
+      const meta = JSON.parse(readFileSync(metaFile, "utf-8")) as ProjectMeta;
+      results.push({
+        meta,
+        paths: {
+          root: join(projectsDir, id),
+          metaFile,
+          dbFile: join(projectsDir, id, "memory.db"),
+          skillsDir: join(projectsDir, id, "skills"),
+          plansDir: join(projectsDir, id, "plans"),
+        },
+      });
+    } catch {
+      continue; // corrupt meta.json - skip
+    }
+  }
+  return results;
 }
 
 export function globalSkillsDir(): string {

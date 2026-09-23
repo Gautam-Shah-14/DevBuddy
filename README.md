@@ -67,6 +67,10 @@ npm test
 - `devbuddy license status|set <key>|remove` — manage your Pro license.
 - `devbuddy guardrails status|set <off|mask|block>` — manage PII/secret
   guardrails (Pro feature, see below).
+- `devbuddy stats [--all]` — session/message/token counts for the current
+  project, or every project with `--all`. Token counts are exact when the
+  provider reports usage (Ollama always does; OpenAI-compatible endpoints
+  usually do), and estimated from content length otherwise.
 
 ## Providers
 

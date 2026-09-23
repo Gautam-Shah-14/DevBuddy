@@ -126,7 +126,12 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
 
     const assistantMessage: ChatMessage = { role: "assistant", content: restoredContent };
     messages.push(assistantMessage);
-    memory.addMessage(sessionId, assistantMessage, toolCalls.length ? JSON.stringify(toolCalls) : undefined);
+    memory.addMessage(
+      sessionId,
+      assistantMessage,
+      toolCalls.length ? JSON.stringify(toolCalls) : undefined,
+      result.usage
+    );
 
     if (toolCalls.length === 0) {
       return { content: restoredContent, messages };

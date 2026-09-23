@@ -16,6 +16,8 @@ interface OpenAiChunk {
     delta?: { content?: string; tool_calls?: StreamingToolCallDelta[] };
     finish_reason?: string | null;
   }[];
+  // Present on the final chunk only when the request set stream_options.include_usage.
+  usage?: { prompt_tokens?: number; completion_tokens?: number };
   error?: { message: string };
 }
 
@@ -65,7 +67,15 @@ export class OpenAiProvider implements ChatProvider {
       res = await fetch(`${this.baseUrl()}/chat/completions`, {
         method: "POST",
         headers: this.headers(),
-        body: JSON.stringify({ model, messages, tools, stream: true }),
+        body: JSON.stringify({
+          model,
+          messages,
+          tools,
+          stream: true,
+          // Ask for exact token usage on the final chunk - most OpenAI-compatible
+          // endpoints support this; ones that don't just ignore the field.
+          stream_options: { include_usage: true },
+        }),
       });
     } catch (err) {
       throw new ProviderError(`Could not reach ${this.baseUrl()}: ${(err as Error).message}`);
@@ -82,6 +92,7 @@ export class OpenAiProvider implements ChatProvider {
     let full = "";
     // OpenAI streams tool call arguments as incremental string fragments keyed by index.
     const toolCallAccum = new Map<number, { id: string; name: string; args: string }>();
+    let usage: { promptTokens?: number; completionTokens?: number } | undefined;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -99,6 +110,10 @@ export class OpenAiProvider implements ChatProvider {
 
         const chunk = JSON.parse(payload) as OpenAiChunk;
         if (chunk.error) throw new ProviderError(chunk.error.message);
+
+        if (chunk.usage) {
+          usage = { promptTokens: chunk.usage.prompt_tokens, completionTokens: chunk.usage.completion_tokens };
+        }
 
         const delta = chunk.choices?.[0]?.delta;
         if (delta?.content) {
@@ -125,6 +140,6 @@ export class OpenAiProvider implements ChatProvider {
       return { function: { name: tc.name, arguments: args } };
     });
 
-    return { content: full, toolCalls };
+    return { content: full, toolCalls, usage };
   }
 }

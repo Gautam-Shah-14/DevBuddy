@@ -28,9 +28,16 @@ export interface StreamChatOptions {
   onToken?: (token: string) => void;
 }
 
+export interface TokenUsage {
+  promptTokens?: number;
+  completionTokens?: number;
+}
+
 export interface StreamChatResult {
   content: string;
   toolCalls: ToolCall[];
+  /** Exact token counts when the provider reports them (Ollama always does; not every OpenAI-compatible endpoint does). */
+  usage?: TokenUsage;
 }
 
 export class ProviderError extends Error {}
