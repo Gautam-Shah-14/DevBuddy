@@ -11,9 +11,12 @@ import { builtinTools } from "../tools/index.js";
 import { loadSkills } from "../lib/skills.js";
 import { McpManager } from "../lib/mcp.js";
 import { setSharedReadline } from "../lib/permissions.js";
+import { printBanner } from "../lib/banner.js";
 import type { ChatMessage } from "../providers/index.js";
 
 export async function chatCommand(options: { model?: string }): Promise<void> {
+  printBanner();
+
   const config = getConfig();
   const model = options.model ?? config.model;
   const projectRoot = resolve(process.cwd());
@@ -54,7 +57,7 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
   let messages: ChatMessage[] = [{ role: "system", content: buildSystemPrompt(tools, skills) }];
   memory.addMessage(sessionId, messages[0]);
 
-  console.log(chalk.bold(`\nDevBuddy — ${model} (via ${provider.name})`));
+  console.log(chalk.dim(`Model: ${model} (via ${provider.name})`));
   console.log(chalk.dim(`Project: ${projectRoot}`));
   console.log(chalk.dim(`Type your request, or "exit" to quit.\n`));
 

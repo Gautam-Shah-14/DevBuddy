@@ -11,6 +11,9 @@ import { modelsCommand } from "./commands/models.js";
 import { skillsCommand } from "./commands/skills.js";
 import { connectorsCommand } from "./commands/connectors.js";
 import { providerCommand } from "./commands/provider.js";
+import { printBanner } from "./lib/banner.js";
+
+if (process.argv.length <= 2) printBanner();
 
 const program = new Command();
 

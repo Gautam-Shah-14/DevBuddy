@@ -1,6 +1,12 @@
 <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-  <defs><linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stop-color="#7FD1FF"/><stop offset="55%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#4C1D95"/>
-  </linearGradient></defs>
-  <path d="M112,16 C138,44 150,74 142,100 C138,112 126,118 126,118 C132,104 128,90 116,80 C116,96 108,106 108,106 C100,92 100,78 108,66 C82,80 68,106 76,132 C84,158 110,174 138,168 C166,162 184,138 178,110 C175,96 164,86 164,86 C168,100 164,112 164,112 C156,98 154,82 162,68 C144,48 128,30 112,16 Z" fill="url(#fg)"/>
+  <defs>
+    <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8FE1FF"/><stop offset="50%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#5B21B6"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <path filter="url(#glow)" d="M120,18 C156,54 178,96 170,134 C163,180 125,210 86,202 C50,193 29,161 36,125 C42,96 62,70 86,46 C91,65 96,84 89,103 C108,86 118,58 120,18 Z" fill="url(#fg)"/>
 </svg>

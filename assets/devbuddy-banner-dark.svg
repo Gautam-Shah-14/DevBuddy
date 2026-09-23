@@ -1,0 +1,22 @@
+<svg viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8FE1FF"/><stop offset="50%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#5B21B6"/>
+    </linearGradient>
+    <linearGradient id="border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.5"/><stop offset="100%" stop-color="#5B21B6" stop-opacity="0.2"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="1" y="1" width="898" height="218" rx="20" fill="#0B0B0D" stroke="url(#border)" stroke-width="1.5"/>
+  <g transform="translate(50,44) scale(0.55)">
+    <path filter="url(#glow)" d="M120,18 C156,54 178,96 170,134 C163,180 125,210 86,202 C50,193 29,161 36,125 C42,96 62,70 86,46 C91,65 96,84 89,103 C108,86 118,58 120,18 Z" fill="url(#fg)"/>
+  </g>
+  <text x="200" y="128" font-family="'Segoe UI', Helvetica, Arial, sans-serif" font-weight="700" font-size="72">
+    <tspan fill="#F5F5F7">Dev</tspan><tspan fill="url(#fg)">Buddy</tspan>
+  </text>
+  <text x="203" y="164" font-family="'Segoe UI', Helvetica, Arial, sans-serif" font-weight="500" font-size="20" letter-spacing="1" fill="#9AA1AC">Local-first CLI developer agent · by TokenBurners</text>
+</svg>
