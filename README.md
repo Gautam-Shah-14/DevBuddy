@@ -33,6 +33,13 @@ npm run build
 node dist/cli.js chat
 ```
 
+Run the test suite (Node's built-in test runner via `tsx`, no extra test
+framework dependency):
+
+```
+npm test
+```
+
 ## Commands
 
 - `devbuddy chat` — start an interactive agent session in the current
