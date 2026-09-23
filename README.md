@@ -68,7 +68,7 @@ Not yet published. Once it is:
 
 ```sh
 npm install -g @tokenburners/devbuddy
-devbuddy chat
+devbuddy
 ```
 
 The package is scoped as `@tokenburners/devbuddy` (the unscoped name
@@ -80,7 +80,7 @@ command itself is still just `devbuddy`. Until it's published, see
 
 ```sh
 devbuddy doctor        # sanity-check your setup (Node, Ollama, git, disk space)
-devbuddy chat          # start talking to your codebase
+devbuddy               # start talking to your codebase
 ```
 
 Want a hosted model instead of local Ollama?
@@ -89,7 +89,7 @@ Want a hosted model instead of local Ollama?
 devbuddy provider set-key anthropic sk-ant-...
 devbuddy provider use anthropic
 devbuddy config set model claude-sonnet-5
-devbuddy chat
+devbuddy
 ```
 
 ## Commands
@@ -98,10 +98,10 @@ devbuddy chat
 
 | Command | Description |
 |---|---|
-| `devbuddy chat` | Start a new interactive agent session in the current project. |
-| `devbuddy -c` / `devbuddy chat -c` | Continue the most recently used session in this project. |
-| `devbuddy -r` / `devbuddy chat -r` | Pick a session to resume from a list of recent ones. |
-| `devbuddy -r <id>` / `devbuddy chat -r <id>` | Resume that specific session directly (see `history list` for ids). |
+| `devbuddy` | Start a new interactive agent session in the current project. |
+| `devbuddy -c` | Continue the most recently used session in this project. |
+| `devbuddy -r` | Pick a session to resume from a list of recent ones. |
+| `devbuddy -r <id>` | Resume that specific session directly (see `history list` for ids). |
 | `/compact` *(inside chat)* | Summarize older history now, instead of waiting for auto-compaction. |
 | `devbuddy run "<prompt>" [--yes] [--model <m>] [--json]` | One-shot, non-interactive agent turn for scripts/CI/pre-commit hooks. Read-only tasks need no flags; anything that writes, deletes, runs a shell command, or pushes needs `--yes` to auto-approve. `--json` prints `{ sessionId, model, provider, content }` for piping into other tools. |
 
@@ -229,7 +229,7 @@ has streamed back, so you never see duplicated or truncated output.
   which tool, its arguments, pass/fail, and (for skills/connectors) which
   one — so `devbuddy stats`/`history show` can tell you what actually
   happened in a session, useful when picking a project back up later.
-- **Session resume** — `devbuddy chat` starts fresh by default, but
+- **Session resume** — plain `devbuddy` starts fresh by default, but
   `-c`/`--continue` and `-r`/`--resume` reopen a past session with its
   full transcript loaded back in, appending to that same session rather
   than starting a new one, so `history show <id>` keeps showing one
