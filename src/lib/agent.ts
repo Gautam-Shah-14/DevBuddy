@@ -4,9 +4,11 @@ import type { ChatMessage, OllamaToolCall } from "./ollama.js";
 import { streamChat } from "./ollama.js";
 import type { ProjectMemory } from "./memory.js";
 import type { ProjectPaths } from "./project.js";
-import { builtinTools, getTool, toOllamaToolSpec } from "../tools/index.js";
+import type { ToolDefinition } from "../tools/index.js";
+import { toOllamaToolSpec } from "../tools/index.js";
 import { SandboxViolation } from "./sandbox.js";
 import { PermissionDenied } from "./permissions.js";
+import type { Skill } from "./skills.js";
 
 const MAX_TOOL_ITERATIONS = 15;
 
@@ -21,14 +23,20 @@ call a tool by responding with ONLY a single fenced block, nothing else:
 Wait for the tool result before continuing. Never fabricate tool results yourself.
 `;
 
-export function buildSystemPrompt(): string {
+export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[]): string {
   const { systemPrompt } = getConfig();
-  const toolList = builtinTools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
+  const toolList = tools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
+  const skillList =
+    skills.length > 0
+      ? `\nAvailable skills (call use_skill with the exact name to load one before following it):\n` +
+        skills.map((s) => `- ${s.name}: ${s.description}`).join("\n")
+      : "";
   return [
     systemPrompt,
     "",
     "You have access to the following tools:",
     toolList,
+    skillList,
     REACT_FALLBACK_INSTRUCTIONS,
     "",
     "For any large or multi-step task (new feature, refactor, migration), call propose_plan " +
@@ -51,6 +59,8 @@ function parseReactToolCall(content: string): OllamaToolCall | null {
 export interface RunAgentTurnOptions {
   model: string;
   messages: ChatMessage[];
+  tools: ToolDefinition[];
+  skills: Skill[];
   projectRoot: string;
   projectPaths: ProjectPaths;
   memory: ProjectMemory;
@@ -72,9 +82,10 @@ export interface AgentTurnResult {
 }
 
 export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurnResult> {
-  const { model, projectRoot, projectPaths, memory, sessionId } = opts;
+  const { model, projectRoot, projectPaths, memory, sessionId, tools, skills } = opts;
   const messages = [...opts.messages];
-  const toolSpecs = builtinTools.map(toOllamaToolSpec);
+  const toolSpecs = tools.map(toOllamaToolSpec);
+  const getTool = (name: string) => tools.find((t) => t.name === name);
 
   for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
     const result = await streamChat({ model, messages, tools: toolSpecs, onToken: opts.onToken });
@@ -109,6 +120,7 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
             projectPaths,
             memory,
             sessionId,
+            skills,
           });
         } catch (err) {
           if (err instanceof SandboxViolation || err instanceof PermissionDenied) {

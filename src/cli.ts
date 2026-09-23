@@ -8,6 +8,8 @@ import { Command } from "commander";
 import { chatCommand } from "./commands/chat.js";
 import { configCommand } from "./commands/config.js";
 import { modelsCommand } from "./commands/models.js";
+import { skillsCommand } from "./commands/skills.js";
+import { connectorsCommand } from "./commands/connectors.js";
 
 const program = new Command();
 
@@ -33,6 +35,24 @@ program
   .action((action?: string, key?: string, value?: string) => {
     const args = [action, key, value].filter((v): v is string => v !== undefined);
     configCommand(args);
+  });
+
+program
+  .command("skills [action] [name] [flags...]")
+  .description("List or create skills (e.g. skills create my-skill [--project])")
+  .allowUnknownOption()
+  .action((action?: string, name?: string, flags: string[] = []) => {
+    const args = [action, name, ...flags].filter((v): v is string => v !== undefined);
+    skillsCommand(args);
+  });
+
+program
+  .command("connector [action] [name] [flags...]")
+  .description("Manage MCP connectors (list/add/remove/enable/disable)")
+  .allowUnknownOption()
+  .action((action?: string, name?: string, flags: string[] = []) => {
+    const args = [action, name, ...flags].filter((v): v is string => v !== undefined);
+    connectorsCommand(args);
   });
 
 program.parseAsync(process.argv);

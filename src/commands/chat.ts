@@ -4,9 +4,13 @@ import chalk from "chalk";
 import ora from "ora";
 import { getConfig } from "../lib/config.js";
 import { checkConnection, listModels } from "../lib/ollama.js";
-import { ensureProject, projectPaths } from "../lib/project.js";
+import { ensureProject } from "../lib/project.js";
 import { ProjectMemory } from "../lib/memory.js";
 import { buildSystemPrompt, runAgentTurn } from "../lib/agent.js";
+import { builtinTools } from "../tools/index.js";
+import { loadSkills } from "../lib/skills.js";
+import { McpManager } from "../lib/mcp.js";
+import { setSharedReadline } from "../lib/permissions.js";
 import type { ChatMessage } from "../lib/ollama.js";
 
 export async function chatCommand(options: { model?: string }): Promise<void> {
@@ -36,8 +40,13 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
   const paths = ensureProject(projectRoot);
   const memory = new ProjectMemory(projectRoot);
   const sessionId = memory.startSession();
+  const skills = loadSkills(paths.skillsDir);
 
-  let messages: ChatMessage[] = [{ role: "system", content: buildSystemPrompt() }];
+  const mcpManager = new McpManager();
+  const mcpTools = await mcpManager.connectAll();
+  const tools = [...builtinTools, ...mcpTools];
+
+  let messages: ChatMessage[] = [{ role: "system", content: buildSystemPrompt(tools, skills) }];
   memory.addMessage(sessionId, messages[0]);
 
   console.log(chalk.bold(`\nDevBuddy — ${model} (local via Ollama)`));
@@ -45,6 +54,7 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
   console.log(chalk.dim(`Type your request, or "exit" to quit.\n`));
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
+  setSharedReadline(rl);
 
   try {
     while (true) {
@@ -71,6 +81,8 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
         const turn = await runAgentTurn({
           model,
           messages,
+          tools,
+          skills,
           projectRoot,
           projectPaths: paths,
           memory,
@@ -101,9 +113,11 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
       }
     }
   } finally {
+    setSharedReadline(null);
     rl.close();
     memory.endSession(sessionId);
     memory.close();
+    await mcpManager.disconnectAll();
   }
 
   console.log(chalk.dim("Session saved. Goodbye."));

@@ -38,6 +38,16 @@ node dist/cli.js chat
 - `devbuddy config` — view current configuration.
 - `devbuddy config set <key> <value>` — set `host`, `model`, or
   `systemPrompt`.
+- `devbuddy skills` — list available skills.
+- `devbuddy skills create <name> [--project]` — scaffold a new skill
+  (global by default, or project-local with `--project`).
+- `devbuddy connector list` — list configured MCP connectors.
+- `devbuddy connector add <name> --command "<cmd>" [--args "a b c"] [--env KEY=VALUE]`
+  — register an MCP server, e.g.:
+  ```
+  devbuddy connector add filesystem --command "npx" --args "-y @modelcontextprotocol/server-filesystem /path/to/project"
+  ```
+- `devbuddy connector enable|disable|remove <name>` — manage connectors.
 
 ## How it works
 
@@ -58,26 +68,33 @@ node dist/cli.js chat
 - **Local memory**: conversation history is stored per-project in a plain
   SQLite database under `~/.devbuddy/projects/<id>/memory.db`, keyed by a
   hash of the project's absolute path. Nothing leaves your machine.
+- **Skills**: markdown files with a small frontmatter header (`name`,
+  `description`) under `~/.devbuddy/skills/` (global) or a project's
+  `skills/` directory (project-local, overrides a global skill of the same
+  name). The agent sees the list of available skills in its system prompt
+  and calls `use_skill` to load one's full instructions on demand.
+- **Connectors (MCP client)**: DevBuddy connects to any MCP server
+  registered in `~/.devbuddy/connectors/connectors.json` and exposes its
+  tools to the agent, namespaced as `mcp__<connector>__<tool>`. Calling an
+  MCP tool goes through the same permission system as built-in tools.
 
 ## Data layout
 
 ```
 ~/.devbuddy/
 ├── config.json
-├── skills/                  # global skills (planned)
-├── connectors/               # MCP server registry (planned)
+├── skills/                  # global skills
+├── connectors/
+│   └── connectors.json      # MCP server registry
 └── projects/
     └── <hash-of-project-path>/
         ├── meta.json
         ├── memory.db          # sessions + messages (SQLite)
-        ├── skills/             # project-level skills (planned)
+        ├── skills/             # project-level skills
         └── plans/              # proposed plans, as markdown
 ```
 
 ## Roadmap
 
-- Skills system (local markdown-based instruction bundles, global + per-project)
-- MCP client support, so any MCP server (GitHub, filesystem, Slack, etc.)
-  becomes available as tools
 - Pluggable AI providers beyond Ollama (OpenAI, Anthropic, etc.) via
   user-supplied API keys

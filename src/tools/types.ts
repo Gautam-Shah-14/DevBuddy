@@ -1,11 +1,13 @@
 import type { ProjectMemory } from "../lib/memory.js";
 import type { ProjectPaths } from "../lib/project.js";
+import type { Skill } from "../lib/skills.js";
 
 export interface ToolContext {
   projectRoot: string;
   projectPaths: ProjectPaths;
   memory: ProjectMemory;
   sessionId: number;
+  skills: Skill[];
 }
 
 export interface JsonSchema {

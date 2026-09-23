@@ -1,7 +1,32 @@
-import { createInterface } from "node:readline/promises";
+import { createInterface, type Interface } from "node:readline/promises";
 import chalk from "chalk";
 
-export type PermissionCategory = "shell" | "write" | "delete" | "git_push" | "network";
+/**
+ * A single shared readline interface for the whole process. Prompts here
+ * (permission checks, plan approval) run interleaved with the main chat
+ * REPL's own prompt, and creating a second Interface on the same stdin
+ * while one is already open causes both to fight over terminal input and
+ * hang. The REPL registers its interface via setSharedReadline(); if none
+ * is registered (e.g. a script using these functions standalone), a
+ * throwaway one is created and closed per call.
+ */
+let sharedRl: Interface | null = null;
+
+export function setSharedReadline(rl: Interface | null): void {
+  sharedRl = rl;
+}
+
+async function ask(prompt: string): Promise<string> {
+  if (sharedRl) return sharedRl.question(prompt);
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return await rl.question(prompt);
+  } finally {
+    rl.close();
+  }
+}
+
+export type PermissionCategory = "shell" | "write" | "delete" | "git_push" | "network" | "mcp";
 
 export interface PermissionRequest {
   category: PermissionCategory;
@@ -40,27 +65,22 @@ export async function requestPermission(req: PermissionRequest): Promise<void> {
     );
   }
 
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    console.log(chalk.yellow(`\nDevBuddy wants to perform a ${chalk.bold(req.category)} action:`));
-    console.log(chalk.dim(req.description));
-    const canRemember = !ALWAYS_CONFIRM.has(req.category);
-    const prompt = canRemember
-      ? "Allow? [y]es / [n]o / [a]lways this session: "
-      : "Allow? [y]es / [n]o: ";
-    const answer = (await rl.question(prompt)).trim().toLowerCase();
+  console.log(chalk.yellow(`\nDevBuddy wants to perform a ${chalk.bold(req.category)} action:`));
+  console.log(chalk.dim(req.description));
+  const canRemember = !ALWAYS_CONFIRM.has(req.category);
+  const prompt = canRemember
+    ? "Allow? [y]es / [n]o / [a]lways this session: "
+    : "Allow? [y]es / [n]o: ";
+  const answer = (await ask(prompt)).trim().toLowerCase();
 
-    if (answer === "a" && canRemember) {
-      sessionAllowed.add(req.category);
-      return;
-    }
-    if (answer === "y" || answer === "yes") {
-      return;
-    }
-    throw new PermissionDenied(`User denied ${req.category} action: ${req.description}`);
-  } finally {
-    rl.close();
+  if (answer === "a" && canRemember) {
+    sessionAllowed.add(req.category);
+    return;
   }
+  if (answer === "y" || answer === "yes") {
+    return;
+  }
+  throw new PermissionDenied(`User denied ${req.category} action: ${req.description}`);
 }
 
 export function resetSessionPermissions(): void {
@@ -71,13 +91,8 @@ export function resetSessionPermissions(): void {
 export async function confirmPlan(title: string, planText: string): Promise<boolean> {
   if (!process.stdin.isTTY) return false;
 
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    console.log(chalk.cyan(`\nDevBuddy proposes a plan: ${chalk.bold(title)}\n`));
-    console.log(planText);
-    const answer = (await rl.question(chalk.cyan("\nApprove this plan? [y]es / [n]o: "))).trim().toLowerCase();
-    return answer === "y" || answer === "yes";
-  } finally {
-    rl.close();
-  }
+  console.log(chalk.cyan(`\nDevBuddy proposes a plan: ${chalk.bold(title)}\n`));
+  console.log(planText);
+  const answer = (await ask(chalk.cyan("\nApprove this plan? [y]es / [n]o: "))).trim().toLowerCase();
+  return answer === "y" || answer === "yes";
 }

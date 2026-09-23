@@ -3,6 +3,7 @@ import { gitCommitTool, gitDiffTool, gitPushTool, gitStatusTool } from "./gitToo
 import { runShellTool } from "./shellTools.js";
 import { listFilesTool, searchFilesTool } from "./searchTools.js";
 import { proposePlanTool } from "./planTools.js";
+import { useSkillTool } from "./skillTools.js";
 import type { ToolDefinition } from "./types.js";
 
 export { toOllamaToolSpec } from "./types.js";
@@ -21,6 +22,7 @@ export const builtinTools: ToolDefinition[] = [
   searchFilesTool,
   listFilesTool,
   proposePlanTool,
+  useSkillTool,
 ];
 
 export function getTool(name: string): ToolDefinition | undefined {
