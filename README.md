@@ -1,7 +1,4 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/devbuddy-banner-dark.svg">
-  <img src="assets/devbuddy-banner-light.svg" alt="DevBuddy — local-first CLI developer agent, by TokenBurners">
-</picture>
+<img src="assets/devbuddy-banner-dark.svg" alt="DevBuddy — local-first CLI developer agent, by TokenBurners">
 
 # DevBuddy
 
