@@ -4,7 +4,7 @@ import { OpenAiProvider } from "./openai.js";
 import { AnthropicProvider } from "./anthropic.js";
 import type { ChatProvider } from "./types.js";
 
-export type { ChatProvider, ChatMessage, ToolCall, ToolSpec, StreamChatOptions, StreamChatResult } from "./types.js";
+export type { ChatProvider, ChatMessage, ToolCall, ToolSpec, StreamChatOptions, StreamChatResult, RetryInfo } from "./types.js";
 export { ProviderError } from "./types.js";
 
 /** `providerOverride` lets callers pick the provider from an effective,

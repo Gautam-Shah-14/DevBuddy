@@ -8,6 +8,7 @@ import {
   type ToolCall,
   type ToolSpec,
 } from "./types.js";
+import { fetchWithRetry } from "./retry.js";
 
 const ANTHROPIC_VERSION = "2023-06-01";
 
@@ -109,7 +110,8 @@ export class AnthropicProvider implements ChatProvider {
 
   async checkConnection(): Promise<boolean> {
     try {
-      const res = await fetch(`${this.baseUrl()}/models`, { headers: this.headers() });
+      const headers = this.headers(); // throws (no retry) when there's no API key at all
+      const res = await fetchWithRetry(() => fetch(`${this.baseUrl()}/models`, { headers }));
       return res.ok;
     } catch {
       return false;
@@ -117,7 +119,8 @@ export class AnthropicProvider implements ChatProvider {
   }
 
   async listModels(): Promise<string[]> {
-    const res = await fetch(`${this.baseUrl()}/models`, { headers: this.headers() });
+    const headers = this.headers();
+    const res = await fetchWithRetry(() => fetch(`${this.baseUrl()}/models`, { headers }));
     if (!res.ok) {
       throw new ProviderError(`Failed to list models: ${res.status} ${res.statusText}`);
     }
@@ -125,23 +128,28 @@ export class AnthropicProvider implements ChatProvider {
     return data.data.map((m) => m.id);
   }
 
-  async streamChat({ model, messages, tools, onToken }: StreamChatOptions): Promise<StreamChatResult> {
+  async streamChat({ model, messages, tools, onToken, onRetry }: StreamChatOptions): Promise<StreamChatResult> {
     const { system, messages: anthropicMessages } = toAnthropicRequest(messages);
+    const headers = this.headers(); // resolved once, outside the retry loop - a missing API key must not be retried
 
     let res: Response;
     try {
-      res = await fetch(`${this.baseUrl()}/messages`, {
-        method: "POST",
-        headers: this.headers(),
-        body: JSON.stringify({
-          model,
-          system: system || undefined,
-          messages: anthropicMessages,
-          tools: toAnthropicTools(tools),
-          max_tokens: 8192,
-          stream: true,
-        }),
-      });
+      res = await fetchWithRetry(
+        () =>
+          fetch(`${this.baseUrl()}/messages`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              model,
+              system: system || undefined,
+              messages: anthropicMessages,
+              tools: toAnthropicTools(tools),
+              max_tokens: 8192,
+              stream: true,
+            }),
+          }),
+        { onRetry }
+      );
     } catch (err) {
       throw new ProviderError(`Could not reach ${this.baseUrl()}: ${(err as Error).message}`);
     }

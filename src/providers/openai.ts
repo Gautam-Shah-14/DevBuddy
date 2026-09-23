@@ -1,5 +1,6 @@
 import { getConfig } from "../lib/config.js";
 import { ProviderError, type ChatMessage, type ChatProvider, type StreamChatOptions, type StreamChatResult, type ToolCall } from "./types.js";
+import { fetchWithRetry } from "./retry.js";
 
 /** Converts DevBuddy's neutral ChatMessage[] into OpenAI's wire format:
  *  tool_calls carry stringified arguments and a "type" field, and tool
@@ -68,7 +69,8 @@ export class OpenAiProvider implements ChatProvider {
 
   async checkConnection(): Promise<boolean> {
     try {
-      const res = await fetch(`${this.baseUrl()}/models`, { headers: this.headers() });
+      const headers = this.headers(); // throws (no retry) when there's no API key at all
+      const res = await fetchWithRetry(() => fetch(`${this.baseUrl()}/models`, { headers }));
       return res.ok;
     } catch {
       return false;
@@ -76,7 +78,8 @@ export class OpenAiProvider implements ChatProvider {
   }
 
   async listModels(): Promise<string[]> {
-    const res = await fetch(`${this.baseUrl()}/models`, { headers: this.headers() });
+    const headers = this.headers();
+    const res = await fetchWithRetry(() => fetch(`${this.baseUrl()}/models`, { headers }));
     if (!res.ok) {
       throw new ProviderError(`Failed to list models: ${res.status} ${res.statusText}`);
     }
@@ -84,22 +87,27 @@ export class OpenAiProvider implements ChatProvider {
     return data.data.map((m) => m.id);
   }
 
-  async streamChat({ model, messages, tools, onToken }: StreamChatOptions): Promise<StreamChatResult> {
+  async streamChat({ model, messages, tools, onToken, onRetry }: StreamChatOptions): Promise<StreamChatResult> {
+    const headers = this.headers(); // resolved once, outside the retry loop - a missing API key must not be retried
     let res: Response;
     try {
-      res = await fetch(`${this.baseUrl()}/chat/completions`, {
-        method: "POST",
-        headers: this.headers(),
-        body: JSON.stringify({
-          model,
-          messages: toOpenAiMessages(messages),
-          tools,
-          stream: true,
-          // Ask for exact token usage on the final chunk - most OpenAI-compatible
-          // endpoints support this; ones that don't just ignore the field.
-          stream_options: { include_usage: true },
-        }),
-      });
+      res = await fetchWithRetry(
+        () =>
+          fetch(`${this.baseUrl()}/chat/completions`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              model,
+              messages: toOpenAiMessages(messages),
+              tools,
+              stream: true,
+              // Ask for exact token usage on the final chunk - most OpenAI-compatible
+              // endpoints support this; ones that don't just ignore the field.
+              stream_options: { include_usage: true },
+            }),
+          }),
+        { onRetry }
+      );
     } catch (err) {
       throw new ProviderError(`Could not reach ${this.baseUrl()}: ${(err as Error).message}`);
     }

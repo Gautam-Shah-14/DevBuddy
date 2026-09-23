@@ -135,6 +135,14 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
               console.log(chalk.red(`  ✗ Self-check failed (${event.command}) - asking DevBuddy to fix it`));
             }
           },
+          onRetry: (info) => {
+            if (spinner.isSpinning) spinner.stop();
+            console.log(
+              chalk.dim(
+                `\n  ⟳ ${info.reason}, retrying (${info.attempt}/${info.maxAttempts}) in ${Math.round(info.delayMs / 100) / 10}s...`
+              )
+            );
+          },
         });
         if (!printedAny) {
           spinner.stop();
