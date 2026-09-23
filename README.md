@@ -1,5 +1,7 @@
 <img src="assets/devbuddy-banner-dark.svg" alt="DevBuddy — local-first CLI developer agent, by TokenBurners">
 
+[![CI](https://github.com/Gautam-Shah-14/DevBuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/Gautam-Shah-14/DevBuddy/actions/workflows/ci.yml)
+
 # DevBuddy
 
 DevBuddy is TokenBurners' local-first CLI developer agent. It defaults to
@@ -39,6 +41,12 @@ framework dependency):
 ```
 npm test
 ```
+
+CI (`.github/workflows/ci.yml`) runs the build, test suite, and a
+cross-platform smoke test of `run_shell`/`search_files` on real Linux,
+Windows, and macOS GitHub Actions runners on every push - this is what
+actually verifies Windows support, not just code review, since none of
+this development happens on a Windows machine directly.
 
 ## Commands
 
