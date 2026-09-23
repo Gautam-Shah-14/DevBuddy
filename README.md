@@ -58,8 +58,15 @@ this development happens on a Windows machine directly.
 
 ## Commands
 
-- `devbuddy chat` — start an interactive agent session in the current
+- `devbuddy chat` — start a new interactive agent session in the current
   directory (this is the project DevBuddy operates on).
+- `devbuddy -c` / `devbuddy chat -c` — continue the most recently used
+  session in this project, right where it left off (its full transcript is
+  loaded back in as prior context).
+- `devbuddy -r` / `devbuddy chat -r` — pick a session to resume from a
+  list of recent ones in this project.
+- `devbuddy -r <session-id>` / `devbuddy chat -r <session-id>` — resume
+  that specific session directly (see `devbuddy history list` for ids).
 - `devbuddy run "<prompt>" [--yes] [--model <model>] [--json]` — run a
   single non-interactive agent turn and exit, for scripts/CI/pre-commit
   hooks. Read-only tasks work with no flags; anything that writes, deletes,
@@ -195,6 +202,13 @@ so you never see duplicated or truncated output from a mid-stream retry.
   `devbuddy stats` and `devbuddy history show` can tell you what actually
   happened in a session, not just what was said, which is especially
   useful when picking a project back up later.
+- **Session resume**: `devbuddy chat` always starts a fresh session, but
+  `-c`/`--continue` and `-r`/`--resume` reopen a past one instead - its
+  full transcript (as plain messages, so it's always safe to hand to any
+  provider) is loaded back in before your next message, and everything
+  from there on is appended to that same session rather than starting a
+  new one, so `devbuddy history show <id>` keeps showing one continuous
+  conversation.
 - **Skills**: markdown files with a small frontmatter header (`name`,
   `description`), loaded from three places from least to most specific -
   `~/.devbuddy/skills/` (global, this machine only), a project's committed

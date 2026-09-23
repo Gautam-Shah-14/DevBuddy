@@ -21,19 +21,27 @@ import { runCommand } from "./commands/run.js";
 import { projectCommand } from "./commands/project.js";
 import { printBanner } from "./lib/banner.js";
 
-if (process.argv.length <= 2) printBanner();
-
 const program = new Command();
 
 program
   .name("devbuddy")
   .description("DevBuddy — a local-first CLI developer agent powered by your own Ollama installation")
-  .version("0.1.0");
+  .version("0.1.0")
+  .option("-c, --continue", "Continue the most recently used session in this project (shorthand for chat -c)")
+  .option("-r, --resume [sessionId]", "Resume a session by id, or pick from a list (shorthand for chat -r)")
+  .action((options) => {
+    if (options.continue || options.resume !== undefined) {
+      return chatCommand({ continueSession: !!options.continue, resume: options.resume });
+    }
+    printBanner();
+  });
 
 program
   .command("chat")
   .description("Start an interactive agent session in the current project")
   .option("-m, --model <model>", "Ollama model to use (overrides config default)")
+  .option("-c, --continue", "Continue the most recently used session in this project")
+  .option("-r, --resume [sessionId]", "Resume a session by id, or pick from a list of recent sessions")
   .action((options) => chatCommand(options));
 
 program

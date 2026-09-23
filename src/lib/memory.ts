@@ -123,11 +123,24 @@ export class ProjectMemory {
       );
   }
 
+  /**
+   * A session's full history as plain role+content messages - deliberately
+   * without tool_calls/tool_call_id, so it's always safe to hand straight
+   * back to any provider as prior turns (no dangling unresolved tool call
+   * to reconcile). Used to resume/continue a session in a fresh process.
+   */
   getSessionMessages(sessionId: number): ChatMessage[] {
     const rows = this.db
       .prepare("SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC")
       .all(sessionId) as { role: string; content: string }[];
     return rows.map((r) => ({ role: r.role as ChatMessage["role"], content: r.content }));
+  }
+
+  /** Reopens a previously-ended session so a new chat process can keep
+   *  appending to it, and refreshes its provider/model to the ones this
+   *  run is actually using (which may differ from when it was last open). */
+  reopenSession(sessionId: number, provider: string, model: string): void {
+    this.db.prepare("UPDATE sessions SET ended_at = NULL, provider = ?, model = ? WHERE id = ?").run(provider, model, sessionId);
   }
 
   recordPlan(sessionId: number, filePath: string, title: string): number {
