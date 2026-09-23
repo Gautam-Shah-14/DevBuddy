@@ -215,9 +215,11 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
         }
       }
 
-      if (MUTATING_TOOLS.has(call.function.name) && !resultText.startsWith("Error")) {
+      const succeeded = !resultText.startsWith("Error");
+      if (MUTATING_TOOLS.has(call.function.name) && succeeded) {
         filesMutatedSinceVerify = true;
       }
+      memory.addToolEvent(sessionId, call.function.name, JSON.stringify(call.function.arguments), succeeded, resultText);
 
       opts.onToolResult?.(call.function.name, resultText);
       const toolMessage: ChatMessage = {

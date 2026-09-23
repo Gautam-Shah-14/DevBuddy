@@ -100,10 +100,14 @@ this development happens on a Windows machine directly.
 - `devbuddy stats [--all]` — session/message/token counts for the current
   project, or every project with `--all`. Token counts are exact when the
   provider reports usage (Ollama always does; OpenAI-compatible endpoints
-  usually do), and estimated from content length otherwise.
+  usually do), and estimated from content length otherwise. Also breaks
+  down tool calls (pass/fail per tool), skills loaded, and MCP connectors
+  used, so you can see what actually happened across your sessions here.
 - `devbuddy history [list]` — recent sessions in the current project (id,
   time range, provider/model, message count, first message).
-- `devbuddy history show <session-id>` — full transcript of one session.
+- `devbuddy history show <session-id>` — full transcript of one session,
+  with a summary of that session's tool calls (pass/fail per tool), skills
+  loaded, and connectors used above it.
 - `devbuddy history search <text> [--all]` — search message content in
   the current project, or every project with `--all`.
 - `devbuddy doctor` — one-command environment check: Node version, config
@@ -184,7 +188,13 @@ so you never see duplicated or truncated output from a mid-stream retry.
   touching anything.
 - **Local memory**: conversation history is stored per-project in a plain
   SQLite database under `~/.devbuddy/projects/<id>/memory.db`, keyed by a
-  hash of the project's absolute path. Nothing leaves your machine.
+  hash of the project's absolute path. Nothing leaves your machine. Beyond
+  the raw prompt/response transcript, every tool call is recorded too -
+  which tool, its arguments, whether it succeeded or failed, and (for
+  `use_skill` and MCP connector calls) which skill or connector - so
+  `devbuddy stats` and `devbuddy history show` can tell you what actually
+  happened in a session, not just what was said, which is especially
+  useful when picking a project back up later.
 - **Skills**: markdown files with a small frontmatter header (`name`,
   `description`), loaded from three places from least to most specific -
   `~/.devbuddy/skills/` (global, this machine only), a project's committed
@@ -299,7 +309,7 @@ check one.
 └── projects/
     └── <hash-of-project-path>/
         ├── meta.json
-        ├── memory.db          # sessions + messages + undo checkpoints (SQLite)
+        ├── memory.db          # sessions + messages + tool call history + undo checkpoints (SQLite)
         ├── skills/             # your private per-project skills
         └── plans/              # proposed plans, as markdown
 
