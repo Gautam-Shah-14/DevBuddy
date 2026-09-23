@@ -1,18 +1,29 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
+export type ProviderName = "ollama" | "openai";
+
 export interface DevBuddyConfig {
-  host: string;
+  provider: ProviderName;
+  host: string; // Ollama host
   model: string;
   systemPrompt: string;
+  openaiApiKey: string;
+  openaiBaseUrl: string; // OpenAI-compatible endpoint (OpenAI, OpenRouter, etc.)
 }
 
+/** Config keys whose values should never be printed in full (API keys, secrets). */
+export const SECRET_KEYS: (keyof DevBuddyConfig)[] = ["openaiApiKey"];
+
 const DEFAULT_CONFIG: DevBuddyConfig = {
+  provider: "ollama",
   host: "http://localhost:11434",
   model: "llama3.1",
   systemPrompt:
     "You are DevBuddy, a concise, practical developer assistant running fully on the user's local machine. Prefer short, actionable answers with code when useful.",
+  openaiApiKey: "",
+  openaiBaseUrl: "https://api.openai.com/v1",
 };
 
 const CONFIG_DIR = join(homedir(), ".devbuddy");
@@ -42,8 +53,15 @@ export function setConfigValue(key: keyof DevBuddyConfig, value: string): DevBud
   const updated = { ...current, [key]: value };
   if (!existsSync(CONFIG_DIR)) mkdirSync(CONFIG_DIR, { recursive: true });
   writeFileSync(CONFIG_PATH, JSON.stringify(updated, null, 2));
+  chmodSync(CONFIG_PATH, 0o600); // config may hold API keys - keep it readable only by the owner
   cached = updated;
   return updated;
+}
+
+export function maskSecret(value: string): string {
+  if (!value) return "(not set)";
+  if (value.length <= 8) return "*".repeat(value.length);
+  return `${value.slice(0, 4)}${"*".repeat(value.length - 8)}${value.slice(-4)}`;
 }
 
 export function configFilePath(): string {

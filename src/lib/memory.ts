@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import type { ChatMessage } from "./ollama.js";
+import type { ChatMessage } from "../providers/types.js";
 import { ensureProject } from "./project.js";
 
 const SCHEMA = `

@@ -10,6 +10,7 @@ import { configCommand } from "./commands/config.js";
 import { modelsCommand } from "./commands/models.js";
 import { skillsCommand } from "./commands/skills.js";
 import { connectorsCommand } from "./commands/connectors.js";
+import { providerCommand } from "./commands/provider.js";
 
 const program = new Command();
 
@@ -53,6 +54,14 @@ program
   .action((action?: string, name?: string, flags: string[] = []) => {
     const args = [action, name, ...flags].filter((v): v is string => v !== undefined);
     connectorsCommand(args);
+  });
+
+program
+  .command("provider [action] [name] [value]")
+  .description("Manage AI providers (list/use/set-key/set-url)")
+  .action((action?: string, name?: string, value?: string) => {
+    const args = [action, name, value].filter((v): v is string => v !== undefined);
+    providerCommand(args);
   });
 
 program.parseAsync(process.argv);

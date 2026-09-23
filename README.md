@@ -1,10 +1,11 @@
 # DevBuddy
 
-DevBuddy is TokenBurners' local-first CLI developer agent. It runs entirely
-against your own [Ollama](https://ollama.com) installation — no API keys, no
-cloud calls, no per-token cost. Future versions will let you plug in other
-AI providers via your own API key, but the local Ollama path is the
-foundation and always works offline.
+DevBuddy is TokenBurners' local-first CLI developer agent. It defaults to
+your own [Ollama](https://ollama.com) installation — no API keys, no cloud
+calls, no per-token cost — and can optionally be pointed at OpenAI or any
+OpenAI-compatible endpoint (OpenRouter, Together, a local llama.cpp server,
+etc.) using your own API key. Ollama stays the default and always works
+offline; switching providers is a config change, not a different tool.
 
 ## Requirements
 
@@ -48,6 +49,22 @@ node dist/cli.js chat
   devbuddy connector add filesystem --command "npx" --args "-y @modelcontextprotocol/server-filesystem /path/to/project"
   ```
 - `devbuddy connector enable|disable|remove <name>` — manage connectors.
+- `devbuddy provider list` — show configured providers and which is active.
+- `devbuddy provider use <ollama|openai>` — switch the active provider.
+- `devbuddy provider set-key openai <key>` — store an API key (config file
+  is chmod 600; the key is masked whenever it's printed).
+- `devbuddy provider set-url openai <url>` — point at a different
+  OpenAI-compatible endpoint (default `https://api.openai.com/v1`).
+
+## Providers
+
+DevBuddy talks to AI models through a small `ChatProvider` interface
+(`src/providers/`), so the agent loop, tools, and memory never know which
+backend is active:
+
+- **ollama** (default) — local, no API key, talks to `http://localhost:11434`.
+- **openai** — any OpenAI-compatible Chat Completions endpoint. Requires
+  an API key (`devbuddy provider set-key openai <key>`).
 
 ## How it works
 
@@ -96,5 +113,5 @@ node dist/cli.js chat
 
 ## Roadmap
 
-- Pluggable AI providers beyond Ollama (OpenAI, Anthropic, etc.) via
-  user-supplied API keys
+- Additional providers (Anthropic, Gemini, etc.) behind the same
+  `ChatProvider` interface

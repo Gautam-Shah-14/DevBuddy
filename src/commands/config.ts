@@ -1,14 +1,22 @@
 import chalk from "chalk";
-import { configFilePath, getConfig, setConfigValue, type DevBuddyConfig } from "../lib/config.js";
+import { configFilePath, getConfig, maskSecret, setConfigValue, SECRET_KEYS, type DevBuddyConfig } from "../lib/config.js";
 
-const SETTABLE_KEYS: (keyof DevBuddyConfig)[] = ["host", "model", "systemPrompt"];
+const SETTABLE_KEYS: (keyof DevBuddyConfig)[] = [
+  "provider",
+  "host",
+  "model",
+  "systemPrompt",
+  "openaiApiKey",
+  "openaiBaseUrl",
+];
 
 export function configCommand(args: string[]): void {
   if (args.length === 0) {
     const config = getConfig();
     console.log(chalk.bold(`Config file: ${configFilePath()}\n`));
     for (const key of SETTABLE_KEYS) {
-      console.log(`${chalk.cyan(key)}: ${config[key]}`);
+      const isSecret = (SECRET_KEYS as string[]).includes(key);
+      console.log(`${chalk.cyan(key)}: ${isSecret ? maskSecret(config[key]) : config[key]}`);
     }
     return;
   }

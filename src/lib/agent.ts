@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import { getConfig } from "./config.js";
-import type { ChatMessage, OllamaToolCall } from "./ollama.js";
-import { streamChat } from "./ollama.js";
+import type { ChatMessage, ChatProvider, ToolCall } from "../providers/index.js";
 import type { ProjectMemory } from "./memory.js";
 import type { ProjectPaths } from "./project.js";
 import type { ToolDefinition } from "../tools/index.js";
@@ -44,7 +43,7 @@ export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[]): str
   ].join("\n");
 }
 
-function parseReactToolCall(content: string): OllamaToolCall | null {
+function parseReactToolCall(content: string): ToolCall | null {
   const match = content.match(/```tool_call\s*\n([\s\S]*?)```/);
   if (!match) return null;
   try {
@@ -58,6 +57,7 @@ function parseReactToolCall(content: string): OllamaToolCall | null {
 
 export interface RunAgentTurnOptions {
   model: string;
+  provider: ChatProvider;
   messages: ChatMessage[];
   tools: ToolDefinition[];
   skills: Skill[];
@@ -82,15 +82,15 @@ export interface AgentTurnResult {
 }
 
 export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurnResult> {
-  const { model, projectRoot, projectPaths, memory, sessionId, tools, skills } = opts;
+  const { model, provider, projectRoot, projectPaths, memory, sessionId, tools, skills } = opts;
   const messages = [...opts.messages];
   const toolSpecs = tools.map(toOllamaToolSpec);
   const getTool = (name: string) => tools.find((t) => t.name === name);
 
   for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
-    const result = await streamChat({ model, messages, tools: toolSpecs, onToken: opts.onToken });
+    const result = await provider.streamChat({ model, messages, tools: toolSpecs, onToken: opts.onToken });
 
-    const toolCalls: OllamaToolCall[] =
+    const toolCalls: ToolCall[] =
       result.toolCalls.length > 0
         ? result.toolCalls
         : (() => {
