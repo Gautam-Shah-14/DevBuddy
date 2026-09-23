@@ -1,5 +1,5 @@
 {
-  "name": "devbuddy",
+  "name": "@tokenburners/devbuddy",
   "version": "0.1.0",
   "description": "A CLI developer assistant powered by your own local Ollama installation",
   "type": "module",
@@ -8,18 +8,32 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build && npm test",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "test": "tsx --test test/**/*.test.ts"
   },
   "files": [
     "dist",
-    "bin"
+    "bin",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gautam-Shah-14/DevBuddy.git"
+  },
+  "homepage": "https://github.com/Gautam-Shah-14/DevBuddy#readme",
+  "bugs": {
+    "url": "https://github.com/Gautam-Shah-14/DevBuddy/issues"
+  },
+  "author": "TokenBurners",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
     "chalk": "^5.3.0",

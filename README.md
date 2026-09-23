@@ -29,6 +29,20 @@ like this.
   ollama pull qwen2.5-coder
   ```
 
+## Install
+
+Not yet published. Once it is, it'll be:
+
+```
+npm install -g @tokenburners/devbuddy
+devbuddy chat
+```
+
+(the package is scoped as `@tokenburners/devbuddy` since the unscoped name
+`devbuddy` is already taken on npm by an unrelated project; the CLI command
+is still just `devbuddy`). Until then, see Development below to run it from
+source.
+
 ## Development
 
 ```
@@ -341,3 +355,10 @@ check one.
   memory/system prompt automatically, instead of starting cold each session
 - Context compaction for very long chat sessions
 - Cost/budget guard — a per-session token or dollar cap for paid providers
+
+## License
+
+Copyright (c) TokenBurners. All rights reserved — see [LICENSE](LICENSE).
+This is proprietary software: the source is visible on GitHub, but no
+license is granted to use, copy, modify, or redistribute it beyond what
+TokenBurners separately permits for a published build.

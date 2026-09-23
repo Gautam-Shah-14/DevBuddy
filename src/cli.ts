@@ -4,6 +4,7 @@ process.on("warning", (warning) => {
   console.warn(warning);
 });
 
+import { createRequire } from "node:module";
 import { Command } from "commander";
 import { chatCommand } from "./commands/chat.js";
 import { configCommand } from "./commands/config.js";
@@ -21,12 +22,19 @@ import { runCommand } from "./commands/run.js";
 import { projectCommand } from "./commands/project.js";
 import { printBanner } from "./lib/banner.js";
 
+// Read the real version from package.json (via createRequire, so it works
+// identically whether this runs as compiled CJS-resolvable JSON or via tsx)
+// instead of a hardcoded string that silently drifts the next time the
+// package version is bumped and this file isn't touched.
+const require = createRequire(import.meta.url);
+const { version: packageVersion } = require("../package.json") as { version: string };
+
 const program = new Command();
 
 program
   .name("devbuddy")
   .description("DevBuddy — a local-first CLI developer agent powered by your own Ollama installation")
-  .version("0.1.0")
+  .version(packageVersion)
   .option("-c, --continue", "Continue the most recently used session in this project (shorthand for chat -c)")
   .option("-r, --resume [sessionId]", "Resume a session by id, or pick from a list (shorthand for chat -r)")
   .action((options) => {
