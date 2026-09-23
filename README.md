@@ -116,11 +116,20 @@ backend is active:
 
 DevBuddy can scan outgoing content for PII and secrets — emails, phone
 numbers, SSNs, credit card numbers (Luhn-validated), IP addresses, street
-addresses, AWS access keys, private key blocks, JWTs, and generic
-`key: value` / `token: value` secrets — right at the boundary where content
-is about to leave your machine in a request to the AI provider. Local
-tools are never restricted: the agent can still freely read and edit files
-containing PII. The guardrail only guards what gets sent out.
+addresses, **Aadhaar numbers (Verhoeff checksum-validated)**, **PAN
+numbers (holder-type validated)**, AWS access keys, private key blocks,
+JWTs, and generic `key: value` / `token: value` secrets — right at the
+boundary where content is about to leave your machine in a request to
+the AI provider. Local tools are never restricted: the agent can still
+freely read and edit files containing PII. The guardrail only guards
+what gets sent out.
+
+Aadhaar and PAN detection use the same structural checks India's own
+systems use to validate them (not just "looks like the right shape"),
+so a random 12-digit number won't be mistaken for an Aadhaar number and
+vice versa. When two detectors' shapes overlap (e.g. a 12-digit number
+also fits a loose phone-number pattern), the validated, higher-confidence
+match always wins.
 
 Two modes:
 

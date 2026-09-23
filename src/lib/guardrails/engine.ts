@@ -15,20 +15,57 @@ export class GuardrailsBlocked extends Error {
   }
 }
 
+interface RawMatch extends PiiFinding {
+  start: number;
+  end: number;
+  validated: boolean;
+  patternIndex: number;
+}
+
+/**
+ * Some patterns' shapes overlap (e.g. a 12-digit Aadhaar number also fits
+ * the broad phone-number shape). When two patterns match the identical
+ * span, prefer whichever has a structural validator (Verhoeff/Luhn/holder
+ * code) over a bare shape match, since a validated match is much higher
+ * confidence; break remaining ties by longer match, then pattern order.
+ */
+function resolveOverlaps(matches: RawMatch[]): RawMatch[] {
+  const sorted = [...matches].sort((a, b) => {
+    if (a.validated !== b.validated) return a.validated ? -1 : 1;
+    const lengthDiff = b.end - b.start - (a.end - a.start);
+    if (lengthDiff !== 0) return lengthDiff;
+    return a.patternIndex - b.patternIndex;
+  });
+
+  const accepted: RawMatch[] = [];
+  for (const candidate of sorted) {
+    const overlaps = accepted.some((a) => candidate.start < a.end && a.start < candidate.end);
+    if (!overlaps) accepted.push(candidate);
+  }
+  return accepted;
+}
+
 function scanText(text: string): PiiFinding[] {
-  const findings: PiiFinding[] = [];
-  for (const pattern of PII_PATTERNS) {
+  const matches: RawMatch[] = [];
+  PII_PATTERNS.forEach((pattern, patternIndex) => {
     pattern.regex.lastIndex = 0;
     let match: RegExpExecArray | null;
     while ((match = pattern.regex.exec(text))) {
       const value = match[0];
       if (!pattern.validate || pattern.validate(value)) {
-        findings.push({ type: pattern.type, value });
+        matches.push({
+          type: pattern.type,
+          value,
+          start: match.index,
+          end: match.index + value.length,
+          validated: Boolean(pattern.validate),
+          patternIndex,
+        });
       }
       if (!pattern.regex.global) break;
     }
-  }
-  return findings;
+  });
+  return resolveOverlaps(matches).map(({ type, value }) => ({ type, value }));
 }
 
 /**
