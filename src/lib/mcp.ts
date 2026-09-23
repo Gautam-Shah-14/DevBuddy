@@ -24,6 +24,13 @@ export class McpManager {
 
     for (const config of connectors) {
       try {
+        await requestPermission({
+          category: "mcp_connect",
+          description: `Start MCP server "${config.name}"${
+            config.shared ? " (from this project's shared .devbuddy/connectors.json)" : ""
+          }: ${config.command} ${config.args.join(" ")}`,
+        });
+
         const client = new Client({ name: "devbuddy", version: "0.1.0" }, { capabilities: {} });
         const transport = new StdioClientTransport({
           command: config.command,
