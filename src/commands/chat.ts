@@ -12,6 +12,8 @@ import { loadSkills } from "../lib/skills.js";
 import { McpManager } from "../lib/mcp.js";
 import { setSharedReadline } from "../lib/permissions.js";
 import { printBanner } from "../lib/banner.js";
+import { GuardrailsEngine } from "../lib/guardrails/engine.js";
+import { getPlan } from "../lib/license.js";
 import type { ChatMessage } from "../providers/index.js";
 
 export async function chatCommand(options: { model?: string }): Promise<void> {
@@ -57,8 +59,20 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
   let messages: ChatMessage[] = [{ role: "system", content: buildSystemPrompt(tools, skills) }];
   memory.addMessage(sessionId, messages[0]);
 
+  // Guardrails (PII/secret masking or blocking before AI calls) are a Pro
+  // feature - fall back to "off" for free plans even if a mode was set
+  // while a license was active (e.g. after it expired).
+  const effectiveGuardrailsMode = getPlan() === "pro" ? config.guardrailsMode : "off";
+  const guardrails = new GuardrailsEngine(effectiveGuardrailsMode);
+  if (config.guardrailsMode !== "off" && effectiveGuardrailsMode === "off") {
+    console.log(chalk.yellow(`Guardrails mode "${config.guardrailsMode}" requires a Pro license - running with guardrails off.`));
+  }
+
   console.log(chalk.dim(`Model: ${model} (via ${provider.name})`));
   console.log(chalk.dim(`Project: ${projectRoot}`));
+  if (effectiveGuardrailsMode !== "off") {
+    console.log(chalk.dim(`Guardrails: ${effectiveGuardrailsMode}`));
+  }
   console.log(chalk.dim(`Type your request, or "exit" to quit.\n`));
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -96,6 +110,7 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
           projectPaths: paths,
           memory,
           sessionId,
+          guardrails,
           onToken: (token) => {
             if (spinner.isSpinning) spinner.stop();
             printedAny = true;

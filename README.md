@@ -57,6 +57,9 @@ node dist/cli.js chat
   is chmod 600; the key is masked whenever it's printed).
 - `devbuddy provider set-url openai <url>` — point at a different
   OpenAI-compatible endpoint (default `https://api.openai.com/v1`).
+- `devbuddy license status|set <key>|remove` — manage your Pro license.
+- `devbuddy guardrails status|set <off|mask|block>` — manage PII/secret
+  guardrails (Pro feature, see below).
 
 ## Providers
 
@@ -96,6 +99,41 @@ backend is active:
   registered in `~/.devbuddy/connectors/connectors.json` and exposes its
   tools to the agent, namespaced as `mcp__<connector>__<tool>`. Calling an
   MCP tool goes through the same permission system as built-in tools.
+
+## Guardrails (Pro)
+
+DevBuddy can scan outgoing content for PII and secrets — emails, phone
+numbers, SSNs, credit card numbers (Luhn-validated), IP addresses, street
+addresses, AWS access keys, private key blocks, JWTs, and generic
+`key: value` / `token: value` secrets — right at the boundary where content
+is about to leave your machine in a request to the AI provider. Local
+tools are never restricted: the agent can still freely read and edit files
+containing PII. The guardrail only guards what gets sent out.
+
+Two modes:
+
+- **mask** — matches are replaced with stable placeholders (`⟦EMAIL_1⟧`,
+  `⟦AWS_ACCESS_KEY_1⟧`, ...) before the request is sent. The same real
+  value always maps to the same placeholder for the session. Placeholders
+  in the model's reply are substituted back with the real values before
+  you see them — the AI provider never sees the raw value, but the reply
+  reads naturally.
+- **block** — a turn whose outgoing content contains PII/secrets is
+  refused entirely. Nothing is sent to the AI provider; DevBuddy reports
+  which type it found.
+
+Detection is 100% local (plain regex + a Luhn checksum for card numbers,
+no ML model, no network call) — see `src/lib/guardrails/`.
+
+```
+devbuddy license set <key>       # unlock Pro
+devbuddy guardrails set mask     # or: block
+```
+
+Without a Pro license, guardrails mode falls back to `off` even if it was
+previously set (e.g. after a license expires). Licenses are signed
+Ed25519 keys verified entirely offline — DevBuddy never phones home to
+check one.
 
 ## Data layout
 

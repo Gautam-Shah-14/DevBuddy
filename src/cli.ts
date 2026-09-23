@@ -11,6 +11,8 @@ import { modelsCommand } from "./commands/models.js";
 import { skillsCommand } from "./commands/skills.js";
 import { connectorsCommand } from "./commands/connectors.js";
 import { providerCommand } from "./commands/provider.js";
+import { licenseCommand } from "./commands/license.js";
+import { guardrailsCommand } from "./commands/guardrails.js";
 import { printBanner } from "./lib/banner.js";
 
 if (process.argv.length <= 2) printBanner();
@@ -65,6 +67,22 @@ program
   .action((action?: string, name?: string, value?: string) => {
     const args = [action, name, value].filter((v): v is string => v !== undefined);
     providerCommand(args);
+  });
+
+program
+  .command("license [action] [key]")
+  .description("Manage your DevBuddy Pro license (set/status/remove)")
+  .action((action?: string, key?: string) => {
+    const args = [action, key].filter((v): v is string => v !== undefined);
+    licenseCommand(args);
+  });
+
+program
+  .command("guardrails [action] [value]")
+  .description("Manage PII/secret guardrails (status/set off|mask|block) - Pro feature")
+  .action((action?: string, value?: string) => {
+    const args = [action, value].filter((v): v is string => v !== undefined);
+    guardrailsCommand(args);
   });
 
 program.parseAsync(process.argv);

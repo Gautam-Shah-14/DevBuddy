@@ -4,6 +4,8 @@ import { join } from "node:path";
 
 export type ProviderName = "ollama" | "openai";
 
+export type GuardrailsMode = "off" | "mask" | "block";
+
 export interface DevBuddyConfig {
   provider: ProviderName;
   host: string; // Ollama host
@@ -11,10 +13,12 @@ export interface DevBuddyConfig {
   systemPrompt: string;
   openaiApiKey: string;
   openaiBaseUrl: string; // OpenAI-compatible endpoint (OpenAI, OpenRouter, etc.)
+  licenseKey: string; // empty = free plan; a valid signed key unlocks Pro features
+  guardrailsMode: GuardrailsMode; // Pro-only: PII/secret masking or blocking before AI calls
 }
 
 /** Config keys whose values should never be printed in full (API keys, secrets). */
-export const SECRET_KEYS: (keyof DevBuddyConfig)[] = ["openaiApiKey"];
+export const SECRET_KEYS: (keyof DevBuddyConfig)[] = ["openaiApiKey", "licenseKey"];
 
 const DEFAULT_CONFIG: DevBuddyConfig = {
   provider: "ollama",
@@ -24,6 +28,8 @@ const DEFAULT_CONFIG: DevBuddyConfig = {
     "You are DevBuddy, a concise, practical developer assistant running fully on the user's local machine. Prefer short, actionable answers with code when useful.",
   openaiApiKey: "",
   openaiBaseUrl: "https://api.openai.com/v1",
+  licenseKey: "",
+  guardrailsMode: "off",
 };
 
 const CONFIG_DIR = join(homedir(), ".devbuddy");

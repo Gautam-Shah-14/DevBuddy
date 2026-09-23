@@ -8,6 +8,7 @@ import { toOllamaToolSpec } from "../tools/index.js";
 import { SandboxViolation } from "./sandbox.js";
 import { PermissionDenied } from "./permissions.js";
 import type { Skill } from "./skills.js";
+import { GuardrailsBlocked, type GuardrailsEngine } from "./guardrails/engine.js";
 
 const MAX_TOOL_ITERATIONS = 15;
 
@@ -65,6 +66,7 @@ export interface RunAgentTurnOptions {
   projectPaths: ProjectPaths;
   memory: ProjectMemory;
   sessionId: number;
+  guardrails?: GuardrailsEngine;
   onToken: (token: string) => void;
   onToolStart?: (name: string, args: Record<string, unknown>) => void;
   onToolResult?: (name: string, result: string) => void;
@@ -88,22 +90,46 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
   const getTool = (name: string) => tools.find((t) => t.name === name);
 
   for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
-    const result = await provider.streamChat({ model, messages, tools: toolSpecs, onToken: opts.onToken });
+    // Guardrails apply at the boundary right before content leaves the
+    // machine to the AI provider - local tools (file read/edit, etc.)
+    // stay unrestricted throughout. In "block" mode, a turn whose pending
+    // messages contain PII is refused before anything is sent.
+    let outgoingMessages = messages;
+    if (opts.guardrails) {
+      try {
+        outgoingMessages = opts.guardrails.apply(messages);
+      } catch (err) {
+        if (err instanceof GuardrailsBlocked) {
+          const blockedMessage = `${err.message}\nNothing was sent to the AI provider. Remove the sensitive content, or switch guardrails mode with "devbuddy guardrails set", and try again.`;
+          const assistantMessage: ChatMessage = { role: "assistant", content: blockedMessage };
+          messages.push(assistantMessage);
+          memory.addMessage(sessionId, assistantMessage);
+          return { content: blockedMessage, messages };
+        }
+        throw err;
+      }
+    }
+
+    const result = await provider.streamChat({ model, messages: outgoingMessages, tools: toolSpecs, onToken: opts.onToken });
+    // Restore any placeholders the model echoed back before storing/returning
+    // the reply - streamed tokens may transiently show a raw placeholder if
+    // one lands mid-stream, but the final stored content is always restored.
+    const restoredContent = opts.guardrails ? opts.guardrails.restore(result.content) : result.content;
 
     const toolCalls: ToolCall[] =
       result.toolCalls.length > 0
         ? result.toolCalls
         : (() => {
-            const fallback = parseReactToolCall(result.content);
+            const fallback = parseReactToolCall(restoredContent);
             return fallback ? [fallback] : [];
           })();
 
-    const assistantMessage: ChatMessage = { role: "assistant", content: result.content };
+    const assistantMessage: ChatMessage = { role: "assistant", content: restoredContent };
     messages.push(assistantMessage);
     memory.addMessage(sessionId, assistantMessage, toolCalls.length ? JSON.stringify(toolCalls) : undefined);
 
     if (toolCalls.length === 0) {
-      return { content: result.content, messages };
+      return { content: restoredContent, messages };
     }
 
     for (const call of toolCalls) {
