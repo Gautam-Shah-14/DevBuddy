@@ -116,15 +116,26 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
     // one lands mid-stream, but the final stored content is always restored.
     const restoredContent = opts.guardrails ? opts.guardrails.restore(result.content) : result.content;
 
-    const toolCalls: ToolCall[] =
+    const rawToolCalls: ToolCall[] =
       result.toolCalls.length > 0
         ? result.toolCalls
         : (() => {
             const fallback = parseReactToolCall(restoredContent);
             return fallback ? [fallback] : [];
           })();
+    // Every provider needs a stable call id to match a tool result back to its
+    // call (OpenAI's tool_call_id, Anthropic's tool_use_id) - assign one when
+    // the provider didn't supply it (Ollama, ReAct fallback).
+    const toolCalls: ToolCall[] = rawToolCalls.map((call, idx) => ({
+      ...call,
+      id: call.id ?? `call_${iteration}_${idx}`,
+    }));
 
-    const assistantMessage: ChatMessage = { role: "assistant", content: restoredContent };
+    const assistantMessage: ChatMessage = {
+      role: "assistant",
+      content: restoredContent,
+      tool_calls: toolCalls.length ? toolCalls : undefined,
+    };
     messages.push(assistantMessage);
     memory.addMessage(
       sessionId,
@@ -163,7 +174,12 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
       }
 
       opts.onToolResult?.(call.function.name, resultText);
-      const toolMessage: ChatMessage = { role: "tool", content: resultText, tool_name: call.function.name };
+      const toolMessage: ChatMessage = {
+        role: "tool",
+        content: resultText,
+        tool_name: call.function.name,
+        tool_call_id: call.id,
+      };
       messages.push(toolMessage);
       memory.addMessage(sessionId, toolMessage);
     }

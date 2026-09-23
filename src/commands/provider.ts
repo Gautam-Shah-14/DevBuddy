@@ -1,16 +1,17 @@
 import chalk from "chalk";
 import { getConfig, maskSecret, setConfigValue, type ProviderName } from "../lib/config.js";
 
-const KNOWN_PROVIDERS: ProviderName[] = ["ollama", "openai"];
+const KNOWN_PROVIDERS: ProviderName[] = ["ollama", "openai", "anthropic"];
+const KEYED_PROVIDERS: ProviderName[] = ["openai", "anthropic"];
 
 function printUsage(): void {
   console.error(
     chalk.red(
       "Usage:\n" +
         "  devbuddy provider list\n" +
-        "  devbuddy provider use <ollama|openai>\n" +
-        "  devbuddy provider set-key openai <api-key>\n" +
-        "  devbuddy provider set-url openai <base-url>"
+        "  devbuddy provider use <ollama|openai|anthropic>\n" +
+        "  devbuddy provider set-key <openai|anthropic> <api-key>\n" +
+        "  devbuddy provider set-url <openai|anthropic> <base-url>"
     )
   );
 }
@@ -28,6 +29,10 @@ export function providerCommand(args: string[]): void {
       } else if (name === "openai") {
         console.log(
           `  ${chalk.cyan("openai")}${active} — ${config.openaiBaseUrl}, key: ${maskSecret(config.openaiApiKey)}`
+        );
+      } else if (name === "anthropic") {
+        console.log(
+          `  ${chalk.cyan("anthropic")}${active} — ${config.anthropicBaseUrl}, key: ${maskSecret(config.anthropicApiKey)}`
         );
       }
     }
@@ -48,16 +53,16 @@ export function providerCommand(args: string[]): void {
 
   if (action === "set-key") {
     const [name, key] = rest;
-    if (name !== "openai" || !key) return printUsage();
-    setConfigValue("openaiApiKey", key);
+    if (!KEYED_PROVIDERS.includes(name as ProviderName) || !key) return printUsage();
+    setConfigValue(name === "openai" ? "openaiApiKey" : "anthropicApiKey", key);
     console.log(chalk.green(`Set API key for "${name}"`));
     return;
   }
 
   if (action === "set-url") {
     const [name, url] = rest;
-    if (name !== "openai" || !url) return printUsage();
-    setConfigValue("openaiBaseUrl", url);
+    if (!KEYED_PROVIDERS.includes(name as ProviderName) || !url) return printUsage();
+    setConfigValue(name === "openai" ? "openaiBaseUrl" : "anthropicBaseUrl", url);
     console.log(chalk.green(`Set base URL for "${name}" to ${url}`));
     return;
   }
