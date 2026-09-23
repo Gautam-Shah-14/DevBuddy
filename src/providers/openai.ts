@@ -1,5 +1,28 @@
 import { getConfig } from "../lib/config.js";
-import { ProviderError, type ChatProvider, type StreamChatOptions, type StreamChatResult, type ToolCall } from "./types.js";
+import { ProviderError, type ChatMessage, type ChatProvider, type StreamChatOptions, type StreamChatResult, type ToolCall } from "./types.js";
+
+/** Converts DevBuddy's neutral ChatMessage[] into OpenAI's wire format:
+ *  tool_calls carry stringified arguments and a "type" field, and tool
+ *  results reference their call via tool_call_id rather than tool_name. */
+function toOpenAiMessages(messages: ChatMessage[]): unknown[] {
+  return messages.map((m) => {
+    if (m.role === "assistant" && m.tool_calls?.length) {
+      return {
+        role: "assistant",
+        content: m.content || null,
+        tool_calls: m.tool_calls.map((tc, idx) => ({
+          id: tc.id ?? `call_${idx}`,
+          type: "function",
+          function: { name: tc.function.name, arguments: JSON.stringify(tc.function.arguments) },
+        })),
+      };
+    }
+    if (m.role === "tool") {
+      return { role: "tool", content: m.content, tool_call_id: m.tool_call_id ?? m.tool_name };
+    }
+    return { role: m.role, content: m.content };
+  });
+}
 
 interface OpenAiModelsResponse {
   data: { id: string }[];
@@ -69,7 +92,7 @@ export class OpenAiProvider implements ChatProvider {
         headers: this.headers(),
         body: JSON.stringify({
           model,
-          messages,
+          messages: toOpenAiMessages(messages),
           tools,
           stream: true,
           // Ask for exact token usage on the final chunk - most OpenAI-compatible
@@ -137,7 +160,7 @@ export class OpenAiProvider implements ChatProvider {
       } catch {
         // leave args empty if the model produced malformed JSON
       }
-      return { function: { name: tc.name, arguments: args } };
+      return { id: tc.id || undefined, function: { name: tc.name, arguments: args } };
     });
 
     return { content: full, toolCalls, usage };

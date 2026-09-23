@@ -6,10 +6,18 @@
 
 DevBuddy is TokenBurners' local-first CLI developer agent. It defaults to
 your own [Ollama](https://ollama.com) installation — no API keys, no cloud
-calls, no per-token cost — and can optionally be pointed at OpenAI or any
-OpenAI-compatible endpoint (OpenRouter, Together, a local llama.cpp server,
-etc.) using your own API key. Ollama stays the default and always works
-offline; switching providers is a config change, not a different tool.
+calls, no per-token cost — and can optionally be pointed at OpenAI (or any
+OpenAI-compatible endpoint: OpenRouter, Together, a local llama.cpp server,
+etc.) or Anthropic/Claude, each using your own API key. Ollama stays the
+default and always works offline; switching providers is a config change,
+not a different tool.
+
+Providers are added via metered API keys only — not by logging into an
+existing Claude Pro/Max or ChatGPT Plus/Pro web subscription. Reusing a
+consumer subscription's session inside a third-party CLI isn't a supported
+integration path for either vendor and risks the account being flagged; API
+keys are the sanctioned way to bring your own account's usage to a tool
+like this.
 
 ## Requirements
 
@@ -67,11 +75,13 @@ this development happens on a Windows machine directly.
   ```
 - `devbuddy connector enable|disable|remove <name>` — manage connectors.
 - `devbuddy provider list` — show configured providers and which is active.
-- `devbuddy provider use <ollama|openai>` — switch the active provider.
-- `devbuddy provider set-key openai <key>` — store an API key (config file
-  is chmod 600; the key is masked whenever it's printed).
-- `devbuddy provider set-url openai <url>` — point at a different
-  OpenAI-compatible endpoint (default `https://api.openai.com/v1`).
+- `devbuddy provider use <ollama|openai|anthropic>` — switch the active
+  provider.
+- `devbuddy provider set-key <openai|anthropic> <key>` — store an API key
+  (config file is chmod 600; the key is masked whenever it's printed).
+- `devbuddy provider set-url <openai|anthropic> <url>` — point at a
+  different endpoint (defaults: `https://api.openai.com/v1`,
+  `https://api.anthropic.com/v1`).
 - `devbuddy license status|set <key>|remove` — manage your Pro license.
 - `devbuddy guardrails status|set <off|mask|block>` — manage PII/secret
   guardrails (Pro feature, see below).
@@ -94,6 +104,20 @@ backend is active:
 - **ollama** (default) — local, no API key, talks to `http://localhost:11434`.
 - **openai** — any OpenAI-compatible Chat Completions endpoint. Requires
   an API key (`devbuddy provider set-key openai <key>`).
+- **anthropic** — Claude, via Anthropic's Messages API. Requires an API key
+  (`devbuddy provider set-key anthropic <key>`), from
+  [console.anthropic.com](https://console.anthropic.com). Set a Claude model
+  with `devbuddy config set model claude-sonnet-5` (or `claude-opus-5`,
+  `claude-haiku-4-5`, etc.) after switching.
+
+Example setup for Claude:
+
+```
+devbuddy provider set-key anthropic sk-ant-...
+devbuddy provider use anthropic
+devbuddy config set model claude-sonnet-5
+devbuddy chat
+```
 
 ## How it works
 
@@ -199,5 +223,9 @@ check one.
 
 ## Roadmap
 
-- Additional providers (Anthropic, Gemini, etc.) behind the same
+- Additional providers (Gemini, Bedrock, etc.) behind the same
   `ChatProvider` interface
+- Diff preview before an edit is applied, rather than only after
+- Non-interactive / scriptable mode (`devbuddy run "<prompt>"`) for CI and
+  one-shot scripting
+- Context compaction for very long chat sessions

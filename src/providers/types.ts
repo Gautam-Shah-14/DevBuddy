@@ -1,4 +1,7 @@
 export interface ToolCall {
+  /** Provider-assigned call id. Required to match a tool result back to its call
+   *  (OpenAI's tool_call_id, Anthropic's tool_use_id). Ollama doesn't need one. */
+  id?: string;
   function: {
     name: string;
     arguments: Record<string, unknown>;
@@ -10,6 +13,8 @@ export interface ChatMessage {
   content: string;
   tool_calls?: ToolCall[];
   tool_name?: string;
+  /** For role "tool": the id of the ToolCall this message is a result for. */
+  tool_call_id?: string;
 }
 
 export interface ToolSpec {
