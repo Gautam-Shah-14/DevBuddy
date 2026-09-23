@@ -102,13 +102,15 @@ export class ProjectMemory {
       .run(new Date().toISOString(), summary ?? null, sessionId);
   }
 
+  /** Returns the new row's id - used to mark a just-inserted summary message
+   *  as a session's compaction point (see setCompactionPoint). */
   addMessage(
     sessionId: number,
     message: ChatMessage,
     toolCallsJson?: string,
     usage?: { promptTokens?: number; completionTokens?: number }
-  ): void {
-    this.db
+  ): number {
+    const result = this.db
       .prepare(
         "INSERT INTO messages (session_id, role, content, tool_calls_json, created_at, prompt_tokens, completion_tokens) VALUES (?, ?, ?, ?, ?, ?, ?)"
       )
@@ -121,19 +123,68 @@ export class ProjectMemory {
         usage?.promptTokens ?? null,
         usage?.completionTokens ?? null
       );
+    return Number(result.lastInsertRowid);
   }
 
   /**
-   * A session's full history as plain role+content messages - deliberately
-   * without tool_calls/tool_call_id, so it's always safe to hand straight
-   * back to any provider as prior turns (no dangling unresolved tool call
-   * to reconcile). Used to resume/continue a session in a fresh process.
+   * A session's history as plain role+content messages, each tagged with
+   * its row id - deliberately without tool_calls/tool_call_id, so it's
+   * always safe to hand the content straight back to any provider as prior
+   * turns (no dangling unresolved tool call to reconcile). The ids are for
+   * compaction bookkeeping (see compactSession/setCompactionPoint), not for
+   * the provider.
+   *
+   * If the session has been compacted, this returns the summary message
+   * (wherever it was inserted) followed by everything from the kept-verbatim
+   * cutoff onward - not the full pre-compaction history - so resuming a
+   * long-since-compacted session doesn't immediately reload the very bulk
+   * that was compacted away. The summary's own row id is always the largest
+   * (it's inserted after the messages it summarizes), which is why it can't
+   * just be "the smallest id kept" - it's tracked and prepended separately.
+   * devbuddy history show is unaffected: it always reads the full raw log
+   * via getTranscript.
    */
+  getSessionMessagesWithIds(sessionId: number): (ChatMessage & { id: number })[] {
+    const session = this.db
+      .prepare("SELECT compacted_before_id, summary_message_id FROM sessions WHERE id = ?")
+      .get(sessionId) as { compacted_before_id: number | null; summary_message_id: number | null } | undefined;
+
+    type Row = { id: number; role: string; content: string };
+    let rows: Row[];
+
+    if (session?.summary_message_id != null && session.compacted_before_id != null) {
+      const summaryRow = this.db
+        .prepare("SELECT id, role, content FROM messages WHERE id = ?")
+        .get(session.summary_message_id) as Row | undefined;
+      const restRows = this.db
+        .prepare("SELECT id, role, content FROM messages WHERE session_id = ? AND id >= ? AND id != ? ORDER BY id ASC")
+        .all(sessionId, session.compacted_before_id, session.summary_message_id) as Row[];
+      rows = summaryRow ? [summaryRow, ...restRows] : restRows;
+    } else {
+      rows = this.db
+        .prepare("SELECT id, role, content FROM messages WHERE session_id = ? ORDER BY id ASC")
+        .all(sessionId) as Row[];
+    }
+
+    return rows.map((r) => ({ id: r.id, role: r.role as ChatMessage["role"], content: r.content }));
+  }
+
+  /** Same as getSessionMessagesWithIds, without the ids - for callers that
+   *  only need the messages themselves (e.g. resuming a session). */
   getSessionMessages(sessionId: number): ChatMessage[] {
-    const rows = this.db
-      .prepare("SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC")
-      .all(sessionId) as { role: string; content: string }[];
-    return rows.map((r) => ({ role: r.role as ChatMessage["role"], content: r.content }));
+    return this.getSessionMessagesWithIds(sessionId).map(({ role, content }) => ({ role, content }));
+  }
+
+  /**
+   * Records that a session was compacted: summaryMessageId is the row id of
+   * the just-inserted summary message, and keepFromMessageId is the row id
+   * of the first message kept verbatim after it (both from
+   * getSessionMessagesWithIds - see compactSession in commands/chat.ts).
+   */
+  setCompactionPoint(sessionId: number, summaryMessageId: number, keepFromMessageId: number): void {
+    this.db
+      .prepare("UPDATE sessions SET summary_message_id = ?, compacted_before_id = ? WHERE id = ?")
+      .run(summaryMessageId, keepFromMessageId, sessionId);
   }
 
   /** Reopens a previously-ended session so a new chat process can keep
@@ -316,6 +367,8 @@ function migrate(db: DatabaseSync): void {
   ensureColumn(db, "sessions", "model", "TEXT");
   ensureColumn(db, "messages", "prompt_tokens", "INTEGER");
   ensureColumn(db, "messages", "completion_tokens", "INTEGER");
+  ensureColumn(db, "sessions", "compacted_before_id", "INTEGER");
+  ensureColumn(db, "sessions", "summary_message_id", "INTEGER");
 }
 
 function ensureColumn(db: DatabaseSync, table: string, column: string, type: string): void {
