@@ -103,6 +103,18 @@ export class ProjectMemory {
     return computeStats(this.db);
   }
 
+  listSessions(limit = 20): SessionSummary[] {
+    return listSessions(this.db, limit);
+  }
+
+  getTranscript(sessionId: number): TranscriptMessage[] {
+    return getTranscript(this.db, sessionId);
+  }
+
+  search(query: string, limit = 50): SearchHit[] {
+    return search(this.db, query, limit);
+  }
+
   close(): void {
     this.db.close();
   }
@@ -115,15 +127,34 @@ export class ProjectMemory {
    * Returns null if the project has no memory.db yet (never opened).
    */
   static readStats(dbFile: string): ProjectStats | null {
-    if (!existsSync(dbFile)) return null;
-    const db = new DatabaseSync(dbFile);
-    try {
-      db.exec(SCHEMA);
-      migrate(db);
-      return computeStats(db);
-    } finally {
-      db.close();
-    }
+    return withReadOnlyDb(dbFile, computeStats);
+  }
+
+  /** Same no-side-effect read pattern as readStats, for `devbuddy history --all`. */
+  static listSessionsFrom(dbFile: string, limit = 20): SessionSummary[] {
+    return withReadOnlyDb(dbFile, (db) => listSessions(db, limit)) ?? [];
+  }
+
+  /** Same no-side-effect read pattern as readStats, for `devbuddy history search --all`. */
+  static searchFrom(dbFile: string, query: string, limit = 50): SearchHit[] {
+    return withReadOnlyDb(dbFile, (db) => search(db, query, limit)) ?? [];
+  }
+
+  /** Same no-side-effect read pattern as readStats, for `devbuddy history show`. */
+  static getTranscriptFrom(dbFile: string, sessionId: number): TranscriptMessage[] {
+    return withReadOnlyDb(dbFile, (db) => getTranscript(db, sessionId)) ?? [];
+  }
+}
+
+function withReadOnlyDb<T>(dbFile: string, fn: (db: DatabaseSync) => T): T | null {
+  if (!existsSync(dbFile)) return null;
+  const db = new DatabaseSync(dbFile);
+  try {
+    db.exec(SCHEMA);
+    migrate(db);
+    return fn(db);
+  } finally {
+    db.close();
   }
 }
 
@@ -175,4 +206,74 @@ export interface ProjectStats {
   exactCompletionTokens: number;
   messagesWithoutUsage: number;
   estimatedTokensForMissing: number;
+}
+
+export interface SessionSummary {
+  id: number;
+  startedAt: string;
+  endedAt: string | null;
+  provider: string | null;
+  model: string | null;
+  messageCount: number;
+  firstUserMessage: string | null;
+}
+
+function listSessions(db: DatabaseSync, limit: number): SessionSummary[] {
+  const rows = db
+    .prepare(
+      `SELECT s.id, s.started_at, s.ended_at, s.provider, s.model,
+         (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count,
+         (SELECT content FROM messages m2 WHERE m2.session_id = s.id AND m2.role = 'user' ORDER BY m2.id ASC LIMIT 1) AS first_user_message
+       FROM sessions s ORDER BY s.id DESC LIMIT ?`
+    )
+    .all(limit) as {
+    id: number;
+    started_at: string;
+    ended_at: string | null;
+    provider: string | null;
+    model: string | null;
+    message_count: number;
+    first_user_message: string | null;
+  }[];
+
+  return rows.map((r) => ({
+    id: r.id,
+    startedAt: r.started_at,
+    endedAt: r.ended_at,
+    provider: r.provider,
+    model: r.model,
+    messageCount: r.message_count,
+    firstUserMessage: r.first_user_message,
+  }));
+}
+
+export interface TranscriptMessage {
+  role: string;
+  content: string;
+  createdAt: string;
+}
+
+function getTranscript(db: DatabaseSync, sessionId: number): TranscriptMessage[] {
+  const rows = db
+    .prepare("SELECT role, content, created_at FROM messages WHERE session_id = ? ORDER BY id ASC")
+    .all(sessionId) as { role: string; content: string; created_at: string }[];
+  return rows.map((r) => ({ role: r.role, content: r.content, createdAt: r.created_at }));
+}
+
+export interface SearchHit {
+  sessionId: number;
+  role: string;
+  content: string;
+  createdAt: string;
+}
+
+function search(db: DatabaseSync, query: string, limit: number): SearchHit[] {
+  const rows = db
+    .prepare(
+      `SELECT session_id, role, content, created_at FROM messages
+       WHERE role IN ('user', 'assistant') AND content LIKE ?
+       ORDER BY id DESC LIMIT ?`
+    )
+    .all(`%${query}%`, limit) as { session_id: number; role: string; content: string; created_at: string }[];
+  return rows.map((r) => ({ sessionId: r.session_id, role: r.role, content: r.content, createdAt: r.created_at }));
 }

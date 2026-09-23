@@ -71,6 +71,11 @@ npm test
   project, or every project with `--all`. Token counts are exact when the
   provider reports usage (Ollama always does; OpenAI-compatible endpoints
   usually do), and estimated from content length otherwise.
+- `devbuddy history [list]` — recent sessions in the current project (id,
+  time range, provider/model, message count, first message).
+- `devbuddy history show <session-id>` — full transcript of one session.
+- `devbuddy history search <text> [--all]` — search message content in
+  the current project, or every project with `--all`.
 
 ## Providers
 

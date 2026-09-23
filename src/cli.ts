@@ -14,6 +14,7 @@ import { providerCommand } from "./commands/provider.js";
 import { licenseCommand } from "./commands/license.js";
 import { guardrailsCommand } from "./commands/guardrails.js";
 import { statsCommand } from "./commands/stats.js";
+import { historyCommand } from "./commands/history.js";
 import { printBanner } from "./lib/banner.js";
 
 if (process.argv.length <= 2) printBanner();
@@ -91,5 +92,15 @@ program
   .description("Show session/message/token counts for the current project (or --all for every project)")
   .option("--all", "Show stats across every project DevBuddy has been used in")
   .action((options) => statsCommand(options));
+
+program
+  .command("history [action] [args...]")
+  .description("Browse local session history (list/show <id>/search <text> [--all])")
+  .option("--all", "For search: look across every project, not just this one")
+  .allowUnknownOption()
+  .action((action?: string, args: string[] = [], options?: { all?: boolean }) => {
+    const cmdArgs = [action, ...args].filter((v): v is string => v !== undefined);
+    historyCommand(cmdArgs, options ?? {});
+  });
 
 program.parseAsync(process.argv);
