@@ -100,7 +100,19 @@ backend is active:
   tools to the agent, namespaced as `mcp__<connector>__<tool>`. Calling an
   MCP tool goes through the same permission system as built-in tools.
 
-## Guardrails (Pro)
+## Guardrails
+
+> **Status**: fully enabled for everyone during development/testing.
+> The code below (Ed25519-signed license keys, `devbuddy license`) exists
+> and works, but entitlement enforcement is currently switched off
+> (`ENTITLEMENTS_ENFORCED = false` in `src/lib/license.ts`) because the
+> real monetization model isn't decided yet - a purely offline license
+> key can prove it was issued by TokenBurners, but it can't tie a
+> purchase to a device/account, can't be revoked for a cancelled
+> subscription, and the key file is just as shareable as any other text
+> file. Solving that needs a real decision (accounts? periodic online
+> activation? device binding?), not a bigger local file. Guardrails will
+> move behind a real Pro gate once that's settled, before public launch.
 
 DevBuddy can scan outgoing content for PII and secrets — emails, phone
 numbers, SSNs, credit card numbers (Luhn-validated), IP addresses, street

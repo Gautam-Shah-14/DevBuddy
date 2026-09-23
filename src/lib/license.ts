@@ -59,7 +59,22 @@ export function verifyLicenseKey(licenseKey: string): LicenseCheckResult {
 
 export type Plan = "free" | "pro";
 
+/**
+ * TEMPORARY: entitlement enforcement is switched off during development
+ * and testing. Offline signature verification only proves a key was
+ * issued by TokenBurners - it can't tie a purchase to a person/device,
+ * can't be revoked for a cancelled subscription, and the key file is
+ * trivially shareable (see conversation/design notes). The real model
+ * (accounts? periodic activation check? device binding?) hasn't been
+ * decided yet. Flip this to false once it has been, so getPlan() reflects
+ * the actual license key again - the verification code below is already
+ * correct and ready for that.
+ */
+const ENTITLEMENTS_ENFORCED = false;
+
 export function getPlan(): Plan {
+  if (!ENTITLEMENTS_ENFORCED) return "pro";
+
   const { licenseKey } = getConfig();
   if (!licenseKey) return "free";
   const result = verifyLicenseKey(licenseKey);
