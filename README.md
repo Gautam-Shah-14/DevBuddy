@@ -117,7 +117,8 @@ backend is active:
 DevBuddy can scan outgoing content for PII and secrets — emails, phone
 numbers, SSNs, credit card numbers (Luhn-validated), IP addresses, street
 addresses, **Aadhaar numbers (Verhoeff checksum-validated)**, **PAN
-numbers (holder-type validated)**, AWS access keys, private key blocks,
+numbers (holder-type validated)**, **GSTINs (mod-36 checksum-validated,
+same algorithm GSTN uses)**, AWS access keys, private key blocks,
 JWTs, and generic `key: value` / `token: value` secrets — right at the
 boundary where content is about to leave your machine in a request to
 the AI provider. Local tools are never restricted: the agent can still

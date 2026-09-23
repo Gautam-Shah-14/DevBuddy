@@ -75,6 +75,32 @@ function panCheck(value: string): boolean {
   return PAN_HOLDER_TYPES.has(value[3]?.toUpperCase());
 }
 
+const GSTIN_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+/** Validates a GSTIN's mod-36 check character (the same algorithm GSTN itself uses). */
+function gstinChecksum(value: string): boolean {
+  const v = value.toUpperCase();
+  const mod = GSTIN_CHARSET.length;
+  let factor = 2;
+  let sum = 0;
+  for (let i = 13; i >= 0; i--) {
+    const codePoint = GSTIN_CHARSET.indexOf(v[i]);
+    if (codePoint === -1) return false;
+    let digit = factor * codePoint;
+    factor = factor === 2 ? 1 : 2;
+    digit = Math.floor(digit / mod) + (digit % mod);
+    sum += digit;
+  }
+  const checksumIndex = (mod - (sum % mod)) % mod;
+  return GSTIN_CHARSET[checksumIndex] === v[14];
+}
+
+/** A GSTIN embeds a PAN at positions 2-11, so its holder-type character (position 5) must also be valid. */
+function gstinCheck(value: string): boolean {
+  const v = value.toUpperCase();
+  return PAN_HOLDER_TYPES.has(v[5]) && gstinChecksum(v);
+}
+
 export const PII_PATTERNS: PiiPattern[] = [
   { type: "EMAIL", regex: /[a-z0-9_.+-]+@[a-z0-9-]+\.[a-z0-9.-]+/gi },
   {
@@ -97,6 +123,11 @@ export const PII_PATTERNS: PiiPattern[] = [
     type: "PAN",
     regex: /\b[A-Z]{5}\d{4}[A-Z]\b/g,
     validate: panCheck,
+  },
+  {
+    type: "GSTIN",
+    regex: /\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b/gi,
+    validate: gstinCheck,
   },
   {
     type: "STREET_ADDRESS",
