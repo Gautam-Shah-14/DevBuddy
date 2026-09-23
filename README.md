@@ -60,6 +60,13 @@ this development happens on a Windows machine directly.
 
 - `devbuddy chat` — start an interactive agent session in the current
   directory (this is the project DevBuddy operates on).
+- `devbuddy run "<prompt>" [--yes] [--model <model>] [--json]` — run a
+  single non-interactive agent turn and exit, for scripts/CI/pre-commit
+  hooks. Read-only tasks work with no flags; anything that writes, deletes,
+  runs a shell command, or pushes requires `--yes` to auto-approve (there's
+  no one to prompt), and is otherwise refused with an explanation. `--json`
+  prints `{ sessionId, model, provider, content }` instead of streaming
+  plain text, for piping into other tools.
 - `devbuddy models` — list Ollama models installed locally.
 - `devbuddy config` — view current configuration.
 - `devbuddy config set <key> <value>` — set `host`, `model`,
@@ -140,7 +147,8 @@ devbuddy chat
 - **Permissions**: risky actions (writing/deleting files, running shell
   commands, git push) prompt for approval before running. You can approve
   a category for the rest of the session, except deletes and pushes, which
-  always ask.
+  always ask. `devbuddy run` has no one to prompt, so it refuses risky
+  actions by default and only auto-approves them with `--yes`.
 - **Diff preview**: the write/edit/delete permission prompt shows a colored,
   `git diff`-style preview of the exact change (with a couple of lines of
   context around each hunk) before you approve it — you see what's about to
@@ -251,6 +259,7 @@ check one.
 
 - Additional providers (Gemini, Bedrock, etc.) behind the same
   `ChatProvider` interface
-- Non-interactive / scriptable mode (`devbuddy run "<prompt>"`) for CI and
-  one-shot scripting
+- `devbuddy init` — scan the project and seed memory/system prompt with
+  its language/test-runner/lint context automatically
 - Context compaction for very long chat sessions
+- Cost/budget guard — a per-session token or dollar cap for paid providers
