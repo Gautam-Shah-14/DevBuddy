@@ -18,8 +18,8 @@ interface ConnectedServer {
 export class McpManager {
   private servers: ConnectedServer[] = [];
 
-  async connectAll(): Promise<ToolDefinition[]> {
-    const connectors = loadConnectors().filter((c) => c.enabled);
+  async connectAll(projectRoot?: string): Promise<ToolDefinition[]> {
+    const connectors = loadConnectors(projectRoot).filter((c) => c.enabled);
     const tools: ToolDefinition[] = [];
 
     for (const config of connectors) {

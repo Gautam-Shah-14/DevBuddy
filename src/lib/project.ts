@@ -99,3 +99,27 @@ export function globalSkillsDir(): string {
 export function connectorsFile(): string {
   return join(DEVBUDDY_HOME, "connectors", "connectors.json");
 }
+
+/**
+ * The project-repo-local ".devbuddy/" directory (NOT ~/.devbuddy) - lives at
+ * the project root next to package.json, meant to be committed to git so a
+ * team shares the same skills/connectors/config instead of everyone
+ * recreating them under their own home directory. Never holds secrets:
+ * see repoConfigFile's key allowlist and the README written into it by
+ * `devbuddy project init`.
+ */
+export function repoDevBuddyDir(projectRoot: string): string {
+  return join(projectRoot, ".devbuddy");
+}
+
+export function repoSkillsDir(projectRoot: string): string {
+  return join(repoDevBuddyDir(projectRoot), "skills");
+}
+
+export function repoConnectorsFile(projectRoot: string): string {
+  return join(repoDevBuddyDir(projectRoot), "connectors.json");
+}
+
+export function repoConfigFile(projectRoot: string): string {
+  return join(repoDevBuddyDir(projectRoot), "config.json");
+}

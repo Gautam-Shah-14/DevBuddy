@@ -6,7 +6,10 @@ export interface Skill {
   name: string;
   description: string;
   content: string; // full instructions body, shown when the skill is loaded
-  source: "global" | "project";
+  /** global: ~/.devbuddy/skills (this machine only). shared: the project's
+   *  committed .devbuddy/skills (team-wide, via git). project: this user's
+   *  own per-project skills, private and not committed. */
+  source: "global" | "shared" | "project";
   filePath: string;
 }
 
@@ -46,16 +49,21 @@ function loadSkillsFromDir(dir: string, source: Skill["source"]): Skill[] {
 }
 
 /**
- * Loads all skills visible to a project: global skills from ~/.devbuddy/skills/,
- * overridden/extended by project-local skills of the same name.
+ * Loads all skills visible to a project, layered from least to most
+ * specific so a more specific skill overrides a same-named less specific
+ * one: global (~/.devbuddy/skills, this machine only) < shared (the
+ * project's committed .devbuddy/skills, team-wide via git) < project (this
+ * user's own private per-project skills, never committed).
  */
-export function loadSkills(projectSkillsDir: string): Skill[] {
+export function loadSkills(projectSkillsDir: string, sharedSkillsDir?: string): Skill[] {
   const global = loadSkillsFromDir(globalSkillsDir(), "global");
+  const shared = sharedSkillsDir ? loadSkillsFromDir(sharedSkillsDir, "shared") : [];
   const project = loadSkillsFromDir(projectSkillsDir, "project");
 
   const byName = new Map<string, Skill>();
   for (const skill of global) byName.set(skill.name, skill);
-  for (const skill of project) byName.set(skill.name, skill); // project overrides global
+  for (const skill of shared) byName.set(skill.name, skill);
+  for (const skill of project) byName.set(skill.name, skill);
   return [...byName.values()];
 }
 

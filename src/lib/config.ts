@@ -1,6 +1,7 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { repoConfigFile } from "./project.js";
 
 export type ProviderName = "ollama" | "openai" | "anthropic";
 
@@ -80,4 +81,47 @@ export function maskSecret(value: string): string {
 
 export function configFilePath(): string {
   return CONFIG_PATH;
+}
+
+/**
+ * Non-secret config keys a team can safely commit to a repo's .devbuddy/
+ * config.json so everyone gets the same defaults (which provider/model to
+ * use, a shared system prompt, a project's verify command) without sharing
+ * API keys or license state. Anything not in this list is ignored if a
+ * repo config.json somehow contains it - never trust that file with secrets.
+ */
+export const PROJECT_CONFIG_KEYS: (keyof DevBuddyConfig)[] = [
+  "provider",
+  "model",
+  "systemPrompt",
+  "verifyCommand",
+  "guardrailsMode",
+];
+
+/** Reads a project's committed .devbuddy/config.json, if any, filtered to the safe allowlist above. */
+export function loadProjectConfigOverrides(projectRoot: string): Partial<DevBuddyConfig> {
+  const file = repoConfigFile(projectRoot);
+  if (!existsSync(file)) return {};
+  try {
+    const raw = JSON.parse(readFileSync(file, "utf-8")) as Record<string, unknown>;
+    const overrides: Partial<DevBuddyConfig> = {};
+    for (const key of PROJECT_CONFIG_KEYS) {
+      if (raw[key] !== undefined) (overrides as Record<string, unknown>)[key] = raw[key];
+    }
+    return overrides;
+  } catch {
+    return {}; // corrupt repo config.json - fall back to the user's own config
+  }
+}
+
+/**
+ * The config DevBuddy actually runs a project with: the user's own
+ * ~/.devbuddy/config.json (host, API keys, license - always local), with a
+ * committed .devbuddy/config.json in the project layered on top for the
+ * shared, non-secret fields. The project file wins on those fields so a
+ * team's checked-in defaults take effect without every member reconfiguring
+ * their own machine; secrets always come from the user's own config.
+ */
+export function getEffectiveConfig(projectRoot: string): DevBuddyConfig {
+  return { ...getConfig(), ...loadProjectConfigOverrides(projectRoot) };
 }
