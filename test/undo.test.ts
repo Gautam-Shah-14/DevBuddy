@@ -46,18 +46,6 @@ test("ProjectMemory.listCheckpoints returns newest first, including reverted one
     memory.close();
   }));
 
-// undoCommand resolves the project from process.cwd(), so these tests chdir
-// into the temp project and always restore the original cwd afterward.
-async function withCwd<T>(dir: string, fn: () => Promise<T>): Promise<T> {
-  const original = process.cwd();
-  process.chdir(dir);
-  try {
-    return await fn();
-  } finally {
-    process.chdir(original);
-  }
-}
-
 test("devbuddy undo restores edited content, then deletes a file that didn't exist before", () =>
   withTempProject(async (projectRoot) => {
     const filePath = join(projectRoot, "hello.txt");
@@ -70,12 +58,12 @@ test("devbuddy undo restores edited content, then deletes a file that didn't exi
     writeFileSync(filePath, "version 2\n");
     memory.close();
 
-    await withCwd(projectRoot, () => undoCommand([]));
+    await undoCommand([], projectRoot);
     assert.equal(readFileSync(filePath, "utf-8"), "version 1\n");
 
-    await withCwd(projectRoot, () => undoCommand([]));
+    await undoCommand([], projectRoot);
     assert.equal(existsSync(filePath), false);
   }));
 
 test("devbuddy undo is a no-op when there is nothing recorded", () =>
-  withTempProject((projectRoot) => withCwd(projectRoot, () => undoCommand([]))));
+  withTempProject((projectRoot) => undoCommand([], projectRoot)));

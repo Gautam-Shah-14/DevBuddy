@@ -21,9 +21,15 @@ function revert(projectRoot: string, checkpoint: Checkpoint): void {
   }
 }
 
-export async function undoCommand(args: string[]): Promise<void> {
+/**
+ * `projectRootOverride` exists only for tests: node's test runner executes a
+ * file's top-level tests concurrently, so mutating the real process.cwd()
+ * around each assertion is racy. Production callers (cli.ts) always omit it
+ * and get the real cwd.
+ */
+export async function undoCommand(args: string[], projectRootOverride?: string): Promise<void> {
   const [action, ...rest] = args;
-  const projectRoot = resolve(process.cwd());
+  const projectRoot = resolve(projectRootOverride ?? process.cwd());
   const memory = new ProjectMemory(projectRoot);
 
   try {
