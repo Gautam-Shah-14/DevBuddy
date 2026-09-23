@@ -1,12 +1,21 @@
 import { getConfig } from "./config.js";
 
+export interface OllamaToolCall {
+  function: {
+    name: string;
+    arguments: Record<string, unknown>;
+  };
+}
+
 export interface ChatMessage {
-  role: "system" | "user" | "assistant";
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
+  tool_calls?: OllamaToolCall[];
+  tool_name?: string;
 }
 
 interface OllamaChatChunk {
-  message?: { role: string; content: string };
+  message?: { role: string; content: string; tool_calls?: OllamaToolCall[] };
   done: boolean;
   error?: string;
 }
@@ -40,20 +49,40 @@ export async function listModels(): Promise<string[]> {
   return data.models.map((m) => m.name);
 }
 
+export interface OllamaToolSpec {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    parameters: unknown;
+  };
+}
+
 export interface StreamChatOptions {
   model: string;
   messages: ChatMessage[];
-  onToken: (token: string) => void;
+  tools?: OllamaToolSpec[];
+  onToken?: (token: string) => void;
 }
 
-/** Streams a chat completion from Ollama, calling onToken for each piece of text. */
-export async function streamChat({ model, messages, onToken }: StreamChatOptions): Promise<string> {
+export interface StreamChatResult {
+  content: string;
+  toolCalls: OllamaToolCall[];
+}
+
+/**
+ * Streams a chat completion from Ollama. Text tokens are surfaced via
+ * onToken as they arrive; any tool_calls the model requests are collected
+ * and returned once the stream finishes (Ollama emits them on the final
+ * message chunk rather than incrementally).
+ */
+export async function streamChat({ model, messages, tools, onToken }: StreamChatOptions): Promise<StreamChatResult> {
   let res: Response;
   try {
     res = await fetch(`${baseUrl()}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model, messages, stream: true }),
+      body: JSON.stringify({ model, messages, tools, stream: true }),
     });
   } catch (err) {
     throw new OllamaError(
@@ -70,6 +99,7 @@ export async function streamChat({ model, messages, onToken }: StreamChatOptions
   const decoder = new TextDecoder();
   let buffer = "";
   let full = "";
+  let toolCalls: OllamaToolCall[] = [];
 
   while (true) {
     const { done, value } = await reader.read();
@@ -86,10 +116,13 @@ export async function streamChat({ model, messages, onToken }: StreamChatOptions
       const token = chunk.message?.content ?? "";
       if (token) {
         full += token;
-        onToken(token);
+        onToken?.(token);
+      }
+      if (chunk.message?.tool_calls?.length) {
+        toolCalls = chunk.message.tool_calls;
       }
     }
   }
 
-  return full;
+  return { content: full, toolCalls };
 }
