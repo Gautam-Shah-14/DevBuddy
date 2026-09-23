@@ -140,6 +140,14 @@ devbuddy config set model claude-sonnet-5
 devbuddy chat
 ```
 
+All three providers automatically retry a request with exponential backoff
+(plus jitter, honoring a `Retry-After` header when the API sends one) on a
+network error or an HTTP 429/5xx - up to 2 retries before giving up. A
+client error (bad API key, malformed request, 404, etc.) is never
+retried - retrying a permanent problem just delays the real error message.
+Retries only ever happen before any part of the reply has streamed back,
+so you never see duplicated or truncated output from a mid-stream retry.
+
 ## How it works
 
 - **Agent loop**: each turn, the model can call built-in tools (read/write/

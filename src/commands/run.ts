@@ -98,6 +98,11 @@ export async function runCommand(prompt: string, options: RunOptions): Promise<v
         else if (event.status === "passed") console.error(chalk.green(`Self-check passed (${event.command})`));
         else console.error(chalk.red(`Self-check failed (${event.command})`));
       },
+      onRetry: (info) => {
+        console.error(
+          chalk.dim(`${info.reason}, retrying (${info.attempt}/${info.maxAttempts}) in ${Math.round(info.delayMs / 100) / 10}s...`)
+        );
+      },
     });
 
     if (options.json) {

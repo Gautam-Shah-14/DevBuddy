@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { getConfig } from "./config.js";
-import type { ChatMessage, ChatProvider, ToolCall } from "../providers/index.js";
+import type { ChatMessage, ChatProvider, RetryInfo, ToolCall } from "../providers/index.js";
 import type { ProjectMemory } from "./memory.js";
 import type { ProjectPaths } from "./project.js";
 import type { ToolDefinition } from "../tools/index.js";
@@ -82,6 +82,8 @@ export interface RunAgentTurnOptions {
   onToolStart?: (name: string, args: Record<string, unknown>) => void;
   onToolResult?: (name: string, result: string) => void;
   onVerify?: (event: VerifyEvent) => void;
+  /** Called when the provider retries its request after a transient failure (network error, HTTP 429/5xx). */
+  onRetry?: (info: RetryInfo) => void;
 }
 
 /**
@@ -125,7 +127,13 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
       }
     }
 
-    const result = await provider.streamChat({ model, messages: outgoingMessages, tools: toolSpecs, onToken: opts.onToken });
+    const result = await provider.streamChat({
+      model,
+      messages: outgoingMessages,
+      tools: toolSpecs,
+      onToken: opts.onToken,
+      onRetry: opts.onRetry,
+    });
     // Restore any placeholders the model echoed back before storing/returning
     // the reply - streamed tokens may transiently show a raw placeholder if
     // one lands mid-stream, but the final stored content is always restored.

@@ -1,3 +1,6 @@
+import type { RetryInfo } from "./retry.js";
+export type { RetryInfo } from "./retry.js";
+
 export interface ToolCall {
   /** Provider-assigned call id. Required to match a tool result back to its call
    *  (OpenAI's tool_call_id, Anthropic's tool_use_id). Ollama doesn't need one. */
@@ -31,6 +34,9 @@ export interface StreamChatOptions {
   messages: ChatMessage[];
   tools?: ToolSpec[];
   onToken?: (token: string) => void;
+  /** Called each time the initial request is retried after a transient
+   *  failure (network error, HTTP 429/5xx) before any tokens have streamed. */
+  onRetry?: (info: RetryInfo) => void;
 }
 
 export interface TokenUsage {

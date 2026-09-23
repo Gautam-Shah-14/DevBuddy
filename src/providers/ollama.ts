@@ -1,5 +1,6 @@
 import { getConfig } from "../lib/config.js";
 import { ProviderError, type ChatProvider, type StreamChatOptions, type StreamChatResult, type ToolCall } from "./types.js";
+import { fetchWithRetry } from "./retry.js";
 
 interface OllamaChatChunk {
   message?: { role: string; content: string; tool_calls?: ToolCall[] };
@@ -23,7 +24,7 @@ export class OllamaProvider implements ChatProvider {
 
   async checkConnection(): Promise<boolean> {
     try {
-      const res = await fetch(`${this.baseUrl()}/api/tags`);
+      const res = await fetchWithRetry(() => fetch(`${this.baseUrl()}/api/tags`));
       return res.ok;
     } catch {
       return false;
@@ -31,7 +32,7 @@ export class OllamaProvider implements ChatProvider {
   }
 
   async listModels(): Promise<string[]> {
-    const res = await fetch(`${this.baseUrl()}/api/tags`);
+    const res = await fetchWithRetry(() => fetch(`${this.baseUrl()}/api/tags`));
     if (!res.ok) {
       throw new ProviderError(`Failed to list models: ${res.status} ${res.statusText}`);
     }
@@ -39,14 +40,18 @@ export class OllamaProvider implements ChatProvider {
     return data.models.map((m) => m.name);
   }
 
-  async streamChat({ model, messages, tools, onToken }: StreamChatOptions): Promise<StreamChatResult> {
+  async streamChat({ model, messages, tools, onToken, onRetry }: StreamChatOptions): Promise<StreamChatResult> {
     let res: Response;
     try {
-      res = await fetch(`${this.baseUrl()}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model, messages, tools, stream: true }),
-      });
+      res = await fetchWithRetry(
+        () =>
+          fetch(`${this.baseUrl()}/api/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ model, messages, tools, stream: true }),
+          }),
+        { onRetry }
+      );
     } catch (err) {
       throw new ProviderError(
         `Could not reach Ollama at ${this.baseUrl()}. Is it running? (try: ollama serve)\n${(err as Error).message}`
