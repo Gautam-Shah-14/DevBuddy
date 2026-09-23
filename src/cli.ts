@@ -17,6 +17,7 @@ import { statsCommand } from "./commands/stats.js";
 import { historyCommand } from "./commands/history.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { undoCommand } from "./commands/undo.js";
+import { runCommand } from "./commands/run.js";
 import { printBanner } from "./lib/banner.js";
 
 if (process.argv.length <= 2) printBanner();
@@ -117,5 +118,13 @@ program
     const args = [action, n].filter((v): v is string => v !== undefined);
     undoCommand(args);
   });
+
+program
+  .command("run <prompt>")
+  .description("Run a single non-interactive agent turn (for scripts/CI) and print the result")
+  .option("-y, --yes", "Auto-approve risky actions (writes, deletes, shell commands, git push) without prompting")
+  .option("-m, --model <model>", "Ollama model to use (overrides config default)")
+  .option("--json", 'Print {sessionId, model, provider, content} as JSON instead of streaming plain text')
+  .action((prompt: string, options: { yes?: boolean; model?: string; json?: boolean }) => runCommand(prompt, options));
 
 program.parseAsync(process.argv);

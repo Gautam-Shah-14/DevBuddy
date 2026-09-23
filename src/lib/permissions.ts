@@ -51,6 +51,17 @@ export function isAlwaysConfirmed(category: PermissionCategory): boolean {
 export class PermissionDenied extends Error {}
 
 /**
+ * Set by `devbuddy run --yes` to approve every risky action without
+ * prompting - there's no human attached to a non-interactive/scripted
+ * invocation to ask. Off by default, including for the interactive REPL.
+ */
+let autoApproveAll = false;
+
+export function setAutoApprove(enabled: boolean): void {
+  autoApproveAll = enabled;
+}
+
+/**
  * Prompts the user to approve a risky action. Resolves silently if approved,
  * throws PermissionDenied otherwise. Session-wide "allow all" is remembered
  * per category (except categories in ALWAYS_CONFIRM).
@@ -60,9 +71,15 @@ export async function requestPermission(req: PermissionRequest): Promise<void> {
     return;
   }
 
+  if (autoApproveAll) {
+    console.log(chalk.dim(`[auto-approved] ${req.category}: ${req.description}`));
+    return;
+  }
+
   if (!process.stdin.isTTY) {
     throw new PermissionDenied(
-      `Refusing "${req.category}" action in a non-interactive session: ${req.description}`
+      `Refusing "${req.category}" action in a non-interactive session: ${req.description}. ` +
+        `Pass --yes to "devbuddy run" to auto-approve risky actions in scripts/CI.`
     );
   }
 
@@ -91,6 +108,10 @@ export function resetSessionPermissions(): void {
 
 /** Shows a proposed plan to the user and asks for approval before any of its steps run. */
 export async function confirmPlan(title: string, planText: string): Promise<boolean> {
+  if (autoApproveAll) {
+    console.log(chalk.dim(`[auto-approved] plan: ${title}`));
+    return true;
+  }
   if (!process.stdin.isTTY) return false;
 
   console.log(chalk.cyan(`\nDevBuddy proposes a plan: ${chalk.bold(title)}\n`));
