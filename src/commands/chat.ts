@@ -5,7 +5,7 @@ import ora from "ora";
 import { getEffectiveConfig } from "../lib/config.js";
 import { getProvider } from "../providers/index.js";
 import { ensureProject, repoSkillsDir } from "../lib/project.js";
-import { ProjectMemory } from "../lib/memory.js";
+import { ProjectMemory, type SessionSummary } from "../lib/memory.js";
 import { buildSystemPrompt, runAgentTurn } from "../lib/agent.js";
 import { builtinTools } from "../tools/index.js";
 import { loadSkills } from "../lib/skills.js";
@@ -16,7 +16,84 @@ import { GuardrailsEngine } from "../lib/guardrails/engine.js";
 import { getPlan } from "../lib/license.js";
 import type { ChatMessage } from "../providers/index.js";
 
-export async function chatCommand(options: { model?: string }): Promise<void> {
+export interface ChatOptions {
+  model?: string;
+  /** -c/--continue: resume the most recently used session in this project. */
+  continueSession?: boolean;
+  /** -r/--resume [id]: a specific session id to resume, or `true` when no id
+   *  was given (pick one from a list of recent sessions instead). */
+  resume?: string | boolean;
+}
+
+/** The most recently used session in this project, or null if there is none yet. */
+export function resolveContinueSessionId(sessions: SessionSummary[]): number | null {
+  return sessions[0]?.id ?? null;
+}
+
+/**
+ * Turns a typed answer from the resume picker into a session id: a list
+ * position (1-based, matching what was printed) if it's in range, otherwise
+ * the number is treated as a literal session id (so typing an id directly
+ * also works). An empty or non-numeric answer cancels (returns null).
+ */
+export function resolveResumePickerAnswer(answer: string, sessions: SessionSummary[]): number | null {
+  const trimmed = answer.trim();
+  if (!trimmed) return null;
+  const n = Number(trimmed);
+  if (!Number.isInteger(n)) return null;
+  if (n >= 1 && n <= sessions.length) return sessions[n - 1].id;
+  return n;
+}
+
+function formatSessionLine(index: number | null, s: SessionSummary): string {
+  const status = s.endedAt ? new Date(s.endedAt).toLocaleString() : chalk.green("(ongoing)");
+  const providerModel = s.provider ? `${s.provider}/${s.model ?? "?"}` : chalk.dim("unknown model");
+  const label = index !== null ? chalk.cyan(`${index})`) : chalk.cyan(`#${s.id}`);
+  const snippet = (s.firstUserMessage ?? "").replace(/\s+/g, " ").trim().slice(0, 60);
+  return `${label} ${new Date(s.startedAt).toLocaleString()} → ${status}  ${chalk.dim(`[${providerModel}]`)}\n     ${snippet}`;
+}
+
+/** Resolves --continue/--resume into a session id to reopen, prompting
+ *  interactively for --resume with no id. Returns null to start fresh. */
+async function resolveResumeSessionId(memory: ProjectMemory, options: ChatOptions): Promise<number | null> {
+  if (options.continueSession) {
+    const id = resolveContinueSessionId(memory.listSessions(1));
+    if (id === null) console.log(chalk.yellow("No previous session in this project yet - starting a new one."));
+    return id;
+  }
+
+  if (options.resume === undefined) return null;
+
+  if (typeof options.resume === "string") {
+    const id = Number(options.resume);
+    if (!Number.isInteger(id)) {
+      console.error(chalk.red(`Invalid session id "${options.resume}".`));
+      process.exitCode = 1;
+      return null;
+    }
+    return id;
+  }
+
+  const sessions = memory.listSessions(20);
+  if (sessions.length === 0) {
+    console.log(chalk.yellow("No previous sessions in this project yet - starting a new one."));
+    return null;
+  }
+
+  console.log(chalk.bold("Recent sessions:\n"));
+  sessions.forEach((s, i) => console.log(formatSessionLine(i + 1, s)));
+
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  let answer: string;
+  try {
+    answer = await rl.question(chalk.cyan("\nResume which session? [number, or blank for a new session]: "));
+  } finally {
+    rl.close();
+  }
+  return resolveResumePickerAnswer(answer, sessions);
+}
+
+export async function chatCommand(options: ChatOptions): Promise<void> {
   printBanner();
 
   const projectRoot = resolve(process.cwd());
@@ -49,15 +126,33 @@ export async function chatCommand(options: { model?: string }): Promise<void> {
 
   const paths = ensureProject(projectRoot);
   const memory = new ProjectMemory(projectRoot);
-  const sessionId = memory.startSession(provider.name, model);
+
+  const resumeSessionId = await resolveResumeSessionId(memory, options);
+  const priorMessages = resumeSessionId !== null ? memory.getSessionMessages(resumeSessionId) : [];
+  if (resumeSessionId !== null && priorMessages.length === 0) {
+    console.log(chalk.yellow(`No session #${resumeSessionId} found in this project - starting a new one instead.`));
+  }
+
   const skills = loadSkills(paths.skillsDir, repoSkillsDir(projectRoot));
 
   const mcpManager = new McpManager();
   const mcpTools = await mcpManager.connectAll(projectRoot);
   const tools = [...builtinTools, ...mcpTools];
 
-  let messages: ChatMessage[] = [{ role: "system", content: buildSystemPrompt(tools, skills, config.systemPrompt) }];
-  memory.addMessage(sessionId, messages[0]);
+  const systemMessage: ChatMessage = { role: "system", content: buildSystemPrompt(tools, skills, config.systemPrompt) };
+  let sessionId: number;
+  let messages: ChatMessage[];
+  if (resumeSessionId !== null && priorMessages.length > 0) {
+    sessionId = resumeSessionId;
+    memory.reopenSession(sessionId, provider.name, model);
+    messages = [systemMessage, ...priorMessages.filter((m) => m.role !== "system")];
+    const priorTurns = messages.length - 1;
+    console.log(chalk.dim(`Resumed session #${sessionId} (${priorTurns} prior message${priorTurns === 1 ? "" : "s"}).`));
+  } else {
+    sessionId = memory.startSession(provider.name, model);
+    messages = [systemMessage];
+    memory.addMessage(sessionId, systemMessage);
+  }
 
   // Guardrails (PII/secret masking or blocking before AI calls) are a Pro
   // feature - fall back to "off" for free plans even if a mode was set

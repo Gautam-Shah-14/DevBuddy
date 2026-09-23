@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
 import chalk from "chalk";
-import { ProjectMemory, type SearchHit, type SessionSummary } from "../lib/memory.js";
+import { ProjectMemory, type SearchHit, type SessionSummary, type ToolStats, type UsageEntry } from "../lib/memory.js";
 import { projectPaths, listAllProjects } from "../lib/project.js";
 
 function formatDate(iso: string): string {
@@ -28,6 +28,23 @@ function printSessionList(sessions: SessionSummary[]): void {
     );
     console.log(`   ${snippet(s.firstUserMessage)}`);
   }
+}
+
+function printSessionToolSummary(tools: ToolStats, skills: UsageEntry[], connectors: UsageEntry[]): void {
+  if (tools.total === 0) return;
+  console.log(
+    chalk.bold(
+      `Tools: ${tools.total} call${tools.total === 1 ? "" : "s"} (${chalk.green(`${tools.passed} passed`)}, ${chalk.red(`${tools.failed} failed`)})`
+    )
+  );
+  for (const t of tools.byTool) {
+    const failNote = t.failed > 0 ? chalk.red(` - ${t.failed} failed`) : "";
+    console.log(chalk.dim(`  ${t.toolName}: ${t.total}${failNote}`));
+  }
+  if (skills.length > 0) console.log(chalk.bold(`Skills used: `) + skills.map((s) => `${s.name} (${s.count}x)`).join(", "));
+  if (connectors.length > 0)
+    console.log(chalk.bold(`Connectors used: `) + connectors.map((c) => `${c.name} (${c.count}x)`).join(", "));
+  console.log();
 }
 
 function printSearchHits(hits: SearchHit[], query: string, projectLabel?: string): void {
@@ -75,6 +92,14 @@ export async function historyCommand(args: string[], options: { all?: boolean })
     if (transcript.length === 0) {
       console.log(chalk.yellow(`No session #${sessionId} found in this project.`));
       return;
+    }
+    const sessionTools = ProjectMemory.toolStatsFrom(paths.dbFile, sessionId);
+    if (sessionTools) {
+      printSessionToolSummary(
+        sessionTools,
+        ProjectMemory.skillUsageFrom(paths.dbFile, sessionId),
+        ProjectMemory.connectorUsageFrom(paths.dbFile, sessionId)
+      );
     }
     for (const msg of transcript) {
       if (msg.role === "system") continue; // long and not interesting to replay

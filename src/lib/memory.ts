@@ -43,7 +43,42 @@ CREATE TABLE IF NOT EXISTS checkpoints (
   created_at TEXT NOT NULL,
   FOREIGN KEY (session_id) REFERENCES sessions(id)
 );
+
+CREATE TABLE IF NOT EXISTS tool_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id INTEGER NOT NULL,
+  tool_name TEXT NOT NULL,
+  arguments_json TEXT NOT NULL,
+  success INTEGER NOT NULL,
+  result_preview TEXT,
+  kind TEXT NOT NULL,
+  skill_name TEXT,
+  connector_name TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (session_id) REFERENCES sessions(id)
+);
 `;
+
+const RESULT_PREVIEW_MAX_CHARS = 500;
+
+/** Every tool call is a "builtin" unless it's use_skill (a skill load) or
+ *  namespaced mcp__<connector>__<tool> (an MCP connector call). */
+function classifyToolCall(toolName: string, argumentsJson: string): { kind: "builtin" | "skill" | "connector"; skillName: string | null; connectorName: string | null } {
+  if (toolName === "use_skill") {
+    let skillName: string | null = null;
+    try {
+      skillName = (JSON.parse(argumentsJson) as { name?: string }).name ?? null;
+    } catch {
+      // malformed arguments - still record the event, just without a skill name
+    }
+    return { kind: "skill", skillName, connectorName: null };
+  }
+  if (toolName.startsWith("mcp__")) {
+    const connectorName = toolName.split("__")[1] ?? null;
+    return { kind: "connector", skillName: null, connectorName };
+  }
+  return { kind: "builtin", skillName: null, connectorName: null };
+}
 
 export class ProjectMemory {
   private db: DatabaseSync;
@@ -88,11 +123,24 @@ export class ProjectMemory {
       );
   }
 
+  /**
+   * A session's full history as plain role+content messages - deliberately
+   * without tool_calls/tool_call_id, so it's always safe to hand straight
+   * back to any provider as prior turns (no dangling unresolved tool call
+   * to reconcile). Used to resume/continue a session in a fresh process.
+   */
   getSessionMessages(sessionId: number): ChatMessage[] {
     const rows = this.db
       .prepare("SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC")
       .all(sessionId) as { role: string; content: string }[];
     return rows.map((r) => ({ role: r.role as ChatMessage["role"], content: r.content }));
+  }
+
+  /** Reopens a previously-ended session so a new chat process can keep
+   *  appending to it, and refreshes its provider/model to the ones this
+   *  run is actually using (which may differ from when it was last open). */
+  reopenSession(sessionId: number, provider: string, model: string): void {
+    this.db.prepare("UPDATE sessions SET ended_at = NULL, provider = ?, model = ? WHERE id = ?").run(provider, model, sessionId);
   }
 
   recordPlan(sessionId: number, filePath: string, title: string): number {
@@ -153,6 +201,45 @@ export class ProjectMemory {
     this.db.prepare("UPDATE checkpoints SET reverted = 1 WHERE id = ?").run(id);
   }
 
+  /**
+   * Records one tool invocation - what was called, with what arguments,
+   * whether it succeeded (by the same "does the result start with Error"
+   * convention the agent loop already uses), and a truncated preview of
+   * the result (the full result already lives in the messages table as a
+   * role:"tool" message - this is a lighter secondary index for
+   * usage/reliability reporting, not a second full copy). Classifies the
+   * call as a skill load (use_skill), an MCP connector call
+   * (mcp__<connector>__<tool>), or a plain builtin tool.
+   */
+  addToolEvent(sessionId: number, toolName: string, argumentsJson: string, success: boolean, resultPreview: string): void {
+    const { kind, skillName, connectorName } = classifyToolCall(toolName, argumentsJson);
+    const preview =
+      resultPreview.length > RESULT_PREVIEW_MAX_CHARS ? resultPreview.slice(0, RESULT_PREVIEW_MAX_CHARS) + "..." : resultPreview;
+    this.db
+      .prepare(
+        `INSERT INTO tool_events
+           (session_id, tool_name, arguments_json, success, result_preview, kind, skill_name, connector_name, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .run(sessionId, toolName, argumentsJson, success ? 1 : 0, preview, kind, skillName, connectorName, new Date().toISOString());
+  }
+
+  /** Tool call pass/fail counts, overall and broken down per tool. Pass a
+   *  sessionId to scope to one session, or omit for the whole project. */
+  getToolStats(sessionId?: number): ToolStats {
+    return computeToolStats(this.db, sessionId);
+  }
+
+  /** Which skills were loaded (via use_skill) and how often, most-used first. */
+  getSkillUsage(sessionId?: number): UsageEntry[] {
+    return getUsageByKind(this.db, "skill", "skill_name", sessionId);
+  }
+
+  /** Which MCP connectors were called and how often, most-used first. */
+  getConnectorUsage(sessionId?: number): UsageEntry[] {
+    return getUsageByKind(this.db, "connector", "connector_name", sessionId);
+  }
+
   listSessions(limit = 20): SessionSummary[] {
     return listSessions(this.db, limit);
   }
@@ -193,6 +280,21 @@ export class ProjectMemory {
   /** Same no-side-effect read pattern as readStats, for `devbuddy history show`. */
   static getTranscriptFrom(dbFile: string, sessionId: number): TranscriptMessage[] {
     return withReadOnlyDb(dbFile, (db) => getTranscript(db, sessionId)) ?? [];
+  }
+
+  /** Same no-side-effect read pattern as readStats, for `devbuddy stats --all`. */
+  static toolStatsFrom(dbFile: string, sessionId?: number): ToolStats | null {
+    return withReadOnlyDb(dbFile, (db) => computeToolStats(db, sessionId));
+  }
+
+  /** Same no-side-effect read pattern as readStats, for `devbuddy stats --all`. */
+  static skillUsageFrom(dbFile: string, sessionId?: number): UsageEntry[] {
+    return withReadOnlyDb(dbFile, (db) => getUsageByKind(db, "skill", "skill_name", sessionId)) ?? [];
+  }
+
+  /** Same no-side-effect read pattern as readStats, for `devbuddy stats --all`. */
+  static connectorUsageFrom(dbFile: string, sessionId?: number): UsageEntry[] {
+    return withReadOnlyDb(dbFile, (db) => getUsageByKind(db, "connector", "connector_name", sessionId)) ?? [];
   }
 }
 
@@ -343,6 +445,66 @@ function getTranscript(db: DatabaseSync, sessionId: number): TranscriptMessage[]
     .prepare("SELECT role, content, created_at FROM messages WHERE session_id = ? ORDER BY id ASC")
     .all(sessionId) as { role: string; content: string; created_at: string }[];
   return rows.map((r) => ({ role: r.role, content: r.content, createdAt: r.created_at }));
+}
+
+export interface ToolStats {
+  total: number;
+  passed: number;
+  failed: number;
+  byTool: { toolName: string; total: number; passed: number; failed: number }[];
+}
+
+function computeToolStats(db: DatabaseSync, sessionId?: number): ToolStats {
+  const where = sessionId !== undefined ? "WHERE session_id = ?" : "";
+  const args = sessionId !== undefined ? [sessionId] : [];
+
+  const totals = db
+    .prepare(`SELECT COUNT(*) AS total, COALESCE(SUM(success), 0) AS passed FROM tool_events ${where}`)
+    .get(...args) as { total: number; passed: number };
+
+  const byToolRows = db
+    .prepare(
+      `SELECT tool_name, COUNT(*) AS total, COALESCE(SUM(success), 0) AS passed
+       FROM tool_events ${where}
+       GROUP BY tool_name
+       ORDER BY total DESC`
+    )
+    .all(...args) as { tool_name: string; total: number; passed: number }[];
+
+  return {
+    total: totals.total,
+    passed: totals.passed,
+    failed: totals.total - totals.passed,
+    byTool: byToolRows.map((r) => ({ toolName: r.tool_name, total: r.total, passed: r.passed, failed: r.total - r.passed })),
+  };
+}
+
+export interface UsageEntry {
+  name: string;
+  count: number;
+  lastUsedAt: string;
+}
+
+function getUsageByKind(
+  db: DatabaseSync,
+  kind: "skill" | "connector",
+  nameColumn: "skill_name" | "connector_name",
+  sessionId?: number
+): UsageEntry[] {
+  const sessionClause = sessionId !== undefined ? "AND session_id = ?" : "";
+  const args = sessionId !== undefined ? [kind, sessionId] : [kind];
+
+  const rows = db
+    .prepare(
+      `SELECT ${nameColumn} AS name, COUNT(*) AS count, MAX(created_at) AS last_used_at
+       FROM tool_events
+       WHERE kind = ? ${sessionClause} AND ${nameColumn} IS NOT NULL
+       GROUP BY ${nameColumn}
+       ORDER BY count DESC`
+    )
+    .all(...args) as { name: string; count: number; last_used_at: string }[];
+
+  return rows.map((r) => ({ name: r.name, count: r.count, lastUsedAt: r.last_used_at }));
 }
 
 export interface SearchHit {
