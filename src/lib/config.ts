@@ -21,6 +21,10 @@ export interface DevBuddyConfig {
   /** Command run after the agent edits files, to self-verify the change. Empty = auto-detect
    *  `npm test` from package.json; "off" disables verification entirely. */
   verifyCommand: string;
+  /** Estimated-token threshold (as a string, parsed with Number()) for auto-compacting a long
+   *  chat session's history into a summary. "off" disables auto-compaction (manual /compact
+   *  in the REPL still works). Kept conservative by default for small local-model context windows. */
+  compactThreshold: string;
 }
 
 /** Config keys whose values should never be printed in full (API keys, secrets). */
@@ -39,6 +43,7 @@ const DEFAULT_CONFIG: DevBuddyConfig = {
   licenseKey: "",
   guardrailsMode: "off",
   verifyCommand: "",
+  compactThreshold: "6000",
 };
 
 const CONFIG_DIR = join(homedir(), ".devbuddy");
@@ -96,6 +101,7 @@ export const PROJECT_CONFIG_KEYS: (keyof DevBuddyConfig)[] = [
   "systemPrompt",
   "verifyCommand",
   "guardrailsMode",
+  "compactThreshold",
 ];
 
 /** Reads a project's committed .devbuddy/config.json, if any, filtered to the safe allowlist above. */

@@ -19,6 +19,7 @@ const SETTABLE_KEYS: (keyof DevBuddyConfig)[] = [
   "openaiApiKey",
   "openaiBaseUrl",
   "verifyCommand",
+  "compactThreshold",
 ];
 
 export function configCommand(args: string[]): void {

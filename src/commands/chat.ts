@@ -14,7 +14,39 @@ import { setSharedReadline } from "../lib/permissions.js";
 import { printBanner } from "../lib/banner.js";
 import { GuardrailsEngine } from "../lib/guardrails/engine.js";
 import { getPlan } from "../lib/license.js";
-import type { ChatMessage } from "../providers/index.js";
+import { compactMessages, resolveCompactThreshold, shouldCompact } from "../lib/compact.js";
+import type { ChatMessage, ChatProvider } from "../providers/index.js";
+
+/** Non-system messages older than this are always kept out of auto/manual
+ *  compaction's summarization pass - recent turns stay verbatim for continuity. */
+const KEEP_RECENT_MESSAGES = 8;
+
+/**
+ * Summarizes everything but the most recent messages into one summary
+ * message, persists it as the session's compaction point, and returns the
+ * replacement message list for the live REPL loop to continue with.
+ *
+ * Deliberately reads the session's current window from the database
+ * (getSessionMessagesWithIds) rather than trusting the caller's in-memory
+ * `messages` array: by the time a turn completes, everything in it is
+ * already persisted, and going through the DB is what makes repeated
+ * compactions (each one cutting from wherever the last one left off) safe
+ * to reason about - see the id-ordering note on getSessionMessagesWithIds.
+ * Returns null if there isn't enough conversation yet to be worth compacting.
+ */
+export async function compactSession(
+  provider: ChatProvider,
+  model: string,
+  memory: ProjectMemory,
+  sessionId: number
+): Promise<{ messages: ChatMessage[]; compactedCount: number } | null> {
+  const window = memory.getSessionMessagesWithIds(sessionId);
+  const result = await compactMessages(provider, model, window, KEEP_RECENT_MESSAGES);
+  if (!result) return null;
+  const summaryMessageId = memory.addMessage(sessionId, result.summaryMessage);
+  memory.setCompactionPoint(sessionId, summaryMessageId, result.keepFromMessageId);
+  return { messages: result.messages, compactedCount: result.compactedCount };
+}
 
 export interface ChatOptions {
   model?: string;
@@ -168,7 +200,7 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
   if (effectiveGuardrailsMode !== "off") {
     console.log(chalk.dim(`Guardrails: ${effectiveGuardrailsMode}`));
   }
-  console.log(chalk.dim(`Type your request, or "exit" to quit.\n`));
+  console.log(chalk.dim(`Type your request, "/compact" to summarize older history, or "exit" to quit.\n`));
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   setSharedReadline(rl);
@@ -185,6 +217,24 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
       const input = rawInput.trim();
       if (!input) continue;
       if (["exit", "quit", ":q"].includes(input.toLowerCase())) break;
+
+      if (input === "/compact") {
+        const spinner = ora({ text: "compacting conversation history", stream: process.stdout }).start();
+        try {
+          const compacted = await compactSession(provider, model, memory, sessionId);
+          spinner.stop();
+          if (!compacted) {
+            console.log(chalk.yellow("Not enough conversation yet to compact.\n"));
+          } else {
+            messages = compacted.messages;
+            console.log(chalk.dim(`Compacted ${compacted.compactedCount} older message(s) into a summary.\n`));
+          }
+        } catch (err) {
+          spinner.stop();
+          console.error(chalk.red(`Compaction failed: ${(err as Error).message}\n`));
+        }
+        continue;
+      }
 
       const userMessage: ChatMessage = { role: "user", content: input };
       messages.push(userMessage);
@@ -245,6 +295,22 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
         }
         messages = turn.messages;
         console.log("\n");
+
+        const threshold = resolveCompactThreshold(config.compactThreshold);
+        if (shouldCompact(messages, threshold, KEEP_RECENT_MESSAGES)) {
+          const compactSpinner = ora({ text: "conversation is getting long, compacting...", stream: process.stdout }).start();
+          try {
+            const compacted = await compactSession(provider, model, memory, sessionId);
+            compactSpinner.stop();
+            if (compacted) {
+              messages = compacted.messages;
+              console.log(chalk.dim(`(compacted ${compacted.compactedCount} older message(s) to stay within context)\n`));
+            }
+          } catch (err) {
+            compactSpinner.stop();
+            console.error(chalk.yellow(`Auto-compaction failed, continuing with full history: ${(err as Error).message}\n`));
+          }
+        }
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(`\nError: ${(err as Error).message}\n`));

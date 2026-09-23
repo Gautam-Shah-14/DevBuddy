@@ -91,7 +91,8 @@ this development happens on a Windows machine directly.
 - `devbuddy models` — list Ollama models installed locally.
 - `devbuddy config` — view current configuration.
 - `devbuddy config set <key> <value>` — set `host`, `model`,
-  `systemPrompt`, or `verifyCommand` (see Self-verification below).
+  `systemPrompt`, `verifyCommand` (see Self-verification below), or
+  `compactThreshold` (see Context compaction below).
 - `devbuddy skills` — list available skills.
 - `devbuddy skills create <name> [--project|--shared]` — scaffold a new
   skill: global by default, private to this project with `--project`, or
@@ -223,6 +224,16 @@ so you never see duplicated or truncated output from a mid-stream retry.
   from there on is appended to that same session rather than starting a
   new one, so `devbuddy history show <id>` keeps showing one continuous
   conversation.
+- **Context compaction**: a long `chat` session (especially a resumed one)
+  can outgrow a model's context window. Once the conversation's estimated
+  token count passes `compactThreshold` (default 6000 - conservative for
+  small local models; raise it for a big-context cloud model), DevBuddy
+  asks the model to summarize everything except the most recent messages
+  into one summary message, and continues from there - the full raw
+  history is never lost (`devbuddy history show` still shows everything),
+  only the *live* conversation and future resumes start from the summary
+  forward. Trigger it manually anytime with `/compact` in the REPL, or
+  disable auto-compaction with `devbuddy config set compactThreshold off`.
 - **Skills**: markdown files with a small frontmatter header (`name`,
   `description`), loaded from three places from least to most specific -
   `~/.devbuddy/skills/` (global, this machine only), a project's committed
@@ -254,8 +265,8 @@ This creates:
 
 - `.devbuddy/config.json` — non-secret defaults layered on top of your own
   config when DevBuddy runs in this project: `provider`, `model`,
-  `systemPrompt`, `verifyCommand`, `guardrailsMode`. `devbuddy config`
-  shows you when a value is overridden this way.
+  `systemPrompt`, `verifyCommand`, `guardrailsMode`, `compactThreshold`.
+  `devbuddy config` shows you when a value is overridden this way.
 - `.devbuddy/skills/` — skills shared with the team (`devbuddy skills
   create <name> --shared`).
 - `.devbuddy/connectors.json` — MCP connectors shared with the team
@@ -353,7 +364,6 @@ check one.
   `ChatProvider` interface
 - Auto-detect project context (language, test runner, lint config) to seed
   memory/system prompt automatically, instead of starting cold each session
-- Context compaction for very long chat sessions
 - Cost/budget guard — a per-session token or dollar cap for paid providers
 
 ## License
