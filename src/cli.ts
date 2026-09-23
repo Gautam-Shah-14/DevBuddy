@@ -20,7 +20,6 @@ import { doctorCommand } from "./commands/doctor.js";
 import { undoCommand } from "./commands/undo.js";
 import { runCommand } from "./commands/run.js";
 import { projectCommand } from "./commands/project.js";
-import { printBanner } from "./lib/banner.js";
 
 // Read the real version from package.json (via createRequire, so it works
 // identically whether this runs as compiled CJS-resolvable JSON or via tsx)
@@ -31,26 +30,18 @@ const { version: packageVersion } = require("../package.json") as { version: str
 
 const program = new Command();
 
+// Running "devbuddy" with no subcommand IS the product: it starts an
+// interactive agent session, same as typing a command in Claude Code's own
+// CLI. -c/-r reopen a past session instead of starting a fresh one. There
+// is deliberately no separate "chat" subcommand - one obvious way to start.
 program
   .name("devbuddy")
   .description("DevBuddy — a local-first CLI developer agent powered by your own Ollama installation")
   .version(packageVersion)
-  .option("-c, --continue", "Continue the most recently used session in this project (shorthand for chat -c)")
-  .option("-r, --resume [sessionId]", "Resume a session by id, or pick from a list (shorthand for chat -r)")
-  .action((options) => {
-    if (options.continue || options.resume !== undefined) {
-      return chatCommand({ continueSession: !!options.continue, resume: options.resume });
-    }
-    printBanner();
-  });
-
-program
-  .command("chat")
-  .description("Start an interactive agent session in the current project")
   .option("-m, --model <model>", "Ollama model to use (overrides config default)")
   .option("-c, --continue", "Continue the most recently used session in this project")
   .option("-r, --resume [sessionId]", "Resume a session by id, or pick from a list of recent sessions")
-  .action((options) => chatCommand(options));
+  .action((options) => chatCommand({ model: options.model, continueSession: !!options.continue, resume: options.resume }));
 
 program
   .command("models")
