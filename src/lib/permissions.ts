@@ -50,6 +50,26 @@ export function isAlwaysConfirmed(category: PermissionCategory): boolean {
 
 export class PermissionDenied extends Error {}
 
+/** Brand accent used for the "⏺" marker, matching the chat REPL's turn markers. */
+const ACCENT = "#3b82f6";
+
+const CATEGORY_LABELS: Record<PermissionCategory, string> = {
+  shell: "wants to run a shell command",
+  write: "wants to write a file",
+  delete: "wants to delete a file",
+  git_push: "wants to push to git",
+  network: "wants to make a network request",
+  mcp: "wants to call an MCP tool",
+  mcp_connect: "wants to start an MCP server",
+};
+
+function indentBlock(text: string): string {
+  return text
+    .split("\n")
+    .map((line) => `  ${line}`)
+    .join("\n");
+}
+
 /**
  * Set by `devbuddy run --yes` to approve every risky action without
  * prompting - there's no human attached to a non-interactive/scripted
@@ -83,20 +103,28 @@ export async function requestPermission(req: PermissionRequest): Promise<void> {
     );
   }
 
-  console.log(chalk.yellow(`\nDevBuddy wants to perform a ${chalk.bold(req.category)} action:`));
-  console.log(chalk.dim(req.description));
-  if (req.diff) console.log(`\n${req.diff}\n`);
-  const canRemember = !ALWAYS_CONFIRM.has(req.category);
-  const prompt = canRemember
-    ? "Allow? [y]es / [n]o / [a]lways this session: "
-    : "Allow? [y]es / [n]o: ";
-  const answer = (await ask(prompt)).trim().toLowerCase();
+  console.log();
+  console.log(`${chalk.hex(ACCENT).bold("⏺")} ${chalk.bold(`DevBuddy ${CATEGORY_LABELS[req.category]}`)}`);
+  console.log(chalk.dim(indentBlock(req.description)));
+  if (req.diff) {
+    console.log();
+    console.log(indentBlock(req.diff));
+  }
+  console.log();
 
-  if (answer === "a" && canRemember) {
+  const canRemember = !ALWAYS_CONFIRM.has(req.category);
+  const options = canRemember ? ["Yes", "Yes, and don't ask again this session", "No"] : ["Yes", "No"];
+  options.forEach((label, i) => console.log(`  ${chalk.dim(`${i + 1}.`)} ${label}`));
+  console.log();
+
+  const raw = (await ask(chalk.hex(ACCENT).bold("  ❯ "))).trim().toLowerCase();
+  console.log();
+
+  if (canRemember && (raw === "2" || raw === "a" || raw === "always")) {
     sessionAllowed.add(req.category);
     return;
   }
-  if (answer === "y" || answer === "yes") {
+  if (raw === "1" || raw === "y" || raw === "yes") {
     return;
   }
   throw new PermissionDenied(`User denied ${req.category} action: ${req.description}`);
@@ -114,8 +142,15 @@ export async function confirmPlan(title: string, planText: string): Promise<bool
   }
   if (!process.stdin.isTTY) return false;
 
-  console.log(chalk.cyan(`\nDevBuddy proposes a plan: ${chalk.bold(title)}\n`));
-  console.log(planText);
-  const answer = (await ask(chalk.cyan("\nApprove this plan? [y]es / [n]o: "))).trim().toLowerCase();
-  return answer === "y" || answer === "yes";
+  console.log();
+  console.log(`${chalk.hex(ACCENT).bold("⏺")} ${chalk.bold(`Proposed plan: ${title}`)}`);
+  console.log();
+  console.log(indentBlock(planText));
+  console.log();
+  console.log(`  ${chalk.dim("1.")} Yes, proceed`);
+  console.log(`  ${chalk.dim("2.")} No`);
+  console.log();
+  const raw = (await ask(chalk.hex(ACCENT).bold("  ❯ "))).trim().toLowerCase();
+  console.log();
+  return raw === "1" || raw === "y" || raw === "yes";
 }
