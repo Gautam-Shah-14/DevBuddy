@@ -45,6 +45,11 @@ export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[], syst
     "You have access to the following tools:",
     toolList,
     skillList,
+    "",
+    "Before reading or editing a file you haven't already seen in this conversation, locate it first: " +
+      "use search_files (a regex content search, like grep -rn) to find where something is defined or used, " +
+      "and list_files to see what's in a directory. Do not guess a file's path or content, and do not ask the " +
+      "user where something is - search the project for it yourself.",
     REACT_FALLBACK_INSTRUCTIONS,
     "",
     "For any large or multi-step task (new feature, refactor, migration), call propose_plan " +
