@@ -50,6 +50,12 @@ export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[], syst
       "use search_files (a regex content search, like grep -rn) to find where something is defined or used, " +
       "and list_files to see what's in a directory. Do not guess a file's path or content, and do not ask the " +
       "user where something is - search the project for it yourself.",
+    "",
+    "Before writing a document ABOUT this project (a README, a guide, a summary, onboarding notes, etc.), " +
+      "gather real context first: list_files to see the project's layout, and read_file on files like " +
+      "package.json and any existing README to learn what the project actually is, what it does, and how it's " +
+      "used. Never invent generic placeholder content ('Clone the repository', 'Run npm install', etc.) - base " +
+      "what you write on what you actually found in the project.",
     REACT_FALLBACK_INSTRUCTIONS,
     "",
     "For any large or multi-step task (new feature, refactor, migration), call propose_plan " +
