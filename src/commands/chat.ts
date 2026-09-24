@@ -21,6 +21,16 @@ import type { ChatMessage, ChatProvider } from "../providers/index.js";
  *  compaction's summarization pass - recent turns stay verbatim for continuity. */
 const KEEP_RECENT_MESSAGES = 8;
 
+/** Brand accent used for the "⏺" turn marker and the input prompt, matching the banner gradient. */
+const ACCENT = "#3b82f6";
+
+/** Cycled at random per turn for the "thinking" spinner, the way Claude Code's own CLI does. */
+const THINKING_VERBS = ["Thinking", "Pondering", "Reasoning", "Working", "Noodling", "Percolating", "Cooking"];
+
+function randomThinkingVerb(): string {
+  return THINKING_VERBS[Math.floor(Math.random() * THINKING_VERBS.length)];
+}
+
 /**
  * Summarizes everything but the most recent messages into one summary
  * message, persists it as the session's compaction point, and returns the
@@ -209,7 +219,7 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
     while (true) {
       let rawInput: string;
       try {
-        rawInput = await rl.question(chalk.green("you> "));
+        rawInput = await rl.question(chalk.hex(ACCENT).bold("❯ "));
       } catch {
         // stdin closed (EOF / piped input exhausted) - exit the loop cleanly
         break;
@@ -240,9 +250,18 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
       messages.push(userMessage);
       memory.addMessage(sessionId, userMessage);
 
-      process.stdout.write(chalk.cyan("devbuddy> "));
       let printedAny = false;
-      const spinner = ora({ text: "thinking", stream: process.stdout, discardStdin: false }).start();
+      let needsBullet = true; // each run of streamed text is its own "⏺" block, like Claude Code's turn markers
+      const printBulletOnce = () => {
+        if (!needsBullet) return;
+        process.stdout.write(chalk.hex(ACCENT).bold("⏺ "));
+        needsBullet = false;
+      };
+      const spinner = ora({
+        text: `${randomThinkingVerb()}… ${chalk.dim("(ctrl+c to cancel)")}`,
+        stream: process.stdout,
+        discardStdin: false,
+      }).start();
 
       try {
         const turn = await runAgentTurn({
@@ -260,37 +279,41 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
           onToken: (token) => {
             if (spinner.isSpinning) spinner.stop();
             printedAny = true;
+            printBulletOnce();
             process.stdout.write(token);
           },
           onToolStart: (name, args) => {
             if (spinner.isSpinning) spinner.stop();
-            console.log(chalk.dim(`\n  → ${name}(${JSON.stringify(args)})`));
+            printedAny = true;
+            console.log(`\n${chalk.hex(ACCENT).bold("⏺")} ${chalk.bold(name)}(${chalk.dim(JSON.stringify(args))})`);
+            needsBullet = true; // any text after this tool call starts a fresh block
           },
           onToolResult: (name, result) => {
             const preview = result.length > 300 ? result.slice(0, 300) + "..." : result;
-            console.log(chalk.dim(`  ← ${name}: ${preview}`));
+            console.log(chalk.dim(`  ⎿  ${preview}`));
           },
           onVerify: (event) => {
             if (spinner.isSpinning) spinner.stop();
             if (event.status === "running") {
-              console.log(chalk.dim(`\n  ⏵ Self-check: running \`${event.command}\`...`));
+              console.log(chalk.dim(`  ⎿  Running self-check: \`${event.command}\`...`));
             } else if (event.status === "passed") {
-              console.log(chalk.green(`  ✓ Self-check passed (${event.command})`));
+              console.log(chalk.green(`  ⎿  ✓ Self-check passed (${event.command})`));
             } else {
-              console.log(chalk.red(`  ✗ Self-check failed (${event.command}) - asking DevBuddy to fix it`));
+              console.log(chalk.red(`  ⎿  ✗ Self-check failed (${event.command}) - asking DevBuddy to fix it`));
             }
           },
           onRetry: (info) => {
             if (spinner.isSpinning) spinner.stop();
             console.log(
               chalk.dim(
-                `\n  ⟳ ${info.reason}, retrying (${info.attempt}/${info.maxAttempts}) in ${Math.round(info.delayMs / 100) / 10}s...`
+                `  ⎿  ⟳ ${info.reason}, retrying (${info.attempt}/${info.maxAttempts}) in ${Math.round(info.delayMs / 100) / 10}s...`
               )
             );
           },
         });
         if (!printedAny) {
           spinner.stop();
+          printBulletOnce();
           process.stdout.write(turn.content);
         }
         messages = turn.messages;
