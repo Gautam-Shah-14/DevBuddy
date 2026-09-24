@@ -71,6 +71,33 @@ function indentBlock(text: string): string {
 }
 
 /**
+ * Whether a free-typed answer means "remember this for the session" - not
+ * just the exact "2"/"a"/"always", but a natural phrasing like "yes and
+ * don't ask again this session" too. Checked before isAffirmative() since
+ * such a phrase usually also contains "yes".
+ */
+function isRememberChoice(normalized: string): boolean {
+  return (
+    normalized === "2" ||
+    normalized === "a" ||
+    /\balways\b/.test(normalized) ||
+    /\bremember\b/.test(normalized) ||
+    /don'?t ask/.test(normalized)
+  );
+}
+
+/**
+ * Whether a free-typed answer means "yes" - exact "1"/"y"/"yes" or an
+ * unambiguous affirmative phrasing. Deliberately conservative: this gates
+ * risky actions, so words like "sure" or "correct" are excluded since they
+ * also appear in negations ("not sure", "correct me if I'm wrong") - a
+ * false approval here is worse than an unnecessary re-prompt.
+ */
+function isAffirmative(normalized: string): boolean {
+  return normalized === "1" || /^y$/.test(normalized) || /\b(yes|yeah|yep|yup)\b/.test(normalized);
+}
+
+/**
  * Set by `devbuddy run --yes` to approve every risky action without
  * prompting - there's no human attached to a non-interactive/scripted
  * invocation to ask. Off by default, including for the interactive REPL.
@@ -120,11 +147,11 @@ export async function requestPermission(req: PermissionRequest): Promise<void> {
   const raw = (await ask(chalk.hex(ACCENT).bold("  ❯ "))).trim().toLowerCase();
   console.log();
 
-  if (canRemember && (raw === "2" || raw === "a" || raw === "always")) {
+  if (canRemember && isRememberChoice(raw)) {
     sessionAllowed.add(req.category);
     return;
   }
-  if (raw === "1" || raw === "y" || raw === "yes") {
+  if (isAffirmative(raw)) {
     return;
   }
   throw new PermissionDenied(`User denied ${req.category} action: ${req.description}`);
@@ -152,5 +179,5 @@ export async function confirmPlan(title: string, planText: string): Promise<bool
   console.log();
   const raw = (await ask(chalk.hex(ACCENT).bold("  ❯ "))).trim().toLowerCase();
   console.log();
-  return raw === "1" || raw === "y" || raw === "yes";
+  return isAffirmative(raw);
 }
