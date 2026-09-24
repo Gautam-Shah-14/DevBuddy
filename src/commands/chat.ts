@@ -219,7 +219,7 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
       if (["exit", "quit", ":q"].includes(input.toLowerCase())) break;
 
       if (input === "/compact") {
-        const spinner = ora({ text: "compacting conversation history", stream: process.stdout }).start();
+        const spinner = ora({ text: "compacting conversation history", stream: process.stdout, discardStdin: false }).start();
         try {
           const compacted = await compactSession(provider, model, memory, sessionId);
           spinner.stop();
@@ -242,7 +242,7 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
 
       process.stdout.write(chalk.cyan("devbuddy> "));
       let printedAny = false;
-      const spinner = ora({ text: "thinking", stream: process.stdout }).start();
+      const spinner = ora({ text: "thinking", stream: process.stdout, discardStdin: false }).start();
 
       try {
         const turn = await runAgentTurn({
@@ -298,7 +298,11 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
 
         const threshold = resolveCompactThreshold(config.compactThreshold);
         if (shouldCompact(messages, threshold, KEEP_RECENT_MESSAGES)) {
-          const compactSpinner = ora({ text: "conversation is getting long, compacting...", stream: process.stdout }).start();
+          const compactSpinner = ora({
+            text: "conversation is getting long, compacting...",
+            stream: process.stdout,
+            discardStdin: false,
+          }).start();
           try {
             const compacted = await compactSession(provider, model, memory, sessionId);
             compactSpinner.stop();
