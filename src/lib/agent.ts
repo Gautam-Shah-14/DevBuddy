@@ -45,6 +45,11 @@ export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[], syst
     "You have access to the following tools:",
     toolList,
     skillList,
+    "",
+    "Before reading or editing a file you haven't already seen in this conversation, locate it first: " +
+      "use search_files (a regex content search, like grep -rn) to find where something is defined or used, " +
+      "and list_files to see what's in a directory. Do not guess a file's path or content, and do not ask the " +
+      "user where something is - search the project for it yourself.",
     REACT_FALLBACK_INSTRUCTIONS,
     "",
     "For any large or multi-step task (new feature, refactor, migration), call propose_plan " +
@@ -62,6 +67,59 @@ function parseReactToolCall(content: string): ToolCall | null {
   } catch {
     return null;
   }
+}
+
+const REACT_FENCE_PREFIX = "```tool_call";
+
+/**
+ * Wraps a caller's onToken so a ReAct-fallback tool-call fence (see
+ * REACT_FALLBACK_INSTRUCTIONS) never reaches the terminal as raw text - it's
+ * an internal instruction-following mechanic, not a user-facing message, and
+ * the tool call it triggers is already shown via onToolStart's own bullet.
+ *
+ * Buffers only the start of a turn's content while it could still plausibly
+ * become that fence: the moment it diverges from the "```tool_call" prefix,
+ * everything buffered so far is flushed unchanged and every later token
+ * passes straight through - so ordinary prose (including one that happens to
+ * open with an unrelated ``` code fence) streams normally with no added
+ * delay beyond the few characters needed to tell them apart. If the prefix
+ * matches in full, the rest of that message's tokens are silently dropped;
+ * if the stream ends before the sniff resolves either way (a very short
+ * reply), whatever's left in the buffer is flushed once streaming completes.
+ */
+function wrapOnTokenForReactSniffing(onToken: (token: string) => void): {
+  onToken: (token: string) => void;
+  flush: () => void;
+} {
+  let buffer = "";
+  let state: "sniffing" | "passthrough" | "suppressing" = "sniffing";
+
+  return {
+    onToken(token) {
+      if (state === "passthrough") {
+        onToken(token);
+        return;
+      }
+      if (state === "suppressing") return;
+
+      buffer += token;
+      const trimmed = buffer.replace(/^\s+/, "");
+      const compareLen = Math.min(trimmed.length, REACT_FENCE_PREFIX.length);
+      if (trimmed.slice(0, compareLen) !== REACT_FENCE_PREFIX.slice(0, compareLen)) {
+        onToken(buffer);
+        buffer = "";
+        state = "passthrough";
+        return;
+      }
+      if (trimmed.length >= REACT_FENCE_PREFIX.length) {
+        state = "suppressing";
+        buffer = "";
+      }
+    },
+    flush() {
+      if (state === "sniffing" && buffer) onToken(buffer);
+    },
+  };
 }
 
 export interface RunAgentTurnOptions {
@@ -127,13 +185,15 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
       }
     }
 
+    const reactSniff = wrapOnTokenForReactSniffing(opts.onToken);
     const result = await provider.streamChat({
       model,
       messages: outgoingMessages,
       tools: toolSpecs,
-      onToken: opts.onToken,
+      onToken: reactSniff.onToken,
       onRetry: opts.onRetry,
     });
+    reactSniff.flush();
     // Restore any placeholders the model echoed back before storing/returning
     // the reply - streamed tokens may transiently show a raw placeholder if
     // one lands mid-stream, but the final stored content is always restored.
