@@ -218,6 +218,13 @@ has streamed back, so you never see duplicated or truncated output.
 - **Plan mode** — for larger tasks, the agent writes a plan to
   `~/.devbuddy/projects/<id>/plans/` and pauses for approval before
   touching anything.
+- **Asking for clarification** — the agent is instructed to act on an
+  obvious default interpretation and say what it assumed rather than stop
+  and ask, but for a question where the wrong guess would send it down
+  the wrong path entirely, it can call `clarify` to pause the turn and
+  ask you directly, with an optional numbered menu of choices. In a
+  non-interactive `devbuddy run` there's no one to ask, so it's told to
+  proceed on its own judgment and state its assumptions instead.
 
 </details>
 
