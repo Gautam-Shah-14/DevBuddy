@@ -23,8 +23,16 @@ export interface DevBuddyConfig {
   verifyCommand: string;
   /** Estimated-token threshold (as a string, parsed with Number()) for auto-compacting a long
    *  chat session's history into a summary. "off" disables auto-compaction (manual /compact
-   *  in the REPL still works). Kept conservative by default for small local-model context windows. */
+   *  in the REPL still works). Must stay comfortably below `contextWindow` (see below) to leave
+   *  room for the system prompt, tool schemas, and the model's own response. */
   compactThreshold: string;
+  /** Ollama's `num_ctx` (context window, in tokens), sent with every chat request. Ollama
+   *  otherwise silently falls back to a small built-in default (often 2048-4096 tokens) and
+   *  quietly truncates older messages once it's exceeded - which looks like DevBuddy is
+   *  compacting far too aggressively, or the model "forgetting" earlier parts of the
+   *  conversation, when the real cause is this default never having been raised. Not used by
+   *  the OpenAI/Anthropic providers, which size their own context server-side. */
+  contextWindow: string;
 }
 
 /** Config keys whose values should never be printed in full (API keys, secrets). */
@@ -32,7 +40,13 @@ export const SECRET_KEYS: (keyof DevBuddyConfig)[] = ["openaiApiKey", "anthropic
 
 const DEFAULT_CONFIG: DevBuddyConfig = {
   provider: "ollama",
-  host: "http://localhost:11434",
+  // A literal IPv4 address, not "localhost": Node's fetch (undici) can resolve
+  // "localhost" to the IPv6 ::1 first depending on the OS/Node version, and
+  // Ollama by default binds only to the IPv4 127.0.0.1 - "localhost" then
+  // fails to connect even though curl (which usually prefers IPv4 for
+  // "localhost") and a browser reach it fine, making Ollama look unreachable
+  // when it's actually running and working.
+  host: "http://127.0.0.1:11434",
   model: "llama3.1",
   systemPrompt:
     "You are DevBuddy, a concise, practical developer assistant running fully on the user's local machine. Prefer short, actionable answers with code when useful.",
@@ -43,7 +57,12 @@ const DEFAULT_CONFIG: DevBuddyConfig = {
   licenseKey: "",
   guardrailsMode: "off",
   verifyCommand: "",
-  compactThreshold: "6000",
+  // Paired with contextWindow below: leaves ~5000 tokens of headroom within the
+  // default 16384-token window for the system prompt, tool schemas, and the
+  // model's response, instead of cutting it close enough to compact almost
+  // every turn on any conversation that reads a file or lists a directory.
+  compactThreshold: "11000",
+  contextWindow: "16384",
 };
 
 const CONFIG_DIR = join(homedir(), ".devbuddy");
@@ -102,6 +121,7 @@ export const PROJECT_CONFIG_KEYS: (keyof DevBuddyConfig)[] = [
   "verifyCommand",
   "guardrailsMode",
   "compactThreshold",
+  "contextWindow",
 ];
 
 /** Reads a project's committed .devbuddy/config.json, if any, filtered to the safe allowlist above. */

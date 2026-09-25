@@ -64,7 +64,9 @@ export function buildSystemPrompt(
     "Before reading or editing a file you haven't already seen in this conversation, locate it first: " +
       "use search_files (a regex content search, like grep -rn) to find where something is defined or used, " +
       "and list_files to see what's in a directory. Do not guess a file's path or content, and do not ask the " +
-      "user where something is - search the project for it yourself.",
+      "user where something is - search the project for it yourself. But if you already listed a directory or " +
+      "read a file earlier in this conversation and nothing you did since would have changed it, reuse that " +
+      "result instead of calling the same tool with the same arguments again.",
     "",
     "Before writing a document ABOUT this project (a README, a guide, a summary, onboarding notes, etc.), " +
       "gather real context first: list_files to see the project's layout, and read_file on files like " +
@@ -83,6 +85,17 @@ export function buildSystemPrompt(
     "",
     "For any large or multi-step task (new feature, refactor, migration), call propose_plan " +
       "before making changes and wait for approval. For small, single-step requests, just do the work directly.",
+    "",
+    "Never say you created, wrote, saved, or ran something unless you actually called the matching tool in " +
+      "this turn and it returned a result - a plan, file, or command only exists once its tool call succeeds. " +
+      "Do not narrate a plan as if you already saved it; call propose_plan itself. And answer only the question " +
+      "actually asked - if the user asks what a project is or does, describe what you found by reading it, don't " +
+      "pivot to unrelated instructions for using this tool on some other project.",
+    "",
+    "When a request has an obvious default interpretation, act on it and say what you assumed, rather than " +
+      "asking first. Call clarify only when the ambiguity would actually change which tool you call or what you " +
+      "do next, and only after checking whether the answer is something you could instead find yourself (read a " +
+      "file, search the project, check git) - never guess or invent an answer to something you could look up.",
   ].join("\n");
 }
 

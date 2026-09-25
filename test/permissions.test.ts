@@ -5,6 +5,7 @@ import {
   setAutoApprove,
   requestPermission,
   confirmPlan,
+  askClarifyingQuestion,
   resetSessionPermissions,
   PermissionDenied,
 } from "../src/lib/permissions.js";
@@ -99,4 +100,44 @@ test("confirmPlan accepts a natural-language affirmative and rejects everything 
 
   const denied = await withInteractiveAnswer("no, change it", () => confirmPlan("Title", "body"));
   assert.equal(denied, false);
+});
+
+test("askClarifyingQuestion returns the free-typed answer when there are no options", async () => {
+  const answer = await withInteractiveAnswer("use TypeScript", () => askClarifyingQuestion("Which language?"));
+  assert.equal(answer, "use TypeScript");
+});
+
+test("askClarifyingQuestion resolves a numbered choice against the options list", async () => {
+  const answer = await withInteractiveAnswer("2", () =>
+    askClarifyingQuestion("Which one?", ["first", "second", "third"])
+  );
+  assert.equal(answer, "second");
+});
+
+test("askClarifyingQuestion falls back to the raw text when the options list doesn't match a number", async () => {
+  const answer = await withInteractiveAnswer("neither, do something else", () =>
+    askClarifyingQuestion("Which one?", ["first", "second"])
+  );
+  assert.equal(answer, "neither, do something else");
+});
+
+test("askClarifyingQuestion returns null in a non-interactive session - nobody to ask", async () => {
+  const originalIsTTY = process.stdin.isTTY;
+  Object.defineProperty(process.stdin, "isTTY", { value: false, configurable: true });
+  try {
+    const answer = await askClarifyingQuestion("Which one?");
+    assert.equal(answer, null);
+  } finally {
+    Object.defineProperty(process.stdin, "isTTY", { value: originalIsTTY, configurable: true });
+  }
+});
+
+test("askClarifyingQuestion returns null when auto-approve is on - a scripted run has nobody attending it", async () => {
+  setAutoApprove(true);
+  try {
+    const answer = await withInteractiveAnswer("this should never be read", () => askClarifyingQuestion("Which one?"));
+    assert.equal(answer, null);
+  } finally {
+    setAutoApprove(false);
+  }
 });

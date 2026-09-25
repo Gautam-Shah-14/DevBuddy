@@ -116,7 +116,7 @@ devbuddy
 | `devbuddy provider set-key <openai\|anthropic> <key>` | Store an API key (config file is chmod 600; masked when printed). |
 | `devbuddy provider set-url <openai\|anthropic> <url>` | Point at a different endpoint (e.g. OpenRouter, a local llama.cpp server). |
 | `devbuddy config` | View current configuration. |
-| `devbuddy config set <key> <value>` | Set `host`, `model`, `systemPrompt`, `verifyCommand`, or `compactThreshold`. |
+| `devbuddy config set <key> <value>` | Set `host`, `model`, `systemPrompt`, `verifyCommand`, `compactThreshold`, or `contextWindow`. |
 
 ### Project & team
 
@@ -167,7 +167,7 @@ backend is active.
 
 | Provider | Notes |
 |---|---|
-| **ollama** *(default)* | Local, no API key. Talks to `http://localhost:11434`. |
+| **ollama** *(default)* | Local, no API key. Talks to `http://127.0.0.1:11434`. |
 | **openai** | Any OpenAI-compatible Chat Completions endpoint (OpenAI, OpenRouter, Together, a local llama.cpp server). Requires an API key. |
 | **anthropic** | Claude, via Anthropic's Messages API. Requires an API key from [console.anthropic.com](https://console.anthropic.com). |
 
@@ -218,6 +218,13 @@ has streamed back, so you never see duplicated or truncated output.
 - **Plan mode** — for larger tasks, the agent writes a plan to
   `~/.devbuddy/projects/<id>/plans/` and pauses for approval before
   touching anything.
+- **Asking for clarification** — the agent is instructed to act on an
+  obvious default interpretation and say what it assumed rather than stop
+  and ask, but for a question where the wrong guess would send it down
+  the wrong path entirely, it can call `clarify` to pause the turn and
+  ask you directly, with an optional numbered menu of choices. In a
+  non-interactive `devbuddy run` there's no one to ask, so it's told to
+  proceed on its own judgment and state its assumptions instead.
 
 </details>
 
@@ -237,12 +244,25 @@ has streamed back, so you never see duplicated or truncated output.
   continuous conversation.
 - **Context compaction** — a long or resumed session can outgrow a
   model's context window. Once the estimated token count passes
-  `compactThreshold` (default `6000`), DevBuddy asks the model to
+  `compactThreshold` (default `11000`), DevBuddy asks the model to
   summarize everything but the most recent messages into one summary
   message and continues from there. The full raw history is never lost
   (`history show` still shows everything); only the live conversation and
   future resumes start from the summary forward. Trigger it manually with
   `/compact`, or disable with `devbuddy config set compactThreshold off`.
+  For Ollama, this is paired with `contextWindow` (default `16384`,
+  passed to Ollama as `num_ctx`) — Ollama otherwise falls back to its own
+  small built-in context window (often 2048-4096 tokens) and silently
+  truncates older messages once that's exceeded, which looks like
+  DevBuddy compacting far too often, or the model losing track of things
+  it was just told, when the real cause is that default never having
+  been raised. If your model supports a larger context and your machine
+  has the RAM/VRAM for it (qwen3, for example, supports well beyond
+  32k), raise both together, e.g.
+  `devbuddy config set contextWindow 32768` and
+  `devbuddy config set compactThreshold 24000`, keeping
+  `compactThreshold` comfortably below `contextWindow` to leave room for
+  the system prompt, tool schemas, and the model's own response.
 
 </details>
 
@@ -281,7 +301,7 @@ This creates:
 
 | Path | Purpose |
 |---|---|
-| `.devbuddy/config.json` | Non-secret defaults layered on top of your own config: `provider`, `model`, `systemPrompt`, `verifyCommand`, `guardrailsMode`, `compactThreshold`. `devbuddy config` shows when a value is overridden this way. |
+| `.devbuddy/config.json` | Non-secret defaults layered on top of your own config: `provider`, `model`, `systemPrompt`, `verifyCommand`, `guardrailsMode`, `compactThreshold`, `contextWindow`. `devbuddy config` shows when a value is overridden this way. |
 | `.devbuddy/skills/` | Skills shared with the team (`devbuddy skills create <name> --shared`). |
 | `.devbuddy/connectors.json` | MCP connectors shared with the team (`devbuddy connector add <name> --command "..." --shared`). |
 

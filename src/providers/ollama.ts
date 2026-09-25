@@ -48,7 +48,16 @@ export class OllamaProvider implements ChatProvider {
           fetch(`${this.baseUrl()}/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ model, messages, tools, stream: true }),
+            body: JSON.stringify({
+              model,
+              messages,
+              tools,
+              stream: true,
+              // Without this, Ollama falls back to its own small default context
+              // window and silently truncates older messages once it's exceeded -
+              // see the contextWindow config field for why that matters here.
+              options: { num_ctx: Number(getConfig().contextWindow) || 16384 },
+            }),
           }),
         { onRetry }
       );

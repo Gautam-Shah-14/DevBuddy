@@ -121,7 +121,10 @@ async function checkProvider(
       return {
         label,
         status: isActive ? "fail" : "warn",
-        detail: `Could not reach ${config.host} — start it with "ollama serve"`,
+        detail:
+          `Could not reach ${config.host} — if Ollama is already running, try ` +
+          `"devbuddy config set host http://127.0.0.1:11434" (a "localhost" IPv6/IPv4 mismatch is the ` +
+          `most common cause); otherwise start it with "ollama serve"`,
       };
     }
     const models = await new OllamaProvider().listModels().catch(() => []);

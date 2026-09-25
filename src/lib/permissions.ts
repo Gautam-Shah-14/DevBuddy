@@ -200,3 +200,31 @@ export async function confirmPlan(title: string, planText: string): Promise<bool
   console.log();
   return isAffirmative(raw);
 }
+
+/**
+ * Pauses the turn to ask the user a clarifying question, for the `clarify`
+ * tool. Returns null in a non-interactive session (no one to ask - the
+ * caller should proceed on its own judgment and say so, same as
+ * `requestPermission` refusing rather than hanging) or when auto-approve is
+ * on (a scripted run has nobody attending it either).
+ */
+export async function askClarifyingQuestion(question: string, options?: string[]): Promise<string | null> {
+  if (autoApproveAll || !process.stdin.isTTY) return null;
+
+  console.log();
+  console.log(`${chalk.hex(ACCENT).bold("⏺")} ${chalk.bold("DevBuddy needs a decision before continuing")}`);
+  console.log(indentBlock(question));
+  console.log();
+  if (options && options.length > 0) {
+    options.forEach((label, i) => console.log(`  ${chalk.dim(`${i + 1}.`)} ${label}`));
+    console.log();
+  }
+  const raw = (await ask(chalk.hex(ACCENT).bold("  ❯ "))).trim();
+  console.log();
+
+  if (options && options.length > 0) {
+    const n = Number(raw);
+    if (Number.isInteger(n) && n >= 1 && n <= options.length) return options[n - 1];
+  }
+  return raw;
+}
