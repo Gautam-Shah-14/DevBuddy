@@ -17,6 +17,20 @@ async function git(cwd: string, args: string[]): Promise<void> {
   await execFileAsync("git", args, { cwd });
 }
 
+/**
+ * Clones with `core.autocrlf` forced off (fixes the checkout the clone itself
+ * performs) and persists the same setting into the new clone's local config
+ * (fixes every checkout after that, including the one a later `git pull`
+ * performs). Windows runners commonly default `core.autocrlf` to `true`,
+ * which rewrites a committed "v1\n" to "v1\r\n" on checkout - these tests
+ * compare exact file content, so line endings need to be deterministic
+ * across platforms, not whatever the runner's global git config happens to be.
+ */
+async function gitCloneWithLfEndings(remoteDir: string, targetDir: string): Promise<void> {
+  await execFileAsync("git", ["-c", "core.autocrlf=false", "clone", remoteDir, targetDir]);
+  await git(targetDir, ["config", "core.autocrlf", "false"]);
+}
+
 /** A bare "remote" repo, plus two working clones of it: `origin` (used to push
  *  new commits the test simulates as "upstream changes") and `local` (the
  *  clone the tool under test actually operates on). */
@@ -27,7 +41,7 @@ async function setupRemoteAndClones(): Promise<{ remoteDir: string; originClone:
   const localClone = join(base, "local-clone");
 
   await git(base, ["init", "--bare", "-b", "main", remoteDir]);
-  await git(base, ["clone", remoteDir, originClone]);
+  await gitCloneWithLfEndings(remoteDir, originClone);
   await git(originClone, ["config", "user.email", "test@example.com"]);
   await git(originClone, ["config", "user.name", "Test"]);
   writeFileSync(join(originClone, "file.txt"), "v1\n");
@@ -35,7 +49,7 @@ async function setupRemoteAndClones(): Promise<{ remoteDir: string; originClone:
   await git(originClone, ["commit", "-m", "initial commit"]);
   await git(originClone, ["push", "origin", "main"]);
 
-  await git(base, ["clone", remoteDir, localClone]);
+  await gitCloneWithLfEndings(remoteDir, localClone);
   await git(localClone, ["config", "user.email", "test@example.com"]);
   await git(localClone, ["config", "user.name", "Test"]);
 
