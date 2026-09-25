@@ -1,9 +1,10 @@
 import { deleteFileTool, editFileTool, readFileTool, writeFileTool } from "./fileTools.js";
-import { gitCommitTool, gitDiffTool, gitPushTool, gitStatusTool } from "./gitTools.js";
+import { gitCommitTool, gitDiffTool, gitFetchTool, gitPullTool, gitPushTool, gitStatusTool } from "./gitTools.js";
 import { runShellTool } from "./shellTools.js";
 import { listFilesTool, searchFilesTool } from "./searchTools.js";
 import { proposePlanTool } from "./planTools.js";
 import { useSkillTool } from "./skillTools.js";
+import { webSearchTool } from "./webTools.js";
 import type { ToolDefinition } from "./types.js";
 
 export { toOllamaToolSpec } from "./types.js";
@@ -17,10 +18,13 @@ export const builtinTools: ToolDefinition[] = [
   runShellTool,
   gitStatusTool,
   gitDiffTool,
+  gitFetchTool,
+  gitPullTool,
   gitCommitTool,
   gitPushTool,
   searchFilesTool,
   listFilesTool,
+  webSearchTool,
   proposePlanTool,
   useSkillTool,
 ];

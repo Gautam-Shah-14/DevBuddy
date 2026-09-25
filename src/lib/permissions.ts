@@ -26,7 +26,15 @@ async function ask(prompt: string): Promise<string> {
   }
 }
 
-export type PermissionCategory = "shell" | "write" | "delete" | "git_push" | "network" | "mcp" | "mcp_connect";
+export type PermissionCategory =
+  | "shell"
+  | "write"
+  | "delete"
+  | "git_push"
+  | "git_pull"
+  | "network"
+  | "mcp"
+  | "mcp_connect";
 
 export interface PermissionRequest {
   category: PermissionCategory;
@@ -42,7 +50,7 @@ export interface PermissionRequest {
 const sessionAllowed = new Set<PermissionCategory>();
 
 /** Categories that always require a fresh prompt, no matter what — never auto-allowed for a session. */
-const ALWAYS_CONFIRM: ReadonlySet<PermissionCategory> = new Set(["delete", "git_push"]);
+const ALWAYS_CONFIRM: ReadonlySet<PermissionCategory> = new Set(["delete", "git_push", "git_pull"]);
 
 export function isAlwaysConfirmed(category: PermissionCategory): boolean {
   return ALWAYS_CONFIRM.has(category);
@@ -58,6 +66,7 @@ const CATEGORY_LABELS: Record<PermissionCategory, string> = {
   write: "wants to write a file",
   delete: "wants to delete a file",
   git_push: "wants to push to git",
+  git_pull: "wants to pull from git",
   network: "wants to make a network request",
   mcp: "wants to call an MCP tool",
   mcp_connect: "wants to start an MCP server",
