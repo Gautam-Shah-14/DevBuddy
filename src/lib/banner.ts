@@ -113,10 +113,42 @@ function renderWordmark(): string[] {
   });
 }
 
+const TAGLINE = "local-first CLI developer agent · by tokenburners";
+
+/** The full flame+figlet banner's widest rendered line is 92 columns - anything
+ *  narrower wraps mid-glyph and renders as broken, disconnected fragments. */
+const MIN_FULL_BANNER_WIDTH = 94;
+
+/** A single-line wordmark with the same white "Dev" / gradient "Buddy" treatment
+ *  as the full banner, for terminals too narrow for the flame art to render cleanly. */
+function renderCompactWordmark(): string {
+  const dev = chalk.whiteBright.bold("Dev");
+  const buddyChars = [...("Buddy")];
+  const buddy = buddyChars
+    .map((ch, i) => chalk.hex(colorAt(i / Math.max(1, buddyChars.length - 1))).bold(ch))
+    .join("");
+  return `${dev}${buddy}`;
+}
+
+function printCompactBanner(): void {
+  console.log();
+  console.log(renderCompactWordmark());
+  console.log(chalk.dim(TAGLINE));
+  console.log();
+}
+
 export function printBanner(): void {
+  // process.stdout.columns is undefined when stdout isn't a real TTY (piped/redirected) -
+  // treat that the same as "narrow": there's no terminal to render wide art into anyway.
+  const columns = process.stdout.columns ?? 0;
+  if (columns < MIN_FULL_BANNER_WIDTH) {
+    printCompactBanner();
+    return;
+  }
+
   const flameLines = renderFlame();
   const wordmarkLines = renderWordmark();
-  const tagline = chalk.dim("local-first CLI developer agent · by tokenburners");
+  const tagline = chalk.dim(TAGLINE);
 
   const totalRows = Math.max(flameLines.length, wordmarkLines.length + 1);
   const textBlock = [...wordmarkLines, tagline];
