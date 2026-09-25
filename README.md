@@ -103,6 +103,7 @@ devbuddy
 | `devbuddy -r` | Pick a session to resume from a list of recent ones. |
 | `devbuddy -r <id>` | Resume that specific session directly (see `history list` for ids). |
 | `/compact` *(inside chat)* | Summarize older history now, instead of waiting for auto-compaction. |
+| `/retry` *(inside chat)* | Re-send your last message as a new turn (e.g. after a bad or cut-off reply). Doesn't erase the previous attempt from history, it just asks again. |
 | `devbuddy run "<prompt>" [--yes] [--model <m>] [--json]` | One-shot, non-interactive agent turn for scripts/CI/pre-commit hooks. Read-only tasks need no flags; anything that writes, deletes, runs a shell command, or pushes needs `--yes` to auto-approve. `--json` prints `{ sessionId, model, provider, content }` for piping into other tools. |
 
 ### Providers & models

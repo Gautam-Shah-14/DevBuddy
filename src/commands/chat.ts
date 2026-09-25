@@ -210,10 +210,118 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
   if (effectiveGuardrailsMode !== "off") {
     console.log(chalk.dim(`Guardrails: ${effectiveGuardrailsMode}`));
   }
-  console.log(chalk.dim(`Type your request, "/compact" to summarize older history, or "exit" to quit.\n`));
+  console.log(
+    chalk.dim(`Type your request, "/compact" to summarize older history, "/retry" to redo the last one, or "exit" to quit.\n`)
+  );
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   setSharedReadline(rl);
+
+  /**
+   * Runs one full turn for `input`: persists the user message, streams the
+   * model's response (with tool calls rendered live), and folds auto-compaction
+   * in afterward. Shared by both a normal typed request and "/retry" (which
+   * re-sends the last user message as a brand-new turn - it does not rewind or
+   * delete the previous attempt from history, it just asks again).
+   */
+  async function runTurn(input: string): Promise<void> {
+    const userMessage: ChatMessage = { role: "user", content: input };
+    messages.push(userMessage);
+    memory.addMessage(sessionId, userMessage);
+
+    let printedAny = false;
+    let needsBullet = true; // each run of streamed text is its own "⏺" block, like Claude Code's turn markers
+    const printBulletOnce = () => {
+      if (!needsBullet) return;
+      process.stdout.write(chalk.hex(ACCENT).bold("⏺ "));
+      needsBullet = false;
+    };
+    const spinner = ora({
+      text: `${randomThinkingVerb()}… ${chalk.dim("(ctrl+c to cancel)")}`,
+      stream: process.stdout,
+      discardStdin: false,
+    }).start();
+
+    try {
+      const turn = await runAgentTurn({
+        model,
+        provider,
+        messages,
+        tools,
+        skills,
+        projectRoot,
+        projectPaths: paths,
+        memory,
+        sessionId,
+        guardrails,
+        verifyCommand: config.verifyCommand,
+        onToken: (token) => {
+          if (spinner.isSpinning) spinner.stop();
+          printedAny = true;
+          printBulletOnce();
+          process.stdout.write(token);
+        },
+        onToolStart: (name, args) => {
+          if (spinner.isSpinning) spinner.stop();
+          printedAny = true;
+          console.log(`\n${chalk.hex(ACCENT).bold("⏺")} ${chalk.bold(name)}(${chalk.dim(JSON.stringify(args))})`);
+          needsBullet = true; // any text after this tool call starts a fresh block
+        },
+        onToolResult: (name, result) => {
+          const preview = result.length > 300 ? result.slice(0, 300) + "..." : result;
+          console.log(chalk.dim(`  ⎿  ${preview}`));
+        },
+        onVerify: (event) => {
+          if (spinner.isSpinning) spinner.stop();
+          if (event.status === "running") {
+            console.log(chalk.dim(`  ⎿  Running self-check: \`${event.command}\`...`));
+          } else if (event.status === "passed") {
+            console.log(chalk.green(`  ⎿  ✓ Self-check passed (${event.command})`));
+          } else {
+            console.log(chalk.red(`  ⎿  ✗ Self-check failed (${event.command}) - asking DevBuddy to fix it`));
+          }
+        },
+        onRetry: (info) => {
+          if (spinner.isSpinning) spinner.stop();
+          console.log(
+            chalk.dim(
+              `  ⎿  ⟳ ${info.reason}, retrying (${info.attempt}/${info.maxAttempts}) in ${Math.round(info.delayMs / 100) / 10}s...`
+            )
+          );
+        },
+      });
+      if (!printedAny) {
+        spinner.stop();
+        printBulletOnce();
+        process.stdout.write(turn.content);
+      }
+      messages = turn.messages;
+      console.log("\n");
+
+      const threshold = resolveCompactThreshold(config.compactThreshold);
+      if (shouldCompact(messages, threshold, KEEP_RECENT_MESSAGES)) {
+        const compactSpinner = ora({
+          text: "conversation is getting long, compacting...",
+          stream: process.stdout,
+          discardStdin: false,
+        }).start();
+        try {
+          const compacted = await compactSession(provider, model, memory, sessionId);
+          compactSpinner.stop();
+          if (compacted) {
+            messages = compacted.messages;
+            console.log(chalk.dim(`(compacted ${compacted.compactedCount} older message(s) to stay within context)\n`));
+          }
+        } catch (err) {
+          compactSpinner.stop();
+          console.error(chalk.yellow(`Auto-compaction failed, continuing with full history: ${(err as Error).message}\n`));
+        }
+      }
+    } catch (err) {
+      spinner.stop();
+      console.error(chalk.red(`\nError: ${(err as Error).message}\n`));
+    }
+  }
 
   try {
     while (true) {
@@ -246,102 +354,18 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
         continue;
       }
 
-      const userMessage: ChatMessage = { role: "user", content: input };
-      messages.push(userMessage);
-      memory.addMessage(sessionId, userMessage);
-
-      let printedAny = false;
-      let needsBullet = true; // each run of streamed text is its own "⏺" block, like Claude Code's turn markers
-      const printBulletOnce = () => {
-        if (!needsBullet) return;
-        process.stdout.write(chalk.hex(ACCENT).bold("⏺ "));
-        needsBullet = false;
-      };
-      const spinner = ora({
-        text: `${randomThinkingVerb()}… ${chalk.dim("(ctrl+c to cancel)")}`,
-        stream: process.stdout,
-        discardStdin: false,
-      }).start();
-
-      try {
-        const turn = await runAgentTurn({
-          model,
-          provider,
-          messages,
-          tools,
-          skills,
-          projectRoot,
-          projectPaths: paths,
-          memory,
-          sessionId,
-          guardrails,
-          verifyCommand: config.verifyCommand,
-          onToken: (token) => {
-            if (spinner.isSpinning) spinner.stop();
-            printedAny = true;
-            printBulletOnce();
-            process.stdout.write(token);
-          },
-          onToolStart: (name, args) => {
-            if (spinner.isSpinning) spinner.stop();
-            printedAny = true;
-            console.log(`\n${chalk.hex(ACCENT).bold("⏺")} ${chalk.bold(name)}(${chalk.dim(JSON.stringify(args))})`);
-            needsBullet = true; // any text after this tool call starts a fresh block
-          },
-          onToolResult: (name, result) => {
-            const preview = result.length > 300 ? result.slice(0, 300) + "..." : result;
-            console.log(chalk.dim(`  ⎿  ${preview}`));
-          },
-          onVerify: (event) => {
-            if (spinner.isSpinning) spinner.stop();
-            if (event.status === "running") {
-              console.log(chalk.dim(`  ⎿  Running self-check: \`${event.command}\`...`));
-            } else if (event.status === "passed") {
-              console.log(chalk.green(`  ⎿  ✓ Self-check passed (${event.command})`));
-            } else {
-              console.log(chalk.red(`  ⎿  ✗ Self-check failed (${event.command}) - asking DevBuddy to fix it`));
-            }
-          },
-          onRetry: (info) => {
-            if (spinner.isSpinning) spinner.stop();
-            console.log(
-              chalk.dim(
-                `  ⎿  ⟳ ${info.reason}, retrying (${info.attempt}/${info.maxAttempts}) in ${Math.round(info.delayMs / 100) / 10}s...`
-              )
-            );
-          },
-        });
-        if (!printedAny) {
-          spinner.stop();
-          printBulletOnce();
-          process.stdout.write(turn.content);
+      if (input === "/retry") {
+        const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
+        if (!lastUserMessage) {
+          console.log(chalk.yellow("Nothing to retry yet - send a message first.\n"));
+          continue;
         }
-        messages = turn.messages;
-        console.log("\n");
-
-        const threshold = resolveCompactThreshold(config.compactThreshold);
-        if (shouldCompact(messages, threshold, KEEP_RECENT_MESSAGES)) {
-          const compactSpinner = ora({
-            text: "conversation is getting long, compacting...",
-            stream: process.stdout,
-            discardStdin: false,
-          }).start();
-          try {
-            const compacted = await compactSession(provider, model, memory, sessionId);
-            compactSpinner.stop();
-            if (compacted) {
-              messages = compacted.messages;
-              console.log(chalk.dim(`(compacted ${compacted.compactedCount} older message(s) to stay within context)\n`));
-            }
-          } catch (err) {
-            compactSpinner.stop();
-            console.error(chalk.yellow(`Auto-compaction failed, continuing with full history: ${(err as Error).message}\n`));
-          }
-        }
-      } catch (err) {
-        spinner.stop();
-        console.error(chalk.red(`\nError: ${(err as Error).message}\n`));
+        console.log(chalk.dim("Retrying your last message...\n"));
+        await runTurn(lastUserMessage.content);
+        continue;
       }
+
+      await runTurn(input);
     }
   } finally {
     setSharedReadline(null);

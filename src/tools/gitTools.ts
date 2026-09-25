@@ -54,6 +54,42 @@ export const gitCommitTool: ToolDefinition = {
   },
 };
 
+export const gitFetchTool: ToolDefinition = {
+  name: "git_fetch",
+  description: "Fetch updates from a remote without merging them into the working tree.",
+  parameters: {
+    type: "object",
+    properties: { remote: { type: "string", description: "Remote name, default 'origin'" } },
+  },
+  async execute(args, ctx) {
+    const remote = args.remote ? String(args.remote) : "origin";
+    await requestPermission({ category: "network", description: `git fetch ${remote}` });
+    return git(ctx.projectRoot, ["fetch", remote]);
+  },
+};
+
+export const gitPullTool: ToolDefinition = {
+  name: "git_pull",
+  description:
+    "Fetch and merge the current (or given) branch's remote changes into the working tree. Always requires explicit user approval.",
+  parameters: {
+    type: "object",
+    properties: {
+      remote: { type: "string", description: "Remote name, default 'origin'" },
+      branch: { type: "string", description: "Branch to pull, default the current branch" },
+    },
+  },
+  async execute(args, ctx) {
+    const remote = args.remote ? String(args.remote) : "origin";
+    const branchArgs = args.branch ? [String(args.branch)] : [];
+    await requestPermission({
+      category: "git_pull",
+      description: `git pull ${remote} ${branchArgs.join(" ")}`.trim(),
+    });
+    return git(ctx.projectRoot, ["pull", remote, ...branchArgs]);
+  },
+};
+
 export const gitPushTool: ToolDefinition = {
   name: "git_push",
   description: "Push the current branch to its remote. Always requires explicit user approval.",

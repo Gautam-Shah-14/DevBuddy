@@ -26,7 +26,15 @@ async function ask(prompt: string): Promise<string> {
   }
 }
 
-export type PermissionCategory = "shell" | "write" | "delete" | "git_push" | "network" | "mcp" | "mcp_connect";
+export type PermissionCategory =
+  | "shell"
+  | "write"
+  | "delete"
+  | "git_push"
+  | "git_pull"
+  | "network"
+  | "mcp"
+  | "mcp_connect";
 
 export interface PermissionRequest {
   category: PermissionCategory;
@@ -35,14 +43,23 @@ export interface PermissionRequest {
 }
 
 /**
- * Tracks which categories the user has already blanket-approved for this
- * running session (`allow for this session`), so we don't re-prompt for
- * every single call of the same kind of action.
+ * Tracks which exact actions the user has already approved-for-the-session
+ * (`allow for this session`), keyed by category + description rather than
+ * category alone: remembering "shell" or "write" as a whole would auto-run
+ * any future shell command or file write the model comes up with for the
+ * rest of the session, including ones with nothing in common with the one
+ * actually approved. Keying on the exact description means "yes, always run
+ * `npm test`" doesn't also silently approve `rm -rf /` later - the same
+ * category, but a different action, still asks.
  */
-const sessionAllowed = new Set<PermissionCategory>();
+const sessionAllowed = new Set<string>();
+
+function sessionKey(category: PermissionCategory, description: string): string {
+  return `${category}:${description}`;
+}
 
 /** Categories that always require a fresh prompt, no matter what — never auto-allowed for a session. */
-const ALWAYS_CONFIRM: ReadonlySet<PermissionCategory> = new Set(["delete", "git_push"]);
+const ALWAYS_CONFIRM: ReadonlySet<PermissionCategory> = new Set(["delete", "git_push", "git_pull"]);
 
 export function isAlwaysConfirmed(category: PermissionCategory): boolean {
   return ALWAYS_CONFIRM.has(category);
@@ -58,6 +75,7 @@ const CATEGORY_LABELS: Record<PermissionCategory, string> = {
   write: "wants to write a file",
   delete: "wants to delete a file",
   git_push: "wants to push to git",
+  git_pull: "wants to pull from git",
   network: "wants to make a network request",
   mcp: "wants to call an MCP tool",
   mcp_connect: "wants to start an MCP server",
@@ -110,11 +128,12 @@ export function setAutoApprove(enabled: boolean): void {
 
 /**
  * Prompts the user to approve a risky action. Resolves silently if approved,
- * throws PermissionDenied otherwise. Session-wide "allow all" is remembered
- * per category (except categories in ALWAYS_CONFIRM).
+ * throws PermissionDenied otherwise. "Don't ask again this session" is
+ * remembered per exact action (category + description), never per whole
+ * category, and never for a category in ALWAYS_CONFIRM.
  */
 export async function requestPermission(req: PermissionRequest): Promise<void> {
-  if (!ALWAYS_CONFIRM.has(req.category) && sessionAllowed.has(req.category)) {
+  if (!ALWAYS_CONFIRM.has(req.category) && sessionAllowed.has(sessionKey(req.category, req.description))) {
     return;
   }
 
@@ -140,7 +159,7 @@ export async function requestPermission(req: PermissionRequest): Promise<void> {
   console.log();
 
   const canRemember = !ALWAYS_CONFIRM.has(req.category);
-  const options = canRemember ? ["Yes", "Yes, and don't ask again this session", "No"] : ["Yes", "No"];
+  const options = canRemember ? ["Yes", "Yes, and don't ask again for this in this session", "No"] : ["Yes", "No"];
   options.forEach((label, i) => console.log(`  ${chalk.dim(`${i + 1}.`)} ${label}`));
   console.log();
 
@@ -148,7 +167,7 @@ export async function requestPermission(req: PermissionRequest): Promise<void> {
   console.log();
 
   if (canRemember && isRememberChoice(raw)) {
-    sessionAllowed.add(req.category);
+    sessionAllowed.add(sessionKey(req.category, req.description));
     return;
   }
   if (isAffirmative(raw)) {

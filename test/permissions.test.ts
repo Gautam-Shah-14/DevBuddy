@@ -39,32 +39,41 @@ test("requestPermission accepts a natural-language affirmative phrasing, not jus
 
 test("requestPermission treats 'yes and don't ask again this session' as the remember choice, not just yes", async () => {
   await withInteractiveAnswer("yes and don't ask again this session", () =>
-    requestPermission({ category: "write", description: "first" })
+    requestPermission({ category: "write", description: "create KT_Guide.md" })
   );
-  // The category should now be session-remembered - a second call for the
-  // same category resolves without ever needing to ask (no TTY, no readline
-  // set here - it would throw immediately if it tried).
-  await requestPermission({ category: "write", description: "second, should be auto-allowed" });
+  // The exact same action should now be remembered for the session - it
+  // resolves without ever needing to ask (no TTY, no readline set here - it
+  // would throw immediately if it tried).
+  await requestPermission({ category: "write", description: "create KT_Guide.md" });
+  resetSessionPermissions();
+});
+
+test("remembering one action does NOT blanket-approve a different action in the same category", async () => {
+  await withInteractiveAnswer("2", () => requestPermission({ category: "shell", description: "npm test" }));
+  // The exact command that was approved is remembered...
+  await requestPermission({ category: "shell", description: "npm test" });
+  // ...but a different shell command, even in the same category, still needs its own prompt.
+  await assert.rejects(requestPermission({ category: "shell", description: "rm -rf /" }), PermissionDenied);
   resetSessionPermissions();
 });
 
 test("requestPermission's remember choice also accepts the exact '2' and 'always'", async () => {
   await withInteractiveAnswer("2", () => requestPermission({ category: "write", description: "x" }));
-  await requestPermission({ category: "write", description: "should be auto-allowed" });
+  await requestPermission({ category: "write", description: "x" });
   resetSessionPermissions();
 
-  await withInteractiveAnswer("always", () => requestPermission({ category: "shell", description: "x" }));
-  await requestPermission({ category: "shell", description: "should be auto-allowed" });
+  await withInteractiveAnswer("always", () => requestPermission({ category: "shell", description: "y" }));
+  await requestPermission({ category: "shell", description: "y" });
   resetSessionPermissions();
 });
 
 test("requestPermission denies on 'no' and on an unrecognized answer", async () => {
   await assert.rejects(
-    withInteractiveAnswer("no", () => requestPermission({ category: "write", description: "x" })),
+    withInteractiveAnswer("no", () => requestPermission({ category: "write", description: "z1" })),
     PermissionDenied
   );
   await assert.rejects(
-    withInteractiveAnswer("hmm not sure", () => requestPermission({ category: "write", description: "x" })),
+    withInteractiveAnswer("hmm not sure", () => requestPermission({ category: "write", description: "z2" })),
     PermissionDenied
   );
 });
