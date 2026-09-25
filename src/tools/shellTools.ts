@@ -1,6 +1,7 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { requestPermission } from "../lib/permissions.js";
+import { detectHardlineCommand } from "../lib/dangerousCommands.js";
 import type { ToolDefinition } from "./types.js";
 
 const execAsync = promisify(exec);
@@ -16,6 +17,18 @@ export const runShellTool: ToolDefinition = {
   },
   async execute(args, ctx) {
     const command = String(args.command);
+
+    // A small, fixed set of universally catastrophic operations never runs
+    // at all - not with approval, not with "remember", not with --yes. This
+    // sits UNDER the normal permission prompt below, not instead of it.
+    const hardlineMatch = detectHardlineCommand(command);
+    if (hardlineMatch) {
+      return (
+        `Error: refusing to run this command - it looks like it would ${hardlineMatch}. ` +
+        `This is blocked unconditionally and cannot be approved, including with --yes.`
+      );
+    }
+
     await requestPermission({ category: "shell", description: `Run: ${command}` });
     try {
       // node:child_process picks the OS's default shell automatically
