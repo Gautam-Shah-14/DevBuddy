@@ -15,7 +15,7 @@ import { printBanner } from "../lib/banner.js";
 import { GuardrailsEngine } from "../lib/guardrails/engine.js";
 import { getPlan } from "../lib/license.js";
 import { compactMessages, resolveCompactThreshold, shouldCompact } from "../lib/compact.js";
-import { readProjectNotes } from "../lib/notes.js";
+import { renderProjectNotes } from "../lib/notes.js";
 import type { ChatMessage, ChatProvider } from "../providers/index.js";
 
 /** Non-system messages older than this are always kept out of auto/manual
@@ -182,7 +182,7 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
   const mcpTools = await mcpManager.connectAll(projectRoot);
   const tools = [...builtinTools, ...mcpTools];
 
-  const projectNotes = readProjectNotes(paths.notesFile);
+  const projectNotes = renderProjectNotes(paths.notesFile);
   const systemMessage: ChatMessage = {
     role: "system",
     content: buildSystemPrompt(tools, skills, config.systemPrompt, projectNotes),
@@ -235,7 +235,7 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
     // saved last turn should already be visible on this one, not just next session.
     messages[0] = {
       role: "system",
-      content: buildSystemPrompt(tools, skills, config.systemPrompt, readProjectNotes(paths.notesFile)),
+      content: buildSystemPrompt(tools, skills, config.systemPrompt, renderProjectNotes(paths.notesFile)),
     };
 
     const userMessage: ChatMessage = { role: "user", content: input };

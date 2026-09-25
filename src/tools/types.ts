@@ -16,6 +16,7 @@ export interface JsonSchema {
   required?: string[];
   description?: string;
   items?: JsonSchema;
+  enum?: string[];
 }
 
 export interface ToolDefinition {

@@ -11,7 +11,7 @@ import { McpManager } from "../lib/mcp.js";
 import { setAutoApprove } from "../lib/permissions.js";
 import { GuardrailsEngine } from "../lib/guardrails/engine.js";
 import { getPlan } from "../lib/license.js";
-import { readProjectNotes } from "../lib/notes.js";
+import { renderProjectNotes } from "../lib/notes.js";
 import type { ChatMessage } from "../providers/index.js";
 
 export interface RunOptions {
@@ -60,7 +60,7 @@ export async function runCommand(prompt: string, options: RunOptions): Promise<v
 
   const systemMessage: ChatMessage = {
     role: "system",
-    content: buildSystemPrompt(tools, skills, config.systemPrompt, readProjectNotes(paths.notesFile)),
+    content: buildSystemPrompt(tools, skills, config.systemPrompt, renderProjectNotes(paths.notesFile)),
   };
   const userMessage: ChatMessage = { role: "user", content: prompt };
   const messages: ChatMessage[] = [systemMessage, userMessage];
