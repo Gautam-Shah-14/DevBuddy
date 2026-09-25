@@ -56,6 +56,10 @@ export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[], syst
       "package.json and any existing README to learn what the project actually is, what it does, and how it's " +
       "used. Never invent generic placeholder content ('Clone the repository', 'Run npm install', etc.) - base " +
       "what you write on what you actually found in the project.",
+    "",
+    "If a task needs information you don't already know for certain - a library's current API, a version " +
+      "number, an error message you don't recognize, a fact outside this project - use web_search rather than " +
+      "guessing or answering from possibly outdated training data.",
     REACT_FALLBACK_INSTRUCTIONS,
     "",
     "For any large or multi-step task (new feature, refactor, migration), call propose_plan " +
