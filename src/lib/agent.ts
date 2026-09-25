@@ -13,6 +13,11 @@ import { detectVerifyCommand, runVerification, MUTATING_TOOLS, type VerifyResult
 
 const MAX_TOOL_ITERATIONS = 15;
 const MAX_VERIFY_ATTEMPTS = 2;
+/** A turn with zero valid tool calls this many times in a row gives up rather
+ *  than burning the rest of MAX_TOOL_ITERATIONS on a persistently confused model. */
+const MAX_INVALID_TOOL_NAME_STRIKES = 3;
+/** Times a malformed ReAct-fallback tool_call fence gets a "fix your JSON" retry before giving up. */
+const MAX_REACT_JSON_RETRIES = 2;
 
 export interface VerifyEvent {
   command: string;
@@ -67,16 +72,73 @@ export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[], syst
   ].join("\n");
 }
 
-function parseReactToolCall(content: string): ToolCall | null {
+type ReactParseResult =
+  | { kind: "none" }
+  | { kind: "call"; call: ToolCall }
+  | { kind: "malformed"; error: string };
+
+/**
+ * Parses a ReAct-fallback ```tool_call fence out of a model's raw content.
+ * Distinguishes "no fence at all" (ordinary prose - the normal, non-tool-call
+ * path) from "there's a fence but its JSON is broken" (kind: "malformed"),
+ * so the caller can ask the model to fix and retry instead of silently
+ * treating the broken fence as if it were the model's real final answer.
+ */
+function parseReactToolCall(content: string): ReactParseResult {
   const match = content.match(/```tool_call\s*\n([\s\S]*?)```/);
-  if (!match) return null;
+  if (!match) return { kind: "none" };
   try {
-    const parsed = JSON.parse(match[1].trim()) as { name: string; arguments: Record<string, unknown> };
-    if (!parsed.name) return null;
-    return { function: { name: parsed.name, arguments: parsed.arguments ?? {} } };
-  } catch {
-    return null;
+    const parsed = JSON.parse(match[1].trim()) as { name?: string; arguments?: Record<string, unknown> };
+    if (!parsed.name) return { kind: "malformed", error: 'missing required "name" field' };
+    return { kind: "call", call: { function: { name: parsed.name, arguments: parsed.arguments ?? {} } } };
+  } catch (err) {
+    return { kind: "malformed", error: (err as Error).message };
   }
+}
+
+/** Case/word-boundary-insensitive Levenshtein edit distance, used only to repair
+ *  an otherwise-unrecognized tool name against the small, fixed set of real ones. */
+function editDistance(a: string, b: string): number {
+  const dp: number[][] = Array.from({ length: a.length + 1 }, (_, i) => [i, ...new Array(b.length).fill(0)]);
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] =
+        a[i - 1] === b[j - 1]
+          ? dp[i - 1][j - 1]
+          : 1 + Math.min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+/**
+ * Repairs a hallucinated/malformed tool name a model produced (wrong case,
+ * "-" instead of "_", a stray "Tool"/"_tool" suffix, or a small typo) against
+ * the actual set of available tool names. Returns the repaired name if
+ * confident, otherwise null - deliberately conservative (exact match after
+ * normalization, or a single unambiguous close match within a small edit
+ * distance) since silently routing a call to the WRONG tool is worse than
+ * asking the model to try again.
+ */
+function repairToolName(name: string, validNames: Set<string>): string | null {
+  if (!name) return null;
+  const normalize = (s: string) => s.trim().toLowerCase().replace(/[-\s]+/g, "_");
+  const candidates = new Set<string>([name, normalize(name)]);
+  for (const c of [...candidates]) {
+    const stripped = c.replace(/_?tool$/, "");
+    if (stripped && stripped !== c) candidates.add(stripped);
+  }
+  for (const c of candidates) {
+    if (validNames.has(c)) return c;
+  }
+
+  const normalized = normalize(name);
+  const close = [...validNames].filter((valid) => {
+    const maxDistance = normalized.length <= 6 ? 1 : 2; // tighter tolerance for short names
+    return editDistance(normalized, valid) <= maxDistance;
+  });
+  return close.length === 1 ? close[0] : null;
 }
 
 const REACT_FENCE_PREFIX = "```tool_call";
@@ -169,10 +231,13 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
   const { model, provider, projectRoot, projectPaths, memory, sessionId, tools, skills } = opts;
   const messages = [...opts.messages];
   const toolSpecs = tools.map(toOllamaToolSpec);
+  const validToolNames = new Set(tools.map((t) => t.name));
   const getTool = (name: string) => tools.find((t) => t.name === name);
   const verifyCommand = detectVerifyCommand(projectRoot, opts.verifyCommand ?? getConfig().verifyCommand);
   let filesMutatedSinceVerify = false;
   let verifyAttempts = 0;
+  let invalidToolNameStrikes = 0;
+  let reactJsonRetries = 0;
 
   for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
     // Guardrails apply at the boundary right before content leaves the
@@ -209,13 +274,8 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
     // one lands mid-stream, but the final stored content is always restored.
     const restoredContent = opts.guardrails ? opts.guardrails.restore(result.content) : result.content;
 
-    const rawToolCalls: ToolCall[] =
-      result.toolCalls.length > 0
-        ? result.toolCalls
-        : (() => {
-            const fallback = parseReactToolCall(restoredContent);
-            return fallback ? [fallback] : [];
-          })();
+    const reactResult: ReactParseResult = result.toolCalls.length > 0 ? { kind: "none" } : parseReactToolCall(restoredContent);
+    const rawToolCalls: ToolCall[] = result.toolCalls.length > 0 ? result.toolCalls : reactResult.kind === "call" ? [reactResult.call] : [];
     // Every provider needs a stable call id to match a tool result back to its
     // call (OpenAI's tool_call_id, Anthropic's tool_use_id) - assign one when
     // the provider didn't supply it (Ollama, ReAct fallback).
@@ -236,6 +296,28 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
       toolCalls.length ? JSON.stringify(toolCalls) : undefined,
       result.usage
     );
+
+    // The model attempted the ReAct-fallback fence but its JSON didn't parse -
+    // ask it to fix and retry (bounded) instead of silently treating the raw,
+    // broken fence as if it were the model's real final answer.
+    if (toolCalls.length === 0 && reactResult.kind === "malformed") {
+      reactJsonRetries++;
+      if (reactJsonRetries > MAX_REACT_JSON_RETRIES) {
+        const giveUp = `Model produced malformed tool_call JSON ${MAX_REACT_JSON_RETRIES + 1} times in a row (${reactResult.error}). Giving up on this turn.`;
+        console.log(chalk.red(giveUp));
+        return { content: giveUp, messages };
+      }
+      const feedback: ChatMessage = {
+        role: "user",
+        content:
+          `Your \`\`\`tool_call fence had invalid JSON: ${reactResult.error}. Respond again with ONLY a single ` +
+          `fenced tool_call block containing valid JSON: {"name": "<tool_name>", "arguments": { ... }}.`,
+      };
+      messages.push(feedback);
+      memory.addMessage(sessionId, feedback);
+      continue;
+    }
+    reactJsonRetries = 0;
 
     if (toolCalls.length === 0) {
       if (verifyCommand && filesMutatedSinceVerify && verifyAttempts < MAX_VERIFY_ATTEMPTS) {
@@ -260,8 +342,18 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
       return { content: restoredContent, messages };
     }
 
+    let anyValidToolThisIteration = false;
     for (const call of toolCalls) {
-      const tool = getTool(call.function.name);
+      let tool = getTool(call.function.name);
+      if (!tool) {
+        const repaired = repairToolName(call.function.name, validToolNames);
+        if (repaired) {
+          console.log(chalk.dim(`  (auto-repaired tool name "${call.function.name}" -> "${repaired}")`));
+          call.function.name = repaired;
+          tool = getTool(repaired);
+        }
+      }
+      if (tool) anyValidToolThisIteration = true;
       opts.onToolStart?.(call.function.name, call.function.arguments);
 
       let resultText: string;
@@ -300,6 +392,19 @@ export async function runAgentTurn(opts: RunAgentTurnOptions): Promise<AgentTurn
       };
       messages.push(toolMessage);
       memory.addMessage(sessionId, toolMessage);
+    }
+
+    // A model that keeps hallucinating tool names even after the repair
+    // attempt above isn't going to recover on its own - stop wasting the rest
+    // of MAX_TOOL_ITERATIONS on it. Strikes only advance when NO call in the
+    // iteration resolved to a real tool, so one bad call in an otherwise-valid
+    // batch doesn't trip this.
+    if (anyValidToolThisIteration) {
+      invalidToolNameStrikes = 0;
+    } else if (++invalidToolNameStrikes >= MAX_INVALID_TOOL_NAME_STRIKES) {
+      const giveUp = `Model called unknown tools ${MAX_INVALID_TOOL_NAME_STRIKES} times in a row without a valid one. Giving up on this turn.`;
+      console.log(chalk.red(giveUp));
+      return { content: giveUp, messages };
     }
   }
 
