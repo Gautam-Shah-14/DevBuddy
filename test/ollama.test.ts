@@ -39,6 +39,29 @@ test("OllamaProvider.streamChat retries a transient 500 then succeeds", async (t
   assert.equal(result.content, "hi");
 });
 
+test("OllamaProvider.streamChat sends the configured contextWindow as num_ctx", async (t) => {
+  setConfigValue("host", "http://fake-ollama");
+  setConfigValue("contextWindow", "32768");
+  t.after(() => setConfigValue("contextWindow", "16384"));
+
+  const lines = [{ message: { role: "assistant", content: "" }, done: true, prompt_eval_count: 1, eval_count: 1 }];
+
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+  let body: Record<string, unknown> = {};
+  globalThis.fetch = (async (_url: unknown, init: RequestInit) => {
+    body = JSON.parse(init.body as string);
+    return ndjsonStream(lines);
+  }) as typeof fetch;
+
+  const provider = new OllamaProvider();
+  await provider.streamChat({ model: "llama3.1", messages: [{ role: "user", content: "hi" }] });
+
+  assert.deepEqual(body.options, { num_ctx: 32768 });
+});
+
 test("OllamaProvider.streamChat does not retry a 400 (bad request)", async (t) => {
   setConfigValue("host", "http://fake-ollama");
 

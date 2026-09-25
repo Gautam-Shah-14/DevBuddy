@@ -116,7 +116,7 @@ devbuddy
 | `devbuddy provider set-key <openai\|anthropic> <key>` | Store an API key (config file is chmod 600; masked when printed). |
 | `devbuddy provider set-url <openai\|anthropic> <url>` | Point at a different endpoint (e.g. OpenRouter, a local llama.cpp server). |
 | `devbuddy config` | View current configuration. |
-| `devbuddy config set <key> <value>` | Set `host`, `model`, `systemPrompt`, `verifyCommand`, or `compactThreshold`. |
+| `devbuddy config set <key> <value>` | Set `host`, `model`, `systemPrompt`, `verifyCommand`, `compactThreshold`, or `contextWindow`. |
 
 ### Project & team
 
@@ -237,12 +237,25 @@ has streamed back, so you never see duplicated or truncated output.
   continuous conversation.
 - **Context compaction** — a long or resumed session can outgrow a
   model's context window. Once the estimated token count passes
-  `compactThreshold` (default `6000`), DevBuddy asks the model to
+  `compactThreshold` (default `11000`), DevBuddy asks the model to
   summarize everything but the most recent messages into one summary
   message and continues from there. The full raw history is never lost
   (`history show` still shows everything); only the live conversation and
   future resumes start from the summary forward. Trigger it manually with
   `/compact`, or disable with `devbuddy config set compactThreshold off`.
+  For Ollama, this is paired with `contextWindow` (default `16384`,
+  passed to Ollama as `num_ctx`) — Ollama otherwise falls back to its own
+  small built-in context window (often 2048-4096 tokens) and silently
+  truncates older messages once that's exceeded, which looks like
+  DevBuddy compacting far too often, or the model losing track of things
+  it was just told, when the real cause is that default never having
+  been raised. If your model supports a larger context and your machine
+  has the RAM/VRAM for it (qwen3, for example, supports well beyond
+  32k), raise both together, e.g.
+  `devbuddy config set contextWindow 32768` and
+  `devbuddy config set compactThreshold 24000`, keeping
+  `compactThreshold` comfortably below `contextWindow` to leave room for
+  the system prompt, tool schemas, and the model's own response.
 
 </details>
 
@@ -281,7 +294,7 @@ This creates:
 
 | Path | Purpose |
 |---|---|
-| `.devbuddy/config.json` | Non-secret defaults layered on top of your own config: `provider`, `model`, `systemPrompt`, `verifyCommand`, `guardrailsMode`, `compactThreshold`. `devbuddy config` shows when a value is overridden this way. |
+| `.devbuddy/config.json` | Non-secret defaults layered on top of your own config: `provider`, `model`, `systemPrompt`, `verifyCommand`, `guardrailsMode`, `compactThreshold`, `contextWindow`. `devbuddy config` shows when a value is overridden this way. |
 | `.devbuddy/skills/` | Skills shared with the team (`devbuddy skills create <name> --shared`). |
 | `.devbuddy/connectors.json` | MCP connectors shared with the team (`devbuddy connector add <name> --command "..." --shared`). |
 

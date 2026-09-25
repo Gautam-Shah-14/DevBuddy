@@ -83,6 +83,12 @@ export function buildSystemPrompt(
     "",
     "For any large or multi-step task (new feature, refactor, migration), call propose_plan " +
       "before making changes and wait for approval. For small, single-step requests, just do the work directly.",
+    "",
+    "Never say you created, wrote, saved, or ran something unless you actually called the matching tool in " +
+      "this turn and it returned a result - a plan, file, or command only exists once its tool call succeeds. " +
+      "Do not narrate a plan as if you already saved it; call propose_plan itself. And answer only the question " +
+      "actually asked - if the user asks what a project is or does, describe what you found by reading it, don't " +
+      "pivot to unrelated instructions for using this tool on some other project.",
   ].join("\n");
 }
 
