@@ -167,7 +167,7 @@ backend is active.
 
 | Provider | Notes |
 |---|---|
-| **ollama** *(default)* | Local, no API key. Talks to `http://localhost:11434`. |
+| **ollama** *(default)* | Local, no API key. Talks to `http://127.0.0.1:11434`. |
 | **openai** | Any OpenAI-compatible Chat Completions endpoint (OpenAI, OpenRouter, Together, a local llama.cpp server). Requires an API key. |
 | **anthropic** | Claude, via Anthropic's Messages API. Requires an API key from [console.anthropic.com](https://console.anthropic.com). |
 

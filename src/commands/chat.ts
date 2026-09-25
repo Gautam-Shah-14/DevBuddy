@@ -148,10 +148,13 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
   if (!connected) {
     console.error(
       chalk.red(
-        `Could not reach the "${provider.name}" provider. ` +
-          (provider.name === "ollama"
-            ? `Start Ollama with "ollama serve" and try again.`
-            : `Check your provider config (devbuddy provider list) and network connection.`)
+        provider.name === "ollama"
+          ? `Could not reach Ollama at ${config.host}. If Ollama is already running, this is often ` +
+            `"localhost" resolving to the wrong address (IPv6 vs IPv4) - try ` +
+            `"devbuddy config set host http://127.0.0.1:11434". Otherwise, start it with "ollama serve" ` +
+            `and try again.`
+          : `Could not reach the "${provider.name}" provider. Check your provider config ` +
+            `(devbuddy provider list) and network connection.`
       )
     );
     process.exitCode = 1;

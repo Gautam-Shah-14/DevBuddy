@@ -32,7 +32,13 @@ export const SECRET_KEYS: (keyof DevBuddyConfig)[] = ["openaiApiKey", "anthropic
 
 const DEFAULT_CONFIG: DevBuddyConfig = {
   provider: "ollama",
-  host: "http://localhost:11434",
+  // A literal IPv4 address, not "localhost": Node's fetch (undici) can resolve
+  // "localhost" to the IPv6 ::1 first depending on the OS/Node version, and
+  // Ollama by default binds only to the IPv4 127.0.0.1 - "localhost" then
+  // fails to connect even though curl (which usually prefers IPv4 for
+  // "localhost") and a browser reach it fine, making Ollama look unreachable
+  // when it's actually running and working.
+  host: "http://127.0.0.1:11434",
   model: "llama3.1",
   systemPrompt:
     "You are DevBuddy, a concise, practical developer assistant running fully on the user's local machine. Prefer short, actionable answers with code when useful.",
