@@ -5,6 +5,7 @@ import { listFilesTool, searchFilesTool } from "./searchTools.js";
 import { proposePlanTool } from "./planTools.js";
 import { useSkillTool } from "./skillTools.js";
 import { webSearchTool } from "./webTools.js";
+import { rememberTool } from "./memoryTools.js";
 import type { ToolDefinition } from "./types.js";
 
 export { toOllamaToolSpec } from "./types.js";
@@ -27,6 +28,7 @@ export const builtinTools: ToolDefinition[] = [
   webSearchTool,
   proposePlanTool,
   useSkillTool,
+  rememberTool,
 ];
 
 export function getTool(name: string): ToolDefinition | undefined {

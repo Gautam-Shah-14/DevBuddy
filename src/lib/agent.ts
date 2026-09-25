@@ -36,7 +36,12 @@ call a tool by responding with ONLY a single fenced block, nothing else:
 Wait for the tool result before continuing. Never fabricate tool results yourself.
 `;
 
-export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[], systemPrompt?: string): string {
+export function buildSystemPrompt(
+  tools: ToolDefinition[],
+  skills: Skill[],
+  systemPrompt?: string,
+  projectNotes?: string
+): string {
   const effectiveSystemPrompt = systemPrompt ?? getConfig().systemPrompt;
   const toolList = tools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
   const skillList =
@@ -44,12 +49,17 @@ export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[], syst
       ? `\nAvailable skills (call use_skill with the exact name to load one before following it):\n` +
         skills.map((s) => `- ${s.name}: ${s.description}`).join("\n")
       : "";
+  const notesBlock = projectNotes
+    ? `\nNotes you've already saved about this project, from this conversation or an earlier session ` +
+      `(use them - don't re-discover, re-ask, or redo something already recorded here):\n${projectNotes}\n`
+    : "";
   return [
     effectiveSystemPrompt,
     "",
     "You have access to the following tools:",
     toolList,
     skillList,
+    notesBlock,
     "",
     "Before reading or editing a file you haven't already seen in this conversation, locate it first: " +
       "use search_files (a regex content search, like grep -rn) to find where something is defined or used, " +
@@ -65,6 +75,10 @@ export function buildSystemPrompt(tools: ToolDefinition[], skills: Skill[], syst
     "If a task needs information you don't already know for certain - a library's current API, a version " +
       "number, an error message you don't recognize, a fact outside this project - use web_search rather than " +
       "guessing or answering from possibly outdated training data.",
+    "",
+    "Call remember right after you learn something worth not rediscovering later - e.g. this project has no " +
+      "git repo, the build/test command, a decision you made, or a file you already created and what's in it. " +
+      "Check the notes above first so you don't ask the user or redo work that's already recorded there.",
     REACT_FALLBACK_INSTRUCTIONS,
     "",
     "For any large or multi-step task (new feature, refactor, migration), call propose_plan " +

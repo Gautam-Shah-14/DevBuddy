@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative, basename } from "node:path";
+import { join, relative, basename, sep } from "node:path";
 import type { ToolDefinition } from "./types.js";
 
 const execFileAsync = promisify(execFile);
@@ -111,6 +111,21 @@ export const searchFilesTool: ToolDefinition = {
   },
 };
 
+/**
+ * Pure-Node fallback used when `git ls-files` fails - most commonly because
+ * the directory simply isn't a git repository (a downloaded/extracted
+ * project, not a clone), which git reports as a hard "fatal:" error rather
+ * than an empty result. Reuses the same directory walk and ignore-list as
+ * search_files' own fallback, so listing files works regardless of whether
+ * the project happens to be under git.
+ */
+function listFilesWithNodeFallback(targetDir: string): string {
+  const files: string[] = [];
+  walk(targetDir, files);
+  const relPaths = files.map((f) => relative(targetDir, f).split(sep).join("/")).sort();
+  return relPaths.join("\n").trim() || "(no files)";
+}
+
 export const listFilesTool: ToolDefinition = {
   name: "list_files",
   description: "List files in the project, optionally under a subdirectory, respecting .gitignore.",
@@ -126,8 +141,15 @@ export const listFilesTool: ToolDefinition = {
         maxBuffer: 5 * 1024 * 1024,
       });
       return stdout.trim() || "(no files)";
-    } catch (err) {
-      return `list failed: ${(err as Error).message}`;
+    } catch {
+      // Not a git repository (or git itself isn't available) - fall back
+      // rather than surfacing git's scary "fatal: not a git repository" to
+      // the model, which otherwise gives up on exploring the project at all.
+      try {
+        return listFilesWithNodeFallback(join(ctx.projectRoot, target));
+      } catch (err) {
+        return `list failed: ${(err as Error).message}`;
+      }
     }
   },
 };

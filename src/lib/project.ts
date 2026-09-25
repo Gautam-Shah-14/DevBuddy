@@ -26,6 +26,10 @@ export interface ProjectPaths {
   dbFile: string;
   skillsDir: string;
   plansDir: string;
+  /** Durable notes the agent writes itself (via the "remember" tool) across turns and
+   *  sessions - facts already discovered, decisions already made - loaded into the
+   *  system prompt every turn so the same ground doesn't get re-covered every time. */
+  notesFile: string;
 }
 
 export function projectPaths(absPath: string): ProjectPaths {
@@ -37,6 +41,7 @@ export function projectPaths(absPath: string): ProjectPaths {
     dbFile: join(root, "memory.db"),
     skillsDir: join(root, "skills"),
     plansDir: join(root, "plans"),
+    notesFile: join(root, "memory.md"),
   };
 }
 
@@ -83,6 +88,7 @@ export function listAllProjects(): { meta: ProjectMeta; paths: ProjectPaths }[] 
           dbFile: join(projectsDir, id, "memory.db"),
           skillsDir: join(projectsDir, id, "skills"),
           plansDir: join(projectsDir, id, "plans"),
+          notesFile: join(projectsDir, id, "memory.md"),
         },
       });
     } catch {
