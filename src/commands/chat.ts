@@ -15,6 +15,7 @@ import { printBanner } from "../lib/banner.js";
 import { GuardrailsEngine } from "../lib/guardrails/engine.js";
 import { getPlan } from "../lib/license.js";
 import { compactMessages, resolveCompactThreshold, shouldCompact } from "../lib/compact.js";
+import { readProjectNotes } from "../lib/notes.js";
 import type { ChatMessage, ChatProvider } from "../providers/index.js";
 
 /** Non-system messages older than this are always kept out of auto/manual
@@ -181,7 +182,11 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
   const mcpTools = await mcpManager.connectAll(projectRoot);
   const tools = [...builtinTools, ...mcpTools];
 
-  const systemMessage: ChatMessage = { role: "system", content: buildSystemPrompt(tools, skills, config.systemPrompt) };
+  const projectNotes = readProjectNotes(paths.notesFile);
+  const systemMessage: ChatMessage = {
+    role: "system",
+    content: buildSystemPrompt(tools, skills, config.systemPrompt, projectNotes),
+  };
   let sessionId: number;
   let messages: ChatMessage[];
   if (resumeSessionId !== null && priorMessages.length > 0) {
@@ -225,6 +230,14 @@ export async function chatCommand(options: ChatOptions): Promise<void> {
    * delete the previous attempt from history, it just asks again).
    */
   async function runTurn(input: string): Promise<void> {
+    // Refresh the system message with any notes saved (via the "remember" tool)
+    // since it was last built, including earlier in this very session - a note
+    // saved last turn should already be visible on this one, not just next session.
+    messages[0] = {
+      role: "system",
+      content: buildSystemPrompt(tools, skills, config.systemPrompt, readProjectNotes(paths.notesFile)),
+    };
+
     const userMessage: ChatMessage = { role: "user", content: input };
     messages.push(userMessage);
     memory.addMessage(sessionId, userMessage);
