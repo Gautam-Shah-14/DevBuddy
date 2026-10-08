@@ -702,20 +702,20 @@ has_terminal() { (: </dev/tty) 2>/dev/null; }
 stage_setup() {
     if [ "$NON_INTERACTIVE" = true ]; then return 0; fi
     if ! has_terminal; then
-        log "setup skipped (no terminal); run 'hermes setup' after install"
+        log "setup skipped (no terminal); run 'devbuddy setup' after install"
         return 0
     fi
-    "$INSTALL_DIR/.hermes/bin/hermes" setup </dev/tty || fail "setup failed"
+    "$INSTALL_DIR/.devbuddy/bin/devbuddy" setup </dev/tty || fail "setup failed"
 }
 
 stage_gateway() {
     if [ "$NON_INTERACTIVE" = true ]; then return 0; fi
     if ! has_terminal; then
-        log "gateway setup skipped (no terminal); run 'hermes gateway install' after install"
+        log "gateway setup skipped (no terminal); run 'devbuddy gateway install' after install"
         return 0
     fi
     # Setup installs the service when it handles the gateway; ask only if it did not.
-    "$INSTALL_DIR/.hermes/bin/hermes" gateway install --if-missing </dev/tty || fail "gateway installation failed"
+    "$INSTALL_DIR/.devbuddy/bin/devbuddy" gateway install --if-missing </dev/tty || fail "gateway installation failed"
 }
 
 stage_complete() {
