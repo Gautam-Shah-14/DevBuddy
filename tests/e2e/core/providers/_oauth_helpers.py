@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 from tests.fakes.providers.anthropic_messages import ApiError, AnthropicMessagesServer, Reply, Response, Text, ToolUse
 
@@ -84,7 +84,7 @@ def make_home(root: Path) -> FakeHome:
 
 
 def hermes_argv(*args: str) -> list[str]:
-    return [sys.executable, "-m", "hermes_cli.main", *args]
+    return [sys.executable, "-m", "devbuddy_cli.main", *args]
 
 
 def run_hermes(fh: FakeHome, args: list[str], *, extra_env: dict[str, str] | None = None,

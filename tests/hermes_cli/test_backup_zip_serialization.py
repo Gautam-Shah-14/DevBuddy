@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import backup
+from devbuddy_cli import backup
 
 
 @pytest.mark.parametrize("automatic", [False, True])

@@ -1,4 +1,4 @@
-"""Behavior tests for hermes_cli.inventory.
+"""Behavior tests for devbuddy_cli.inventory.
 
 Locks the invariants the three migrated consumers (web_server.py
 /api/model/options, tui_gateway model.options, tui_gateway model.save_key)
@@ -22,7 +22,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 
-from hermes_cli.inventory import (
+from devbuddy_cli.inventory import (
     ConfigContext,
     build_models_payload,
     load_picker_context,
@@ -60,7 +60,7 @@ def test_load_picker_context_coerces_numeric_yaml_provider():
             }
         },
     )
-    with patch("hermes_cli.config.load_config", return_value=cfg):
+    with patch("devbuddy_cli.config.load_config", return_value=cfg):
         ctx = load_picker_context()
     assert ctx.current_provider == "2070"
     assert isinstance(ctx.current_provider, str)
@@ -93,7 +93,7 @@ def _empty_ctx(provider="orig", model="orig-model", base_url="orig-url"):
 def _list_auth_returning(rows: list[dict]):
     """Patch list_authenticated_providers to return a fixed row list."""
     return patch(
-        "hermes_cli.model_switch.list_authenticated_providers",
+        "devbuddy_cli.model_switch.list_authenticated_providers",
         return_value=rows,
     )
 
@@ -132,7 +132,7 @@ def test_include_unconfigured_appends_canonical_skeletons():
         payload = build_models_payload(ctx, include_unconfigured=True)
     # All canonical providers other than openrouter should appear as
     # skeleton rows.
-    from hermes_cli.models import CANONICAL_PROVIDERS
+    from devbuddy_cli.models import CANONICAL_PROVIDERS
 
     seen_slugs = {r["slug"] for r in payload["providers"]}
     for entry in CANONICAL_PROVIDERS:
@@ -168,9 +168,9 @@ def test_explicit_only_filters_ambient_credentials_but_keeps_current_and_custom_
     ctx = _empty_ctx(provider="openai-codex", model="gpt-5.4")
     with (
         _list_auth_returning(rows),
-        patch("hermes_cli.config.read_raw_config", return_value={}),
+        patch("devbuddy_cli.config.read_raw_config", return_value={}),
         patch(
-            "hermes_cli.auth.is_provider_explicitly_configured",
+            "devbuddy_cli.auth.is_provider_explicitly_configured",
             side_effect=lambda slug: slug == "gemini",
         ),
     ):
@@ -203,13 +203,13 @@ def test_explicit_only_keeps_anthropic_row_with_oauth_credentials():
     ctx = _empty_ctx(provider="opencode-go", model="glm-5.3")
     with (
         _list_auth_returning(rows),
-        patch("hermes_cli.config.read_raw_config", return_value={}),
+        patch("devbuddy_cli.config.read_raw_config", return_value={}),
         patch(
-            "hermes_cli.auth.is_provider_explicitly_configured",
+            "devbuddy_cli.auth.is_provider_explicitly_configured",
             return_value=False,
         ),
         patch(
-            "hermes_cli.inventory._anthropic_oauth_credentials_present",
+            "devbuddy_cli.inventory._anthropic_oauth_credentials_present",
             return_value=True,
         ),
     ):
@@ -234,13 +234,13 @@ def test_explicit_only_drops_anthropic_row_without_oauth_credentials():
     ctx = _empty_ctx(provider="opencode-go", model="glm-5.3")
     with (
         _list_auth_returning(rows),
-        patch("hermes_cli.config.read_raw_config", return_value={}),
+        patch("devbuddy_cli.config.read_raw_config", return_value={}),
         patch(
-            "hermes_cli.auth.is_provider_explicitly_configured",
+            "devbuddy_cli.auth.is_provider_explicitly_configured",
             return_value=False,
         ),
         patch(
-            "hermes_cli.inventory._anthropic_oauth_credentials_present",
+            "devbuddy_cli.inventory._anthropic_oauth_credentials_present",
             return_value=False,
         ),
     ):
@@ -256,7 +256,7 @@ def test_anthropic_oauth_presence_accepts_pool_only_oauth_entry():
     .anthropic_oauth.json or ~/.claude/.credentials.json. The presence
     check must accept them or the row is built and then silently dropped.
     """
-    from hermes_cli.inventory import _anthropic_oauth_credentials_present
+    from devbuddy_cli.inventory import _anthropic_oauth_credentials_present
 
     with (
         patch(
@@ -268,7 +268,7 @@ def test_anthropic_oauth_presence_accepts_pool_only_oauth_entry():
             return_value=None,
         ),
         patch(
-            "hermes_cli.auth.read_credential_pool",
+            "devbuddy_cli.auth.read_credential_pool",
             return_value=[
                 {"auth_type": "oauth", "access_token": "sk-ant-oat01-pool"}
             ],
@@ -288,7 +288,7 @@ def test_anthropic_oauth_presence_accepts_pool_only_oauth_entry():
             return_value=None,
         ),
         patch(
-            "hermes_cli.auth.read_credential_pool",
+            "devbuddy_cli.auth.read_credential_pool",
             return_value=[
                 {"auth_type": "api_key", "access_token": "sk-ant-api03-key"}
             ],
@@ -339,7 +339,7 @@ def test_canonical_order_uses_slug_not_is_user_defined_flag():
     canonical providers configured via the keyed schema get demoted to
     the tail.
     """
-    from hermes_cli.models import CANONICAL_PROVIDERS
+    from devbuddy_cli.models import CANONICAL_PROVIDERS
 
     canonical_slug = CANONICAL_PROVIDERS[2].slug  # any canonical
     rows = [
@@ -380,7 +380,7 @@ def test_end_to_end_with_real_context_no_credentials_leak(monkeypatch):
     monkeypatch.setenv("OPENROUTER_API_KEY", canary)
     monkeypatch.setenv("ANTHROPIC_API_KEY", canary)
     cfg = _cfg(model={"provider": "openrouter"})
-    with patch("hermes_cli.config.load_config", return_value=cfg):
+    with patch("devbuddy_cli.config.load_config", return_value=cfg):
         ctx = load_picker_context()
     payload = build_models_payload(
         ctx, include_unconfigured=True, picker_hints=True,
@@ -583,9 +583,9 @@ def test_build_models_payload_no_max_models_returns_full_list():
 def test_list_authenticated_providers_refresh_busts_cache():
     """refresh=True clears the provider-model disk cache exactly once;
     refresh=False leaves it untouched (so normal picker opens stay snappy)."""
-    from hermes_cli import model_switch
+    from devbuddy_cli import model_switch
 
-    with patch("hermes_cli.models.clear_provider_models_cache") as clear:
+    with patch("devbuddy_cli.models.clear_provider_models_cache") as clear:
         model_switch.list_authenticated_providers(refresh=False)
         assert clear.call_count == 0
         model_switch.list_authenticated_providers(refresh=True)
@@ -601,7 +601,7 @@ def test_picker_metadata_uses_one_config_read_for_real_models_dev_lookups(tmp_pa
     path makes the larger payload re-open config.yaml once per lookup.
     """
     from agent import models_dev
-    from hermes_cli import config as config_module
+    from devbuddy_cli import config as config_module
 
     home = tmp_path / "hermes"
     home.mkdir()
@@ -677,10 +677,10 @@ def test_picker_metadata_uses_one_config_read_for_real_models_dev_lookups(tmp_pa
 
         with (
             _list_auth_returning(_rows(model_ids)),
-            patch("hermes_cli.inventory._local_runtime_row", return_value=None),
-            patch("hermes_cli.inventory._moa_provider_row", return_value=None),
-            patch("hermes_cli.models.model_supports_fast_mode", return_value=False),
-            patch("hermes_cli.inventory._reasoning_catalog_reader", return_value=None),
+            patch("devbuddy_cli.inventory._local_runtime_row", return_value=None),
+            patch("devbuddy_cli.inventory._moa_provider_row", return_value=None),
+            patch("devbuddy_cli.models.model_supports_fast_mode", return_value=False),
+            patch("devbuddy_cli.inventory._reasoning_catalog_reader", return_value=None),
             patch.object(models_dev, "_cfg_get", side_effect=counted_cfg_get),
             patch.object(
                 config_module, "load_config_readonly",

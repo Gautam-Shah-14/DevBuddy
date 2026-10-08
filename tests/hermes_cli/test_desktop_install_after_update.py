@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import main_desktop
+from devbuddy_cli import main_desktop
 
 
 def _bundle(root: Path, asar: bytes) -> Path:

@@ -3,8 +3,8 @@
 
 Refs #90471 / #89614.  The shared Windows ``taskkill`` boundaries:
 
-- ``hermes_cli/_subprocess_compat.pid_is_hermes`` / ``kill_process_tree``
-- ``hermes_cli/dashboard_procs._kill_stale_dashboard_processes`` (win32)
+- ``devbuddy_cli/_subprocess_compat.pid_is_hermes`` / ``kill_process_tree``
+- ``devbuddy_cli/dashboard_procs._kill_stale_dashboard_processes`` (win32)
 
 Acceptance from #90471:
 1. missing / unreadable / non-matching identity fails closed -> no taskkill
@@ -16,8 +16,8 @@ from unittest import mock
 
 import pytest
 
-from hermes_cli import _subprocess_compat
-from hermes_cli import dashboard_procs
+from devbuddy_cli import _subprocess_compat
+from devbuddy_cli import dashboard_procs
 
 
 def _probe_stdout(value: str) -> mock.Mock:
@@ -47,7 +47,7 @@ class TestPidIsHermes:
             r"c:\users\shermesa\app.exe"
         ) is False
         assert _subprocess_compat._text_names_hermes(
-            r"C:\Users\x\.hermes-runtime\python.exe -m hermes_cli.main"
+            r"C:\Users\x\.hermes-runtime\python.exe -m devbuddy_cli.main"
         ) is True
         assert _subprocess_compat._text_names_hermes(
             "/opt/hermes-agent/venv/bin/python"
@@ -136,7 +136,7 @@ class TestKillStaleDashboardProcesses:
     """dashboard_procs win32 kill branch guard behaviour."""
 
     def _patch_find(self, pids=(12345,)):
-        from hermes_cli import main_dashboard
+        from devbuddy_cli import main_dashboard
 
         return mock.patch.object(main_dashboard, "_find_stale_dashboard_pids", return_value=list(pids))
 
@@ -144,7 +144,7 @@ class TestKillStaleDashboardProcesses:
         with self._patch_find(), mock.patch(
             "gateway.status.get_process_start_time", return_value=123
         ), mock.patch(
-            "hermes_cli._subprocess_compat.pid_is_hermes", return_value=False
+            "devbuddy_cli._subprocess_compat.pid_is_hermes", return_value=False
         ), mock.patch.object(dashboard_procs.subprocess, "run") as run:
             result = dashboard_procs._kill_stale_dashboard_processes()
         assert result["killed"] == []
@@ -157,7 +157,7 @@ class TestKillStaleDashboardProcesses:
         with self._patch_find(), mock.patch(
             "gateway.status.get_process_start_time", return_value=123
         ), mock.patch(
-            "hermes_cli._subprocess_compat.pid_is_hermes", return_value=True
+            "devbuddy_cli._subprocess_compat.pid_is_hermes", return_value=True
         ), mock.patch.object(
             dashboard_procs.subprocess, "run", return_value=mock.Mock(
                 returncode=0, stderr="", stdout=""
@@ -207,7 +207,7 @@ class TestHermesHomeForPid:
         platform default home, and a default-home ``--stop`` must still find it (#113978)."""
         home = str(tmp_path / "alice")
         monkeypatch.setattr(dashboard_procs, "_pid_environ", lambda pid: {"HOME": home})
-        from hermes_cli import main_dashboard
+        from devbuddy_cli import main_dashboard
         monkeypatch.setattr(main_dashboard, "_dashboard_cmdline_for_pid",
                             lambda pid: ["hermes", "--profile", "work", "serve"] if pid == 2 else ["hermes", "serve"])
 
@@ -226,7 +226,7 @@ class TestHermesHomeForPid:
         monkeypatch.setattr(dashboard_procs, "_pid_environ", lambda pid: {})
         monkeypatch.setattr(dashboard_procs, "_pid_passwd_home", lambda pid: passwd_home)
         monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path / "inspecting-user"))
-        from hermes_cli import main_dashboard
+        from devbuddy_cli import main_dashboard
         monkeypatch.setattr(main_dashboard, "_dashboard_cmdline_for_pid", lambda pid: ["hermes", "serve"])
 
     def test_scrubbed_unit_env_resolves_to_the_owners_passwd_home(self, monkeypatch, tmp_path):
@@ -248,7 +248,7 @@ class TestHermesHomeForPid:
         root.mkdir()
         monkeypatch.setattr(dashboard_procs, "_pid_environ",
                             lambda pid: {"HOME": str(tmp_path), "HERMES_HOME": str(root)})
-        from hermes_cli import main_dashboard
+        from devbuddy_cli import main_dashboard
         monkeypatch.setattr(main_dashboard, "_dashboard_cmdline_for_pid",
                             lambda pid: ["hermes", "-p", "work", "serve"] if pid == 2 else ["hermes", "serve"])
 

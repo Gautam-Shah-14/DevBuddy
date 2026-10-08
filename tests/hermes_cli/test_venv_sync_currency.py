@@ -5,9 +5,9 @@ import os
 from pathlib import Path
 import subprocess
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-from hermes_cli import venv_sync
+from devbuddy_cli import venv_sync
 from pm.environments import install_state_dir, selected_venv
 from pm import paths
 from pm.lock import Lockfile

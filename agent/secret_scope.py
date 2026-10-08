@@ -34,14 +34,14 @@ def set_multiplex_active(active: bool) -> None:
     """Mark whether the process is a profile multiplexer (get_secret fails closed).
 
     Activation also pins the launch home for routed-profile decisions
-    (``hermes_constants.pin_process_hermes_home``) unless an embedding host already pinned one:
+    (``devbuddy_constants.pin_process_hermes_home``) unless an embedding host already pinned one:
     from here on "is this task routed" compares the override against the home the process was
     launched with, not against whatever a host later mirrors into ``os.environ["HERMES_HOME"]``.
     Deactivation releases only the pin activation itself created — a transient toggle
     (``gateway_migrate._multiplex_read_mode``, a cron worker restoring the caller's mode) must not
     drop the host's explicit pin (#119242)."""
     global _MULTIPLEX_ACTIVE, _AUTO_PINNED_HOME
-    from hermes_constants import (
+    from devbuddy_constants import (
         get_routing_process_hermes_home,
         pin_process_hermes_home,
         process_hermes_home_is_pinned,
@@ -77,11 +77,11 @@ def serves_routed_profile() -> bool:
     per-profile cron ticker) or a secret scope stamped with a foreign home is bound. The MCP
     registry scope and the check_fn cache key both follow this predicate so a served profile's
     view never aliases the launch profile's (#111151). A host that mirrors the turn's profile into
-    ``HERMES_HOME`` pins its own home with ``hermes_constants.pin_process_hermes_home`` so the
+    ``HERMES_HOME`` pins its own home with ``devbuddy_constants.pin_process_hermes_home`` so the
     mirror cannot flip this predicate."""
     if is_multiplex_active():
         return True
-    from hermes_constants import get_hermes_home_override, get_routing_process_hermes_home, hermes_home_key
+    from devbuddy_constants import get_hermes_home_override, get_routing_process_hermes_home, hermes_home_key
     own = hermes_home_key(get_routing_process_hermes_home())
     bound = _SECRET_SCOPE.get()
     if bound is not None and bound.profile_home and hermes_home_key(bound.profile_home) != own:
@@ -286,7 +286,7 @@ def _parse_env_value(raw_value: str) -> str:
 # revalidation on NFS, a vanished/unreadable file fails the open and is never cached (a transient
 # EACCES must not become "this profile has no secrets"), and the descriptor pins one inode so a
 # symlink repointed mid-read can't file one file's contents under another's identity.
-# ``invalidate_env_file_cache()`` is the explicit knob; ``hermes_cli.config.invalidate_env_cache()``
+# ``invalidate_env_file_cache()`` is the explicit knob; ``devbuddy_cli.config.invalidate_env_cache()``
 # calls it for Hermes's own .env writers.
 _ENV_FILE_CACHE: "OrderedDict[str, Tuple[tuple, Dict[str, str]]]" = OrderedDict()
 _ENV_FILE_CACHE_LOCK = threading.Lock()
@@ -330,7 +330,7 @@ def _parse_env_text(text: str) -> Dict[str, str]:
 
 
 def load_env_file(env_path: Path) -> Dict[str, str]:
-    """THE ``.env`` tokenizer: every reader (profile scope, ``hermes_cli.config.load_env``, the dashboard
+    """THE ``.env`` tokenizer: every reader (profile scope, ``devbuddy_cli.config.load_env``, the dashboard
     scrub, skill secret capture, managed .env, setup prompts) parses through here so no two boundaries
     disagree on which keys/values a file defines. Dict only — never touches ``os.environ``. ``export``
     prefix, ``#`` comments, quote escapes reversed; a BOM is stripped so it doesn't prefix the first key.
@@ -375,7 +375,7 @@ def build_profile_secret_scope(hermes_home: Path) -> Dict[str, str]:
     from ``os.environ`` — so the scope holds only profile secrets."""
     secrets = load_env_file(Path(hermes_home) / ".env")
     try:
-        from hermes_cli.env_loader import get_secret_source_values
+        from devbuddy_cli.env_loader import get_secret_source_values
         external_secrets = get_secret_source_values(Path(hermes_home))
     except Exception:
         external_secrets = {}
@@ -394,7 +394,7 @@ def _is_process_home(hermes_home: Path) -> bool:
     """Is *hermes_home* the profile this process serves as its own? Same launch-home identity as
     ``serves_routed_profile()``: a host that mirrors a served profile into ``HERMES_HOME`` would
     otherwise seed the launch profile's bridged allow-all grant into that profile's scope."""
-    from hermes_constants import get_routing_process_hermes_home
+    from devbuddy_constants import get_routing_process_hermes_home
     try:
         return Path(hermes_home).resolve() == get_routing_process_hermes_home().resolve()
     except OSError:

@@ -4,7 +4,7 @@ import asyncio
 
 def test_monitor_shortcuts_preserve_draft_and_respect_modal_prompts(monkeypatch):
     from cli import HermesCLI
-    from hermes_cli import cli_subagent_monitor as monitor
+    from devbuddy_cli import cli_subagent_monitor as monitor
     from prompt_toolkit.application import Application
     from prompt_toolkit.document import Document
     from prompt_toolkit.input import create_pipe_input

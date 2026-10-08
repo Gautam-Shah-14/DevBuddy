@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-import hermes_cli.local_runtime.hardware as hw
+import devbuddy_cli.local_runtime.hardware as hw
 
 GIB = 1 << 30
 

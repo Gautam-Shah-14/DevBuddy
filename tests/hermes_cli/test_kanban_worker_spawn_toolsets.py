@@ -59,8 +59,8 @@ agent:
     root.joinpath("config.yaml").write_text("toolsets:\n  - kanban\n", encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(root))
 
-    from hermes_cli import kanban_db as kb
-    from hermes_cli import kanban_db_dispatch as kbd
+    from devbuddy_cli import kanban_db as kb
+    from devbuddy_cli import kanban_db_dispatch as kbd
 
     monkeypatch.setattr(kbd, "_resolve_hermes_argv", lambda: ["hermes"])
 
@@ -102,9 +102,9 @@ def test_default_spawn_model_override_survives_real_cli_parse(monkeypatch, tmp_p
     root.joinpath("config.yaml").write_text("{}\n", encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(root))
 
-    from hermes_cli import kanban_db as kb
-    from hermes_cli import kanban_db_dispatch as kbd
-    from hermes_cli._parser import build_top_level_parser
+    from devbuddy_cli import kanban_db as kb
+    from devbuddy_cli import kanban_db_dispatch as kbd
+    from devbuddy_cli._parser import build_top_level_parser
 
     monkeypatch.setattr(kbd, "_resolve_hermes_argv", lambda: ["hermes"])
     captured = {}
@@ -152,8 +152,8 @@ def test_default_spawn_resolves_env_passthrough_under_multiplex(monkeypatch, tmp
     monkeypatch.setenv("MY_PASSTHROUGH_VAR", "dispatcher-value")
 
     from agent.secret_scope import set_multiplex_active
-    from hermes_cli import kanban_db as kb
-    from hermes_cli import kanban_db_dispatch as kbd
+    from devbuddy_cli import kanban_db as kb
+    from devbuddy_cli import kanban_db_dispatch as kbd
 
     monkeypatch.setattr(kbd, "_resolve_hermes_argv", lambda: ["hermes"])
 
@@ -200,8 +200,8 @@ toolsets:
     )
     monkeypatch.setenv("HERMES_HOME", str(root))
 
-    from hermes_cli import kanban_db as kb
-    from hermes_cli import kanban_db_dispatch as kbd
+    from devbuddy_cli import kanban_db as kb
+    from devbuddy_cli import kanban_db_dispatch as kbd
 
     resolved = kbd._resolve_worker_cli_toolsets(str(profile))
 

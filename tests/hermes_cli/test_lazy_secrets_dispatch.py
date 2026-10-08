@@ -49,7 +49,7 @@ def _run_hermes(args: list[str], timeout: int = 30) -> subprocess.CompletedProce
         }
     )
     return subprocess.run(
-        [sys.executable, "-m", "hermes_cli.main"] + args,
+        [sys.executable, "-m", "devbuddy_cli.main"] + args,
         capture_output=True,
         text=True,
         cwd=str(repo_root),
@@ -163,14 +163,14 @@ def capture_update_check(*args, **kwargs):
 
 sys.argv = ['hermes', 'update', '--check']
 
-import hermes_cli.main as m
+import devbuddy_cli.main as m
 
 # Patch the update handler so main() exercises its parser + dispatch
 # without doing network I/O.  cmd_update (in main.py) calls
 # _self()._cmd_update_check(branch=..., branch_explicit=...) where _self()
-# resolves the hermes_cli.main module's lazily re-exported attribute —
+# resolves the devbuddy_cli.main module's lazily re-exported attribute —
 # so the patch must land on update_cmd._cmd_update_check.
-with patch('hermes_cli.update_cmd._cmd_update_check', capture_update_check):
+with patch('devbuddy_cli.update_cmd._cmd_update_check', capture_update_check):
     try:
         m.main()
     except SystemExit as e:

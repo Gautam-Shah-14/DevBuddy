@@ -13,7 +13,7 @@ import time
 from unittest.mock import patch
 
 # ---------------------------------------------------------------------------
-# Thread-safe cache entry update (hermes_cli/models.py)
+# Thread-safe cache entry update (devbuddy_cli/models.py)
 # ---------------------------------------------------------------------------
 
 class TestUpdateProviderCacheEntry:
@@ -21,7 +21,7 @@ class TestUpdateProviderCacheEntry:
 
     def test_writes_new_entry(self, tmp_path, monkeypatch):
         """A new entry is persisted to the cache file."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         cache_path = tmp_path / "provider_models_cache.json"
         monkeypatch.setattr(mod, "_provider_models_cache_path", lambda: cache_path)
@@ -36,7 +36,7 @@ class TestUpdateProviderCacheEntry:
 
     def test_does_not_clobber_other_entries(self, tmp_path, monkeypatch):
         """Concurrent writes to different providers don't lose entries."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         cache_path = tmp_path / "provider_models_cache.json"
         monkeypatch.setattr(mod, "_provider_models_cache_path", lambda: cache_path)
@@ -57,7 +57,7 @@ class TestUpdateProviderCacheEntry:
 
     def test_skips_empty_models(self, tmp_path, monkeypatch):
         """Empty model lists are not written to cache."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         cache_path = tmp_path / "provider_models_cache.json"
         monkeypatch.setattr(mod, "_provider_models_cache_path", lambda: cache_path)
@@ -68,7 +68,7 @@ class TestUpdateProviderCacheEntry:
 
     def test_concurrent_writes_no_lost_entries(self, tmp_path, monkeypatch):
         """Multiple threads writing different providers concurrently — all land."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
         import concurrent.futures
 
         cache_path = tmp_path / "provider_models_cache.json"
@@ -89,7 +89,7 @@ class TestUpdateProviderCacheEntry:
             assert cache[p]["models"] == [f"model_{p}"]
 
 # ---------------------------------------------------------------------------
-# Parallel prefetch (hermes_cli/model_switch.py)
+# Parallel prefetch (devbuddy_cli/model_switch.py)
 # ---------------------------------------------------------------------------
 
 class TestPrefetchProviderModelsParallel:
@@ -97,23 +97,23 @@ class TestPrefetchProviderModelsParallel:
 
     def test_skips_all_fresh_entries(self, monkeypatch):
         """When all cache entries are fresh, no fetch is made."""
-        from hermes_cli.model_switch_providers import _prefetch_provider_models_parallel
+        from devbuddy_cli.model_switch_providers import _prefetch_provider_models_parallel
 
         fresh_cache = {
             "openrouter": {"fp": "fp", "at": time.time(), "models": ["m1"]},
             "anthropic": {"fp": "fp", "at": time.time(), "models": ["m2"]},
         }
 
-        with patch("hermes_cli.models._load_provider_models_cache", return_value=fresh_cache), \
-             patch("hermes_cli.models._credential_fingerprint", return_value="fp"), \
-             patch("hermes_cli.models.cached_provider_model_ids") as fetch:
+        with patch("devbuddy_cli.models._load_provider_models_cache", return_value=fresh_cache), \
+             patch("devbuddy_cli.models._credential_fingerprint", return_value="fp"), \
+             patch("devbuddy_cli.models.cached_provider_model_ids") as fetch:
             _prefetch_provider_models_parallel(["openrouter", "anthropic"])
 
         fetch.assert_not_called()
 
     def test_fetches_only_stale_entries(self, monkeypatch):
         """Only providers with stale/missing cache entries are fetched."""
-        from hermes_cli.model_switch_providers import _prefetch_provider_models_parallel
+        from devbuddy_cli.model_switch_providers import _prefetch_provider_models_parallel
 
         cache = {
             "fresh_prov": {"fp": "fp_f", "at": time.time(), "models": ["m1"]},
@@ -125,10 +125,10 @@ class TestPrefetchProviderModelsParallel:
             fetch_calls.append(slug)
             return [f"model_{slug}"]
 
-        with patch("hermes_cli.models._load_provider_models_cache", return_value=cache), \
-             patch("hermes_cli.models._credential_fingerprint", return_value="fp_f"), \
-             patch("hermes_cli.models.cached_provider_model_ids", side_effect=mock_fetch), \
-             patch("hermes_cli.models.update_provider_cache_entry"):
+        with patch("devbuddy_cli.models._load_provider_models_cache", return_value=cache), \
+             patch("devbuddy_cli.models._credential_fingerprint", return_value="fp_f"), \
+             patch("devbuddy_cli.models.cached_provider_model_ids", side_effect=mock_fetch), \
+             patch("devbuddy_cli.models.update_provider_cache_entry"):
             _prefetch_provider_models_parallel(["fresh_prov", "stale_prov"])
 
         assert "fresh_prov" not in fetch_calls
@@ -136,7 +136,7 @@ class TestPrefetchProviderModelsParallel:
 
     def test_fetches_in_parallel(self, monkeypatch):
         """Multiple providers are fetched concurrently, not serially."""
-        from hermes_cli.model_switch_providers import _prefetch_provider_models_parallel
+        from devbuddy_cli.model_switch_providers import _prefetch_provider_models_parallel
 
         # Track overlap: if serial, no two fetches should overlap in time.
         active = []
@@ -154,33 +154,33 @@ class TestPrefetchProviderModelsParallel:
 
         slugs = [f"prov_{i}" for i in range(6)]
 
-        with patch("hermes_cli.models._load_provider_models_cache", return_value={}), \
-             patch("hermes_cli.models._credential_fingerprint", return_value="fp"), \
-             patch("hermes_cli.models.cached_provider_model_ids", side_effect=mock_fetch), \
-             patch("hermes_cli.models.update_provider_cache_entry"):
+        with patch("devbuddy_cli.models._load_provider_models_cache", return_value={}), \
+             patch("devbuddy_cli.models._credential_fingerprint", return_value="fp"), \
+             patch("devbuddy_cli.models.cached_provider_model_ids", side_effect=mock_fetch), \
+             patch("devbuddy_cli.models.update_provider_cache_entry"):
             _prefetch_provider_models_parallel(slugs)
 
         assert max_concurrent[0] > 1, "fetches were serial, not parallel"
 
     def test_swallows_exceptions(self):
         """A failing provider fetch doesn't raise — best-effort."""
-        from hermes_cli.model_switch_providers import _prefetch_provider_models_parallel
+        from devbuddy_cli.model_switch_providers import _prefetch_provider_models_parallel
 
         def mock_fetch(slug, force_refresh=False):
             raise ConnectionError("simulated network failure")
 
-        with patch("hermes_cli.models._load_provider_models_cache", return_value={}), \
-             patch("hermes_cli.models._credential_fingerprint", return_value="fp"), \
-             patch("hermes_cli.models.cached_provider_model_ids", side_effect=mock_fetch), \
-             patch("hermes_cli.models.update_provider_cache_entry"):
+        with patch("devbuddy_cli.models._load_provider_models_cache", return_value={}), \
+             patch("devbuddy_cli.models._credential_fingerprint", return_value="fp"), \
+             patch("devbuddy_cli.models.cached_provider_model_ids", side_effect=mock_fetch), \
+             patch("devbuddy_cli.models.update_provider_cache_entry"):
             # Should not raise
             _prefetch_provider_models_parallel(["failing_prov"])
 
     def test_empty_list_is_noop(self):
         """Empty provider list does nothing."""
-        from hermes_cli.model_switch_providers import _prefetch_provider_models_parallel
+        from devbuddy_cli.model_switch_providers import _prefetch_provider_models_parallel
 
-        with patch("hermes_cli.models.cached_provider_model_ids") as fetch:
+        with patch("devbuddy_cli.models.cached_provider_model_ids") as fetch:
             _prefetch_provider_models_parallel([])
         fetch.assert_not_called()
 
@@ -193,15 +193,15 @@ class TestPrefetchProviderModelsParallel:
         is far longer than ``_PROVIDER_MODELS_CACHE_TTL``, so this is the
         state every picker open a TTL after the previous one lands in.
         """
-        import hermes_cli.models as models_mod
-        from hermes_cli.model_switch_providers import _prefetch_provider_models_parallel
+        import devbuddy_cli.models as models_mod
+        from devbuddy_cli.model_switch_providers import _prefetch_provider_models_parallel
 
         expired = time.time() - models_mod._PROVIDER_MODELS_CACHE_TTL - 60
         cache = {"openrouter": {"fp": "fp", "at": expired, "models": ["m1"]}}
 
-        with patch("hermes_cli.models._load_provider_models_cache", return_value=cache), \
-             patch("hermes_cli.models._credential_fingerprint", return_value="fp"), \
-             patch("hermes_cli.models.cached_provider_model_ids") as fetch:
+        with patch("devbuddy_cli.models._load_provider_models_cache", return_value=cache), \
+             patch("devbuddy_cli.models._credential_fingerprint", return_value="fp"), \
+             patch("devbuddy_cli.models.cached_provider_model_ids") as fetch:
             _prefetch_provider_models_parallel(["openrouter"])
 
         fetch.assert_not_called()
@@ -210,7 +210,7 @@ class TestPrefetchProviderModelsParallel:
         """A curated-fallback row is served only for ``_PROVIDER_MODELS_FALLBACK_TTL``
         and never through the stale window, so the serial call blocks on it and the
         parallel prefetch must fetch it."""
-        from hermes_cli.model_switch_providers import _prefetch_provider_models_parallel
+        from devbuddy_cli.model_switch_providers import _prefetch_provider_models_parallel
 
         cache = {"openrouter": {"fp": "fp", "at": time.time() - 7200, "models": ["m1"],
                                 "fallback": True}}
@@ -220,10 +220,10 @@ class TestPrefetchProviderModelsParallel:
             fetched.append(slug)
             return ["m1"]
 
-        with patch("hermes_cli.models._load_provider_models_cache", return_value=cache), \
-             patch("hermes_cli.models._credential_fingerprint", return_value="fp"), \
-             patch("hermes_cli.models.cached_provider_model_ids", side_effect=mock_fetch), \
-             patch("hermes_cli.models.update_provider_cache_entry"):
+        with patch("devbuddy_cli.models._load_provider_models_cache", return_value=cache), \
+             patch("devbuddy_cli.models._credential_fingerprint", return_value="fp"), \
+             patch("devbuddy_cli.models.cached_provider_model_ids", side_effect=mock_fetch), \
+             patch("devbuddy_cli.models.update_provider_cache_entry"):
             _prefetch_provider_models_parallel(["openrouter"])
 
         assert fetched == ["openrouter"]

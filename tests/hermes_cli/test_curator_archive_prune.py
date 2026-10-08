@@ -13,7 +13,7 @@ def _ns(**kwargs):
 
 
 def test_archive_refuses_pinned(monkeypatch, capsys):
-    import hermes_cli.curator as curator_cli
+    import devbuddy_cli.curator as curator_cli
     import tools.skill_usage as skill_usage
 
     monkeypatch.setattr(skill_usage, "get_record", lambda name: {"pinned": True})

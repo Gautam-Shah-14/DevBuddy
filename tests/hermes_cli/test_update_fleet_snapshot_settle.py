@@ -12,9 +12,9 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from hermes_cli import update_cmd
-import hermes_cli.update_cmd_fleet as update_cmd_fleet
-from hermes_constants import get_hermes_home
+from devbuddy_cli import update_cmd
+import devbuddy_cli.update_cmd_fleet as update_cmd_fleet
+from devbuddy_constants import get_hermes_home
 
 
 class _FakeClock:
@@ -39,7 +39,7 @@ def test_snapshot_waits_for_late_current_gateway_state(monkeypatch) -> None:
     monkeypatch.setattr(update_cmd_fleet._time, "monotonic", clock.monotonic)
     monkeypatch.setattr(update_cmd_fleet._time, "sleep", clock.sleep)
     monkeypatch.setattr(
-        "hermes_cli.update_receipt.collect_fleet_versions",
+        "devbuddy_cli.update_receipt.collect_fleet_versions",
         lambda **_kwargs: next(snapshots),
     )
 
@@ -57,7 +57,7 @@ def test_snapshot_stops_waiting_once_the_restarted_unit_is_dead(monkeypatch) -> 
     clock = _FakeClock()
     monkeypatch.setattr(update_cmd_fleet._time, "monotonic", clock.monotonic)
     monkeypatch.setattr(update_cmd_fleet._time, "sleep", clock.sleep)
-    monkeypatch.setattr("hermes_cli.update_receipt.collect_fleet_versions", lambda **_kwargs: [])
+    monkeypatch.setattr("devbuddy_cli.update_receipt.collect_fleet_versions", lambda **_kwargs: [])
     monkeypatch.setattr(
         update_cmd_fleet, "_systemctl",
         lambda cmd, *, timeout: SimpleNamespace(
@@ -74,7 +74,7 @@ def test_snapshot_keeps_waiting_when_the_unit_is_unknown_to_the_asked_scope(monk
     clock = _FakeClock()
     monkeypatch.setattr(update_cmd_fleet._time, "monotonic", clock.monotonic)
     monkeypatch.setattr(update_cmd_fleet._time, "sleep", clock.sleep)
-    monkeypatch.setattr("hermes_cli.update_receipt.collect_fleet_versions", lambda **_kwargs: [])
+    monkeypatch.setattr("devbuddy_cli.update_receipt.collect_fleet_versions", lambda **_kwargs: [])
 
     def systemctl(cmd, *, timeout):
         # Real systemctl shape: the owning (user) scope has the unit loaded and active; the system
@@ -101,7 +101,7 @@ def test_snapshot_waits_for_the_relaunched_pid_to_publish_its_identity(monkeypat
     unknown = {"profile": "default", "pid": 34516, "code_sha": None, "code_version": None, "state": "unknown"}
     current = {**unknown, "code_sha": "new", "code_version": "0.21.3", "state": "current"}
     snapshots = iter([[dict(unknown)]] * 5 + [[current]])
-    monkeypatch.setattr("hermes_cli.update_receipt.collect_fleet_versions", lambda **_kwargs: next(snapshots))
+    monkeypatch.setattr("devbuddy_cli.update_receipt.collect_fleet_versions", lambda **_kwargs: next(snapshots))
     restart = SimpleNamespace(pre_restart_gateway_pids=[32512], restarted_scoped_units=set())
 
     assert update_cmd_fleet._collect_fleet_snapshot(restart, rows_expected=True) == [current]
@@ -109,7 +109,7 @@ def test_snapshot_waits_for_the_relaunched_pid_to_publish_its_identity(monkeypat
 
     # Control: the same unknown row for a pid that was already running pre-update is settled as-is.
     clock.now = 0.0
-    monkeypatch.setattr("hermes_cli.update_receipt.collect_fleet_versions", lambda **_kwargs: [dict(unknown)])
+    monkeypatch.setattr("devbuddy_cli.update_receipt.collect_fleet_versions", lambda **_kwargs: [dict(unknown)])
     survivor = SimpleNamespace(pre_restart_gateway_pids=[34516], restarted_scoped_units=set())
     result = update_cmd_fleet._collect_fleet_snapshot(survivor, rows_expected=True)
     assert clock.now == 2.0 and "identity_pending" not in result[0]
@@ -132,11 +132,11 @@ def test_verifier_clears_marker_after_late_current_gateway_state(monkeypatch) ->
     monkeypatch.setattr(update_cmd_fleet._time, "monotonic", clock.monotonic)
     monkeypatch.setattr(update_cmd_fleet._time, "sleep", clock.sleep)
     monkeypatch.setattr(
-        "hermes_cli.update_receipt.collect_fleet_versions",
+        "devbuddy_cli.update_receipt.collect_fleet_versions",
         lambda **_kwargs: next(snapshots),
     )
     monkeypatch.setattr(
-        "hermes_cli.update_receipt.print_fleet_version_matrix",
+        "devbuddy_cli.update_receipt.print_fleet_version_matrix",
         lambda _fleet: False,
     )
     monkeypatch.setattr(update_cmd_fleet, "_print_legacy_units_warning", lambda: None)

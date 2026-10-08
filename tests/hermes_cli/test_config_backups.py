@@ -1,14 +1,14 @@
 """config.yaml backups: one dir, deduped, bounded — never a pile of siblings in HERMES_HOME."""
 from pathlib import Path
 
-from hermes_cli.config_backups import backup_config, list_config_backups
+from devbuddy_cli.config_backups import backup_config, list_config_backups
 
 
 def test_repeat_backups_dedupe_and_rotate(tmp_path: Path, monkeypatch):
     cfg = tmp_path / "config.yaml"
     cfg.write_text("model: a\n")
     stamps = iter(f"2026010100000{i}" for i in range(10))
-    monkeypatch.setattr("hermes_cli.config_backups.time.strftime", lambda _fmt: next(stamps))
+    monkeypatch.setattr("devbuddy_cli.config_backups.time.strftime", lambda _fmt: next(stamps))
 
     first = backup_config(cfg, "pre-setup", keep=2)
     assert first is not None and first.parent == tmp_path / "backups" / "config"

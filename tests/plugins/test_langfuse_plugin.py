@@ -20,7 +20,7 @@ import pytest
 class TestDiscovery:
     def test_plugin_is_discovered_as_standalone_opt_in(self, tmp_path, monkeypatch):
         """Scanner should find the plugin but NOT load it by default."""
-        from hermes_cli import plugins as plugins_mod
+        from devbuddy_cli import plugins as plugins_mod
 
         # Isolated HERMES_HOME so we don't read the developer's config.yaml.
         home = tmp_path / ".hermes"
@@ -1609,7 +1609,7 @@ class TestAtexitFinalization(TestTurnTraceIsolation):
         credentials at all — it ends the open roots and flushes each settled client, so neither
         profile loses its pending traces."""
         from agent import secret_scope
-        from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+        from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 
         mod = self._fresh_plugin()
         monkeypatch.setattr(secret_scope, "_MULTIPLEX_ACTIVE", True)

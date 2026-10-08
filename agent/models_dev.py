@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from utils import atomic_json_write, atomic_write_text
 
-from hermes_constants import openrouter_variant_base
+from devbuddy_constants import openrouter_variant_base
 
 import requests
 
@@ -202,14 +202,14 @@ _UNKNOWN_CATALOG_PROVIDER_WARNED: set = set()  # (provider, alias) warned once p
 def _cfg_get(*keys: str, default: Any, config: Optional[Dict[str, Any]] = None) -> Any:
     """``cfg_get`` over the read-only config; *default* on any failure."""
     try:
-        from hermes_cli.config import cfg_get, load_config_readonly
+        from devbuddy_cli.config import cfg_get, load_config_readonly
         return cfg_get(config if config is not None else load_config_readonly(), *keys, default=default)
     except Exception:
         return default
 
 
 def _hermes_path(name: str) -> Path:
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
     return get_hermes_home() / name
 
 
@@ -238,7 +238,7 @@ def _load_etag() -> str:
 def _save_etag(etag: str) -> None:
     def write() -> None:
         etag_path = _get_etag_path()
-        from hermes_constants import mkdir_under_hermes_home
+        from devbuddy_constants import mkdir_under_hermes_home
 
         mkdir_under_hermes_home(etag_path.parent)
         atomic_write_text(etag_path, etag)
@@ -803,7 +803,7 @@ def _relay_vision_marker_metadata(provider: str, model: str) -> Optional[Dict[st
     ``-vision`` token is the vendor's own capability marker; without it ``image_input_mode: auto`` treats
     the model as text-only and detours images through the lossy describe path (#96066). Every other field
     keeps the unknown-model defaults, so only vision is claimed."""
-    from hermes_cli.models import opencode_provider_family
+    from devbuddy_cli.models import opencode_provider_family
 
     if "-vision" not in (model or "").strip().lower() or opencode_provider_family(provider) is None:
         return None
@@ -882,7 +882,7 @@ def get_model_capabilities(
 def list_provider_models(provider: str, *, allow_network: bool = True) -> List[str]:
     """All model IDs for a provider ([] if unknown). ``allow_network`` defaults to True: the model
     picker is interactive and a fresh catalog is worth a short wait."""
-    from hermes_cli.models import normalize_provider
+    from devbuddy_cli.models import normalize_provider
     provider = normalize_provider(provider) or provider
     models = _get_provider_models(provider, allow_network=allow_network)
     return [mid for mid in models if not _should_hide_from_provider_catalog(provider, mid)] if models is not None else []

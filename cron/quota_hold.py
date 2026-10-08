@@ -1,7 +1,7 @@
 """Hold a job's fires while a provider's usage window is known to be closed (#89376).
 
 A quota-exhausted provider answers with an explicit ``retry after <N>s`` (Codex 429: the
-``AuthError`` from ``hermes_cli.auth_codex._codex_quota_exhausted_error``). When the whole
+``AuthError`` from ``devbuddy_cli.auth_codex._codex_quota_exhausted_error``). When the whole
 fallback chain is unavailable, re-firing on cadence is guaranteed to fail identically until
 the window reopens — every fire is a usage probe plus a delivered failure alert. The failing
 run's alert says the job is held; ``mark_job_run`` then parks ``next_run_at`` at the recovery
@@ -20,7 +20,7 @@ import re
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from hermes_time import now as _hermes_now, safe_strftime
+from devbuddy_time import now as _hermes_now, safe_strftime
 
 logger = logging.getLogger("cron.scheduler")
 
@@ -40,7 +40,7 @@ def hold_seconds_from_failure(exc: BaseException) -> Optional[float]:
     cause chain) is not a rate-limited ``AuthError`` carrying a wait hint. Anchored on the
     AuthError itself, never on arbitrary text, so an unrelated "retry after" in an agent's
     output cannot park a job."""
-    from hermes_cli.auth import AuthError, is_rate_limited_auth_error
+    from devbuddy_cli.auth import AuthError, is_rate_limited_auth_error
 
     seen: set[int] = set()
     cur: Optional[BaseException] = exc

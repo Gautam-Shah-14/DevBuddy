@@ -16,9 +16,9 @@ import time
 
 import pytest
 
-import hermes_cli.auth as auth
-import hermes_cli.auth_codex as auth_codex
-from hermes_cli.auth import AuthError, _refresh_codex_auth_tokens, resolve_codex_runtime_credentials
+import devbuddy_cli.auth as auth
+import devbuddy_cli.auth_codex as auth_codex
+from devbuddy_cli.auth import AuthError, _refresh_codex_auth_tokens, resolve_codex_runtime_credentials
 
 STALE = {"access_token": "stale-access", "refresh_token": "stale-refresh"}
 
@@ -159,7 +159,7 @@ def test_recovery_refuses_codex_cli_login_from_another_workspace(tmp_path, monke
                             {"access_token": team, "refresh_token": "rt-team"})
     before = auth_file.read_bytes()
 
-    with caplog.at_level("WARNING", logger="hermes_cli.auth"), pytest.raises(AuthError) as info:
+    with caplog.at_level("WARNING", logger="devbuddy_cli.auth"), pytest.raises(AuthError) as info:
         resolve_codex_runtime_credentials(refresh_if_expiring=False)
 
     assert info.value.code == "codex_auth_missing_refresh_token"

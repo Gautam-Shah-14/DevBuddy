@@ -1,4 +1,4 @@
-"""Behavior contracts for hermes_cli.worktree_gc (attended reclaim).
+"""Behavior contracts for devbuddy_cli.worktree_gc (attended reclaim).
 
 Each guard gets its own contract against a REAL git repo fixture (no mocks —
 the entire value of these tests is exercising actual git verdicts):
@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import worktree_gc
+from devbuddy_cli import worktree_gc
 
 
 def _git(args, cwd, env=None):
@@ -413,7 +413,7 @@ class TestCmdWorktreeJson:
     def test_list_json_shape(self, repo, capsys):
         import json
 
-        from hermes_cli.worktree_cmd import cmd_worktree
+        from devbuddy_cli.worktree_cmd import cmd_worktree
 
         _add_worktree(repo, "hermes-json")
         assert cmd_worktree(self._ns(repo, "list")) == 0
@@ -427,7 +427,7 @@ class TestCmdWorktreeJson:
     def test_prune_dry_run_json(self, repo, capsys):
         import json
 
-        from hermes_cli.worktree_cmd import cmd_worktree
+        from devbuddy_cli.worktree_cmd import cmd_worktree
 
         _add_worktree(repo, "hermes-json-prune")
         assert cmd_worktree(self._ns(repo, "prune", dry_run=True)) == 0
@@ -438,6 +438,6 @@ class TestCmdWorktreeJson:
         assert (repo / ".worktrees" / "hermes-json-prune").exists()
 
     def test_negative_older_than_rejected(self, repo, capsys):
-        from hermes_cli.worktree_cmd import cmd_worktree
+        from devbuddy_cli.worktree_cmd import cmd_worktree
 
         assert cmd_worktree(self._ns(repo, "prune", older_than=-1)) == 1

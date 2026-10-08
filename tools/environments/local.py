@@ -16,10 +16,10 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 
-from hermes_constants import get_process_hermes_home
+from devbuddy_constants import get_process_hermes_home
 from tools.environments.base import BaseEnvironment
 from tools.environments.base_output import _pipe_stdin
-from hermes_cli._subprocess_compat import windows_hide_flags
+from devbuddy_cli._subprocess_compat import windows_hide_flags
 from tools.environments.local_env_policy import (  # noqa: F401 — _HERMES_PROVIDER_ENV_BLOCKLIST stays importable from here
     _ALWAYS_STRIP_KEYS, _HERMES_PROVIDER_ENV_BLOCKLIST, _HERMES_PROVIDER_ENV_FORCE_PREFIX,
     _is_hermes_internal_secret, _is_provider_env_blocklisted, _is_terminal_first_party_env,
@@ -49,7 +49,7 @@ _BG_GROUP_RE = re.compile(r"^(hermes_bg_[A-Za-z0-9_-]+)\.(log|pid|exit)$")
 def _default_terminal_temp_dir() -> "Path | None":
     """Return HERMES_HOME/cache/terminal, or None if unresolvable."""
     try:
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
         return get_hermes_home() / "cache" / "terminal"
     except Exception:
         return None
@@ -60,7 +60,7 @@ def cleanup_terminal_temp_cache(max_age_hours: float = TERMINAL_TEMP_MAX_IDLE_HO
     directory's subtree; the kwarg name is the ``cleanup_*_cache`` signature the gateway
     housekeeping loop calls every entry with); return count.
     Only the managed default dir is pruned — never a user-pointed ``terminal.temp_dir``."""
-    from hermes_constants_scratch import subtree_touched_since
+    from devbuddy_constants_scratch import subtree_touched_since
 
     root = _default_terminal_temp_dir()
     if root is None:
@@ -209,7 +209,7 @@ def _resolve_safe_cwd(cwd: str) -> str:
 # --- Child-process environment construction ---
 def _apply_profile_home(env: dict) -> None:
     """Bridge the context-local HERMES_HOME override, then the subprocess HOME contract."""
-    from hermes_constants import apply_subprocess_home_env, get_hermes_home_override
+    from devbuddy_constants import apply_subprocess_home_env, get_hermes_home_override
     try:
         if value := get_hermes_home_override():
             env["HERMES_HOME"] = value
@@ -388,7 +388,7 @@ def served_profile_child_env(
     ``hermes_subprocess_env`` snapshot."""
     from agent.secret_scope import (
         UnscopedSecretError, build_profile_secret_scope, current_secret_scope, is_multiplex_active)
-    from hermes_constants import apply_scratch_tmp_env, get_hermes_home_override
+    from devbuddy_constants import apply_scratch_tmp_env, get_hermes_home_override
     env = dict(base) if base is not None else hermes_subprocess_env(inherit_credentials=inherit_credentials)
     target = str(target_home or get_hermes_home_override() or "")
     if target:
@@ -417,7 +417,7 @@ def _is_routed_home(target_home: "str | Path") -> bool:
     Same launch-home identity as ``agent.secret_scope.serves_routed_profile()``: under a host that
     mirrors the served profile into ``HERMES_HOME``, the live env var names the served home and the
     launch residue would never be stripped from that profile's child env."""
-    from hermes_constants import get_routing_process_hermes_home
+    from devbuddy_constants import get_routing_process_hermes_home
     try:
         return Path(target_home).resolve() != get_routing_process_hermes_home().resolve()
     except OSError:
@@ -435,12 +435,12 @@ def strip_launch_profile_env(env: dict, target_home: "str | Path | None" = None)
     gateway-wide multiplex flag on": the Desktop/dashboard backend serves ``?profile=B`` by
     installing a HERMES_HOME override without that flag."""
     from agent.secret_scope import _is_global_env, load_env_file
-    from hermes_constants import get_hermes_home_override, get_process_hermes_home
+    from devbuddy_constants import get_hermes_home_override, get_process_hermes_home
     target = target_home or get_hermes_home_override()
     if not target or not _is_routed_home(target):
         return env
     launch_home = get_process_hermes_home()
-    from hermes_cli.config import TERMINAL_CONFIG_ENV_MAP
+    from devbuddy_cli.config import TERMINAL_CONFIG_ENV_MAP
     # Folded strip: on Windows the env block is case-insensitive, so residue
     # stored under a variant casing is the same variable and must go too. The
     # selection folds the same way so a lowercase ``path`` in .env is still
@@ -595,7 +595,7 @@ def _managed_runtime_path_entries() -> list[str]:
     """
     try:
         import pm
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
 
         env = pm.env_for("npm", base_env={"PATH": ""})
         managed = [Path(d) for d in env.get("PATH", "").split(os.pathsep) if d]
@@ -687,7 +687,7 @@ def _read_terminal_shell_init_config() -> tuple[list[str], bool]:
     """(shell_init_files, auto_source_bashrc) from config.yaml; defaults on any
     failure so terminal execution never breaks."""
     try:
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
         terminal_cfg = (load_config() or {}).get("terminal") or {}
         files = terminal_cfg.get("shell_init_files") or []
         if not isinstance(files, list):

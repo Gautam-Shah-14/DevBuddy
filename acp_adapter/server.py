@@ -317,14 +317,14 @@ class HermesACPAgent(SlashCommandsMixin, acp.Agent):
     ) -> tuple[str | None, str, str]:
         """Rebuild the session agent on a new model -> (old provider, new provider, model).
 
-        Resolution goes through ``hermes_cli.model_switch.switch_model`` seeded with the live
+        Resolution goes through ``devbuddy_cli.model_switch.switch_model`` seeded with the live
         agent route — the same catalog/alias/credential validation as CLI/gateway/TUI ``/model``
         — so ACP never hands the session a model no provider can serve. ``provider:model`` picker
         ids become ``--provider``. ACP never persists. ``keep_endpoint`` carries base_url/api_mode
         over when the provider is unchanged."""
-        from hermes_cli.config import get_compatible_custom_providers, load_config
-        from hermes_cli.model_switch import switch_model
-        from hermes_cli.models import parse_model_input
+        from devbuddy_cli.config import get_compatible_custom_providers, load_config
+        from devbuddy_cli.model_switch import switch_model
+        from devbuddy_cli.models import parse_model_input
 
         current_provider = getattr(state.agent, "provider", None)
         explicit_provider, model_input = parse_model_input(raw_model, "")
@@ -477,7 +477,7 @@ class HermesACPAgent(SlashCommandsMixin, acp.Agent):
         (``agent/turn_context.py``). No-op if discovery finished, join timed out, registry
         unchanged, or session closed."""
         try:
-            from hermes_cli.mcp_startup import mcp_discovery_in_flight
+            from devbuddy_cli.mcp_startup import mcp_discovery_in_flight
         except Exception:
             return
         if not mcp_discovery_in_flight():
@@ -486,7 +486,7 @@ class HermesACPAgent(SlashCommandsMixin, acp.Agent):
 
         def _wait_then_refresh() -> None:
             try:
-                from hermes_cli.mcp_startup import join_mcp_discovery
+                from devbuddy_cli.mcp_startup import join_mcp_discovery
 
                 if not join_mcp_discovery(timeout=30.0):
                     return
@@ -524,7 +524,7 @@ class HermesACPAgent(SlashCommandsMixin, acp.Agent):
         self, protocol_version: int | None = None, client_capabilities: ClientCapabilities | None = None,
         client_info: Implementation | None = None, **kwargs: Any,
     ) -> InitializeResponse:
-        from hermes_cli.version_info import get_version_info
+        from devbuddy_cli.version_info import get_version_info
 
         auth_methods = build_auth_methods()
         logger.info(
@@ -1119,7 +1119,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

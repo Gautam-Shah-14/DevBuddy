@@ -17,9 +17,9 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import main as hermes_main
-import hermes_cli.main_install_repair as main_install_repair
-from hermes_cli import update_cmd
+from devbuddy_cli import main as hermes_main
+import devbuddy_cli.main_install_repair as main_install_repair
+from devbuddy_cli import update_cmd
 
 
 def _cpe(cmd, returncode=2, stderr="", stdout="") -> subprocess.CalledProcessError:
@@ -98,7 +98,7 @@ def _porcelain_run(stdout: str, returncode: int = 0):
         if "status" in joined and "--porcelain" in joined:
             return subprocess.CompletedProcess(cmd, returncode, stdout=stdout, stderr="")
         if "ls-tree" in joined:  # tracked root entries = what the ZIP ships
-            return subprocess.CompletedProcess(cmd, 0, stdout="hermes_cli\nscratch\n", stderr="")
+            return subprocess.CompletedProcess(cmd, 0, stdout="devbuddy_cli\nscratch\n", stderr="")
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
 
     return fake_run
@@ -111,7 +111,7 @@ def test_zip_overlay_allowed_without_git(tmp_path):
 def test_zip_overlay_blocked_on_modified_file(tmp_path, monkeypatch):
     (tmp_path / ".git").mkdir()
     monkeypatch.setattr(
-        update_cmd.subprocess, "run", _porcelain_run(" M hermes_cli/update_cmd.py\n")
+        update_cmd.subprocess, "run", _porcelain_run(" M devbuddy_cli/update_cmd.py\n")
     )
     reason = update_cmd._zip_overlay_block_reason(tmp_path)
     assert reason is not None
@@ -201,7 +201,7 @@ def test_staging_artifact_lines_are_recognized():
     # Nested user files under a staging-lookalike directory don't match the
     # top-level test only when the TOP level itself is not an artifact.
     assert not is_artifact("?? agent/scratch/wip.py")
-    assert not is_artifact(" M hermes_cli/update_cmd.py")
+    assert not is_artifact(" M devbuddy_cli/update_cmd.py")
     assert not is_artifact("?? notes.hermes-update-staging.txt")
 
 

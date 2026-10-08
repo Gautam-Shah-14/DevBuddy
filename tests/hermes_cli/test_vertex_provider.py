@@ -12,8 +12,8 @@ import pytest
 
 def test_resolve_runtime_provider_raises_autherror_when_unresolved(monkeypatch):
     import agent.vertex_adapter as va
-    from hermes_cli import runtime_provider as rp
-    from hermes_cli.auth import AuthError
+    from devbuddy_cli import runtime_provider as rp
+    from devbuddy_cli.auth import AuthError
 
     monkeypatch.setattr(va, "get_vertex_config", lambda: (None, None))
     with pytest.raises(AuthError):
@@ -21,13 +21,13 @@ def test_resolve_runtime_provider_raises_autherror_when_unresolved(monkeypatch):
 
 
 def test_vertex_registered_in_provider_registry():
-    """PROVIDER_REGISTRY (hermes_cli.auth) is what agent/auxiliary_client.py's
+    """PROVIDER_REGISTRY (devbuddy_cli.auth) is what agent/auxiliary_client.py's
     resolve_provider_client() looks up before dispatching on auth_type. Without
     an entry here, the ``elif pconfig.auth_type == "vertex":`` branch there is
     unreachable dead code — every auxiliary Vertex call (vision, title
     generation, MoA reference/aggregator slots, ...) fails at the
     ``pconfig is None`` guard before ever reaching it."""
-    from hermes_cli.auth import PROVIDER_REGISTRY
+    from devbuddy_cli.auth import PROVIDER_REGISTRY
 
     cfg = PROVIDER_REGISTRY.get("vertex")
     assert cfg is not None
@@ -35,13 +35,13 @@ def test_vertex_registered_in_provider_registry():
 
 
 def test_vertex_registered_in_hermes_overlays():
-    """hermes_cli.providers.get_provider("vertex") backs
+    """devbuddy_cli.providers.get_provider("vertex") backs
     _preserve_provider_with_base_url() in agent/auxiliary_client.py, which
     decides whether a MoA slot's resolved Vertex (base_url, api_key) pair
     keeps its "vertex" provider identity or silently collapses to "custom" —
     losing the identity _refresh_provider_credentials() needs to re-mint an
     expired OAuth2 token on a 401."""
-    from hermes_cli.providers import get_provider
+    from devbuddy_cli.providers import get_provider
 
     resolved = get_provider("vertex")
     assert resolved is not None

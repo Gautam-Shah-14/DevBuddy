@@ -27,8 +27,8 @@ import types
 
 import pytest
 
-from hermes_cli.main import _fleet_probe_expected_runtimes
-from hermes_cli.update_inventory import RuntimeRecord
+from devbuddy_cli.main import _fleet_probe_expected_runtimes
+from devbuddy_cli.update_inventory import RuntimeRecord
 
 
 def _plan(runtimes):
@@ -39,15 +39,15 @@ class TestCallSiteWiring:
     @pytest.mark.parametrize("had_gateway", [False, True], ids=["idle", "plan-saw-gateway"])
     def test_empty_probe_settles_and_fails_only_when_rows_expected(self, monkeypatch, tmp_path, capsys, had_gateway):
         import json
-        from hermes_cli import main, update_cmd, update_cmd_fleet as fleet, update_receipt
+        from devbuddy_cli import main, update_cmd, update_cmd_fleet as fleet, update_receipt
 
         monkeypatch.setattr(main, "PROJECT_ROOT", tmp_path)
         monkeypatch.setattr(fleet, "_print_legacy_units_warning", lambda: None)
-        monkeypatch.setattr("hermes_cli.update_cmd_maint._refresh_dashboard_after_update", lambda **kw: None)
+        monkeypatch.setattr("devbuddy_cli.update_cmd_maint._refresh_dashboard_after_update", lambda **kw: None)
         monkeypatch.setattr(update_cmd, "_surviving_pre_update_serve_runtimes", lambda plan: [])
         # Reconciliation is a separate guard; it must not supply this test's failure.
-        monkeypatch.setattr("hermes_cli.update_inventory.report_unaccounted_runtimes", lambda rows: False)
-        monkeypatch.setattr("hermes_cli.gateway_migrate.maybe_auto_migrate_after_update", lambda: None)
+        monkeypatch.setattr("devbuddy_cli.update_inventory.report_unaccounted_runtimes", lambda rows: False)
+        monkeypatch.setattr("devbuddy_cli.gateway_migrate.maybe_auto_migrate_after_update", lambda: None)
         events = []
         now = [0.0]
 
@@ -92,7 +92,7 @@ def test_unmapped_stops_are_not_expected_rows():
     # A gateway stopped WITHOUT a successor is listed under "Restart manually" and never
     # publishes a row; counting it made the probe demand rows that cannot exist and the
     # update exited 1 after correctly stopping every unmapped gateway.
-    from hermes_cli.update_cmd_fleet import _GatewayRestartOutcome
+    from devbuddy_cli.update_cmd_fleet import _GatewayRestartOutcome
 
     out = _GatewayRestartOutcome(
         incomplete=False, phase_errors=[], pre_restart_gateway_pids=[101, 102], restarted_services=[],

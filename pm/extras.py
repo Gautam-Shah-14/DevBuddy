@@ -100,7 +100,7 @@ def available(extra: str) -> bool:
 
 
 def _platform_gates() -> dict[str, str]:
-    """The [tool.hermes.extras-platforms] table from pyproject.toml:
+    """The [tool.devbuddy.extras-platforms] table from pyproject.toml:
     extra -> PEP 508 marker string. Cached per process."""
     global _PLATFORM_GATES
     if _PLATFORM_GATES is not None:
@@ -113,7 +113,7 @@ def _platform_gates() -> dict[str, str]:
     try:
         with (repo_root() / "pyproject.toml").open("rb") as f:
             data = tomllib.load(f)
-        table = data.get("tool", {}).get("hermes", {}).get("extras-platforms", {})
+        table = data.get("tool", {}).get("devbuddy", {}).get("extras-platforms", {})
         if isinstance(table, dict):
             gates = {str(k): str(v) for k, v in table.items()}
     except (OSError, ValueError):

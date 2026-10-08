@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import env_loader
+from devbuddy_cli import env_loader
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -38,7 +38,7 @@ secrets:
     )
 
     dispatch = (
-        "from hermes_cli import update_cmd\n"
+        "from devbuddy_cli import update_cmd\n"
         "update_cmd._cmd_update_check = lambda **kwargs: 0\n"
         "hermes_main.main()\n"
         if run_main
@@ -47,7 +47,7 @@ secrets:
     probe = (
         "import json, sys\n"
         f"sys.argv = {argv!r}\n"
-        "import hermes_cli.main as hermes_main\n"
+        "import devbuddy_cli.main as hermes_main\n"
         f"{dispatch}"
         "print('LOADED_MODULES=' + json.dumps(sorted(sys.modules)))\n"
     )
@@ -128,7 +128,7 @@ def test_update_probe_children_skip_external_secret_sources(tmp_path):
     result = subprocess.run(
         [sys.executable, "-c",
          "import sys; sys.argv = ['hermes', 'update']\n"
-         "from hermes_cli.update_cmd_validation import _validate_critical_modules_import\n"
+         "from devbuddy_cli.update_cmd_validation import _validate_critical_modules_import\n"
          "print('PROBE=' + repr(_validate_critical_modules_import(__import__('os').getcwd())))"],
         capture_output=True, text=True, timeout=180, cwd=REPO_ROOT,
         env={**os.environ, "HERMES_HOME": str(home)},

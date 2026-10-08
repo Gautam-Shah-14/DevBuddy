@@ -220,7 +220,7 @@ async def test_busy_change_updates_only_routed_profile(tmp_path, monkeypatch):
     event = _event(profile="research")
     event.text = "/busy steer"
     monkeypatch.setattr(
-        "hermes_cli.profiles.get_profile_dir",
+        "devbuddy_cli.profiles.get_profile_dir",
         lambda _profile_name: profile_home,
     )
     # Isolate the wrapper's profile scope; active-session dispatch is covered above.
@@ -393,7 +393,7 @@ def test_profile_route_and_nonmultiplexed_resolution_preserve_boundaries(
 ):
     runner = _runner(default_mode="interrupt")
     monkeypatch.setattr(
-        "hermes_cli.profiles.profiles_to_serve",
+        "devbuddy_cli.profiles.profiles_to_serve",
         lambda **_: [("research", tmp_path / "research")],
     )
     runner._snapshot_profile_busy_modes(
@@ -417,7 +417,7 @@ def test_profile_route_and_nonmultiplexed_resolution_preserve_boundaries(
     # before the busy-mode snapshot is consulted. Sibling coverage in
     # tests/gateway/test_profile_resolution.py patches the same seam.
     with patch(
-        "hermes_cli.profiles.profiles_to_serve",
+        "devbuddy_cli.profiles.profiles_to_serve",
         return_value=[
             ("default", Path("/profiles/default")),
             ("research", Path("/profiles/research")),
@@ -460,7 +460,7 @@ async def test_primary_adapter_busy_origin_uses_routed_privacy(
     """The primary busy callback bypasses the scoped normal-message handler."""
     from dataclasses import asdict
     from agent.agent_runtime_helpers import apply_pending_steer_to_tool_results
-    from hermes_constants import get_hermes_home_override
+    from devbuddy_constants import get_hermes_home_override
     from run_agent import AIAgent
 
     home = tmp_path / ".hermes"

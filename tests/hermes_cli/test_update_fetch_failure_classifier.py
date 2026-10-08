@@ -7,7 +7,7 @@ classifier must call out rate limiting / outages explicitly, and the raw
 stderr line must always be printed alongside the diagnosis.
 """
 
-from hermes_cli import update_cmd
+from devbuddy_cli import update_cmd
 
 
 RATE_LIMIT_STDERR = (
@@ -126,7 +126,7 @@ def test_update_network_git_calls_never_prompt_for_credentials():
 def test_update_and_upstream_network_calls_disable_terminal_prompts(monkeypatch, tmp_path):
     """Exercise origin fetch and fork fetch/pull/push, not their source spelling."""
     import subprocess
-    from hermes_cli import update_cmd_git
+    from devbuddy_cli import update_cmd_git
 
     monkeypatch.setenv("GIT_TERMINAL_PROMPT", "1")
     monkeypatch.setenv("GCM_INTERACTIVE", "Always")

@@ -129,7 +129,7 @@ retains its legacy unscoped contract.
 `commands.catalog` (empty-query list) and `complete.slash` (typed-query completions) already include
 built-ins, user `quick_commands`, AND skill-derived commands (`scan_skill_commands()` /
 `get_skill_commands()`) — clients do not need a new RPC to see skills. The command definitions
-themselves come from `hermes_cli/commands.py` (`hermes_cli/AGENTS.md`).
+themselves come from `devbuddy_cli/commands.py` (`devbuddy_cli/AGENTS.md`).
 
 ## Dev commands
 

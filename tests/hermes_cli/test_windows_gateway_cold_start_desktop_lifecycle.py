@@ -22,12 +22,12 @@ import json
 
 import pytest
 
-from hermes_cli import gateway as hermes_gateway
-from hermes_cli import gateway_windows
-from hermes_cli import main as cli_main
-from hermes_cli import process_identity
-from hermes_cli import update_cmd
-import hermes_cli.update_cmd_windows as update_cmd_windows
+from devbuddy_cli import gateway as hermes_gateway
+from devbuddy_cli import gateway_windows
+from devbuddy_cli import main as cli_main
+from devbuddy_cli import process_identity
+from devbuddy_cli import update_cmd
+import devbuddy_cli.update_cmd_windows as update_cmd_windows
 
 
 def _live_serve_ledger_entry() -> dict:
@@ -43,8 +43,8 @@ def _live_serve_ledger_entry() -> dict:
 def test_control_plane_argv_is_not_a_gateway():
     from gateway.status import looks_like_gateway_command_line
 
-    serve = "C:\\Hermes\\.venv\\Scripts\\python.exe -m hermes_cli.main serve --host 127.0.0.1"
-    run = "C:\\Hermes\\.venv\\Scripts\\python.exe -m hermes_cli.main gateway run"
+    serve = "C:\\Hermes\\.venv\\Scripts\\python.exe -m devbuddy_cli.main serve --host 127.0.0.1"
+    run = "C:\\Hermes\\.venv\\Scripts\\python.exe -m devbuddy_cli.main gateway run"
 
     assert update_cmd._looks_like_desktop_control_plane(serve) is True
     assert looks_like_gateway_command_line(serve) is False
@@ -55,7 +55,7 @@ def test_control_plane_classifier_is_token_based_not_substring():
     """#90778/#91869 class: flag values and lookalike tokens must not read
     as a control plane. The salvage swapped the original substring check
     for the parser-derived subcommand classifier."""
-    py = "C:\\Hermes\\.venv\\Scripts\\python.exe -m hermes_cli.main"
+    py = "C:\\Hermes\\.venv\\Scripts\\python.exe -m devbuddy_cli.main"
     # "dashboard" as a FLAG VALUE, real subcommand is chat
     assert update_cmd._looks_like_desktop_control_plane(f"{py} -m dashboard chat") is False
     # "--preserve-cache" contains "serve"; real subcommand is kanban
@@ -78,7 +78,7 @@ def test_ledger_live_serve_with_live_spawner_owns_lifecycle(monkeypatch):
         process_identity, "ledger_entries", lambda **_k: [_live_serve_ledger_entry()]
     )
     monkeypatch.setattr(process_identity, "spawner_is_dead", lambda _e: False)
-    monkeypatch.setattr("hermes_cli.update_cmd_windows._detect_venv_python_processes", lambda: [])
+    monkeypatch.setattr("devbuddy_cli.update_cmd_windows._detect_venv_python_processes", lambda: [])
 
     assert update_cmd._desktop_owns_gateway_lifecycle() is True
 
@@ -87,7 +87,7 @@ def test_orphaned_control_plane_does_not_own_lifecycle(monkeypatch):
         process_identity, "ledger_entries", lambda **_k: [_live_serve_ledger_entry()]
     )
     monkeypatch.setattr(process_identity, "spawner_is_dead", lambda _e: True)
-    monkeypatch.setattr("hermes_cli.update_cmd_windows._detect_venv_python_processes", lambda: [])
+    monkeypatch.setattr("devbuddy_cli.update_cmd_windows._detect_venv_python_processes", lambda: [])
 
     assert update_cmd._desktop_owns_gateway_lifecycle() is False
 
@@ -95,11 +95,11 @@ def test_orphaned_control_plane_does_not_own_lifecycle(monkeypatch):
 def _running_beta_pause_fixture(monkeypatch, tmp_path):
     """Windows update with ``beta`` (PID 777) running and the default profile home at ``tmp_path``."""
     from types import SimpleNamespace
-    import hermes_cli.profiles as profiles_mod
+    import devbuddy_cli.profiles as profiles_mod
 
     homes = {"default": tmp_path, "beta": tmp_path / "profiles" / "beta"}
     homes["beta"].mkdir(parents=True)
-    monkeypatch.setattr("hermes_cli.config.get_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr("devbuddy_cli.config.get_hermes_home", lambda: str(tmp_path))
     monkeypatch.setattr(update_cmd, "_desktop_owns_gateway_lifecycle", lambda: True)
     monkeypatch.setattr(update_cmd_windows, "_desktop_owns_gateway_lifecycle", lambda: True)
     beta = SimpleNamespace(pid=777, profile="beta")

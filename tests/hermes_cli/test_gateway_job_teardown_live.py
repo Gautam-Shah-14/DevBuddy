@@ -10,7 +10,7 @@ Three live proofs (no mocks of the code under test):
    by it. This is exactly the reporter's suspected kill path.
 
 2. ``TestWatcherRespawnLive`` — drives the REAL
-   ``hermes_cli.gateway._spawn_gateway_restart_watcher`` end to end with a
+   ``devbuddy_cli.gateway._spawn_gateway_restart_watcher`` end to end with a
    real stub gateway process, against a temp HERMES_HOME:
    - the respawned process's stderr must land in ``logs/gateway-stdio.log``
      (on unfixed main it went to DEVNULL: a job-teardown kill left ZERO trace);
@@ -144,7 +144,7 @@ class TestJobObjectMechanismLive:
         return (
             "import subprocess, sys, pathlib\n"
             "sys.path.insert(0, r'%s')\n"
-            "from hermes_cli._subprocess_compat import (\n"
+            "from devbuddy_cli._subprocess_compat import (\n"
             "    windows_detach_flags, windows_detach_flags_without_breakaway)\n"
             "flags = %s()\n"
             "p = subprocess.Popen([sys.executable, '-c', %r],\n"
@@ -243,7 +243,7 @@ class TestWatcherRespawnLive:
         old = subprocess.Popen([sys.executable, "-c", "pass"])
         old.wait(timeout=30)
 
-        import hermes_cli.gateway as gateway
+        import devbuddy_cli.gateway as gateway
 
         assert gateway._spawn_gateway_restart_watcher(
             old.pid, [sys.executable, "-c", stub]
@@ -284,9 +284,9 @@ class TestResumeVerificationLive:
         monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
         (tmp_path / "home").mkdir(parents=True, exist_ok=True)
 
-        import hermes_cli.gateway as gateway
-        import hermes_cli.main as hm
-        from hermes_cli.update_cmd import _resume_windows_gateways_after_update
+        import devbuddy_cli.gateway as gateway
+        import devbuddy_cli.main as hm
+        from devbuddy_cli.update_cmd import _resume_windows_gateways_after_update
 
         # Peripheral only: don't regenerate launcher scripts into the temp home.
         monkeypatch.setattr(hm, "_refresh_windows_gateway_launchers", lambda: None)

@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-import hermes_cli.profiles as profiles
+import devbuddy_cli.profiles as profiles
 
 
 @pytest.fixture(autouse=True)
@@ -76,7 +76,7 @@ def test_an_unchanged_file_is_parsed_once_across_repeated_reads(profile_dir, mon
 
 def test_the_raw_config_reader_keeps_its_uncached_contract(profile_dir):
     """``read_user_config_raw`` feeds write-back round-trips, so it must NOT be memoised here."""
-    from hermes_cli.config import read_user_config_raw
+    from devbuddy_cli.config import read_user_config_raw
 
     config_path = profile_dir / "config.yaml"
     assert read_user_config_raw(config_path)["model"]["provider"] == "openai"

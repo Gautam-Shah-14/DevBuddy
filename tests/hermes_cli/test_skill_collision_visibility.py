@@ -8,7 +8,7 @@ import io
 
 from rich.console import Console
 
-from hermes_constants import get_hermes_home
+from devbuddy_constants import get_hermes_home
 
 NOTE = "slash command /handoff unavailable — name taken by built-in; use /skill handoff"
 
@@ -22,8 +22,8 @@ def _write_skill(name: str) -> None:
 def test_built_in_name_collision_is_visible_on_every_listing_surface(monkeypatch):
     import cli
     import tools.skills_tool as skills_tool
-    from hermes_cli.cli_info_mixin import CLIInfoMixin
-    from hermes_cli.skills_hub import do_list
+    from devbuddy_cli.cli_info_mixin import CLIInfoMixin
+    from devbuddy_cli.skills_hub import do_list
     from tui_gateway import server
 
     _write_skill("handoff")  # core CommandDef → dropped by scan_skill_commands
@@ -53,7 +53,7 @@ def test_built_in_name_collision_is_visible_on_every_listing_surface(monkeypatch
     assert catalog["warning"] == NOTE
     assert "/tidy-notes" in catalog["skills"] and "/handoff" not in catalog["skills"]
 
-    from hermes_cli.slash_exec import CommandContext, _exec_commands
+    from devbuddy_cli.slash_exec import CommandContext, _exec_commands
 
     gateway_commands = _exec_commands(CommandContext(args="", options={"page_size": 500})).text
     assert f"⚠ {NOTE}" in gateway_commands and "`/tidy-notes`" in gateway_commands

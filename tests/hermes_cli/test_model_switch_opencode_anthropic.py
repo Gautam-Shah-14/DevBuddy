@@ -9,9 +9,9 @@ Without the strip, the SDK prepends its own ``/v1/messages`` path and
 requests hit ``https://opencode.ai/zen/go/v1/v1/messages`` — a double
 ``/v1`` that returns OpenCode's website 404 page with HTML body.
 
-``hermes_cli.runtime_provider.resolve_runtime_provider`` already strips
+``devbuddy_cli.runtime_provider.resolve_runtime_provider`` already strips
 ``/v1`` at fresh agent init (PR #4918), but the ``/model`` mid-session
-switch path in ``hermes_cli.model_switch.switch_model`` was missing the
+switch path in ``devbuddy_cli.model_switch.switch_model`` was missing the
 same logic — these tests guard against that regression.
 """
 
@@ -19,7 +19,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.model_switch import switch_model
+from devbuddy_cli.model_switch import switch_model
 
 
 _MOCK_VALIDATION = {
@@ -46,10 +46,10 @@ def _run_opencode_switch(
     """
     effective_runtime_base = runtime_base_url or current_base_url
     with (
-        patch("hermes_cli.model_switch.resolve_alias", return_value=None),
-        patch("hermes_cli.model_switch.list_provider_models", return_value=[]),
+        patch("devbuddy_cli.model_switch.resolve_alias", return_value=None),
+        patch("devbuddy_cli.model_switch.list_provider_models", return_value=[]),
         patch(
-            "hermes_cli.runtime_provider.resolve_runtime_provider",
+            "devbuddy_cli.runtime_provider.resolve_runtime_provider",
             return_value={
                 "api_key": "sk-opencode-fake",
                 "base_url": effective_runtime_base,
@@ -57,12 +57,12 @@ def _run_opencode_switch(
             },
         ),
         patch(
-            "hermes_cli.models_validate.validate_requested_model",
+            "devbuddy_cli.models_validate.validate_requested_model",
             return_value=_MOCK_VALIDATION,
         ),
-        patch("hermes_cli.model_switch.get_model_info", return_value=None),
-        patch("hermes_cli.model_switch.get_model_capabilities", return_value=None),
-        patch("hermes_cli.models.detect_provider_for_model", return_value=None),
+        patch("devbuddy_cli.model_switch.get_model_info", return_value=None),
+        patch("devbuddy_cli.model_switch.get_model_capabilities", return_value=None),
+        patch("devbuddy_cli.models.detect_provider_for_model", return_value=None),
     ):
         return switch_model(
             raw_input=raw_input,
@@ -190,7 +190,7 @@ class TestStaleConfigDefaultDoesNotWedgeResolver:
     """
 
     def test_kimi_switch_keeps_v1_despite_claude_config_default(self, tmp_path, monkeypatch):
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
         import importlib
 
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
@@ -200,11 +200,11 @@ class TestStaleConfigDefaultDoesNotWedgeResolver:
         }))
 
         # Re-import with the new HERMES_HOME so config cache is fresh.
-        import hermes_cli.config as _cfg_mod
+        import devbuddy_cli.config as _cfg_mod
         importlib.reload(_cfg_mod)
-        import hermes_cli.runtime_provider as _rp_mod
+        import devbuddy_cli.runtime_provider as _rp_mod
         importlib.reload(_rp_mod)
-        import hermes_cli.model_switch as _ms_mod
+        import devbuddy_cli.model_switch as _ms_mod
         importlib.reload(_ms_mod)
 
         result = _ms_mod.switch_model(

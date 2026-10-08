@@ -7,8 +7,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from hermes_cli import kanban_db as kb
-from hermes_cli.kanban_db_connect import connect
+from devbuddy_cli import kanban_db as kb
+from devbuddy_cli.kanban_db_connect import connect
 
 
 @pytest.fixture

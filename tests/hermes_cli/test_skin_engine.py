@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.skin_engine — the data-driven skin/theme system."""
+"""Tests for devbuddy_cli.skin_engine — the data-driven skin/theme system."""
 
 import pytest
 
@@ -6,7 +6,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def reset_skin_state():
     """Reset skin engine state between tests."""
-    from hermes_cli import skin_engine
+    from devbuddy_cli import skin_engine
     skin_engine._active_skin = None
     skin_engine._active_skin_name = "default"
     yield
@@ -26,7 +26,7 @@ def reset_skin_state():
 
 class TestSkinManagement:
     def test_set_active_skin(self):
-        from hermes_cli.skin_engine import set_active_skin, get_active_skin, get_active_skin_name
+        from devbuddy_cli.skin_engine import set_active_skin, get_active_skin, get_active_skin_name
         skin = set_active_skin("ares")
         assert skin.name == "ares"
         assert get_active_skin_name() == "ares"
@@ -39,7 +39,7 @@ class TestSkinManagement:
 
 class TestUserSkins:
     def test_load_user_skin_from_yaml(self, tmp_path, monkeypatch):
-        from hermes_cli.skin_engine import load_skin
+        from devbuddy_cli.skin_engine import load_skin
         # Create a user skin YAML
         skins_dir = tmp_path / "skins"
         skins_dir.mkdir()
@@ -51,11 +51,11 @@ class TestUserSkins:
             "branding": {"agent_name": "Custom Agent"},
             "tool_prefix": "▸",
         }
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
         skin_file.write_text(yaml.safe_dump(skin_data))
 
         # Patch skins dir
-        monkeypatch.setattr("hermes_cli.skin_engine._skins_dir", lambda: skins_dir)
+        monkeypatch.setattr("devbuddy_cli.skin_engine._skins_dir", lambda: skins_dir)
 
         skin = load_skin("custom")
         assert skin.name == "custom"
@@ -66,11 +66,11 @@ class TestUserSkins:
         assert skin.get_color("banner_border") == "#CD7F32"  # from default
 
     def test_load_user_skin_invalid_section_types_fall_back_to_defaults(self, tmp_path, monkeypatch):
-        from hermes_cli.skin_engine import load_skin
+        from devbuddy_cli.skin_engine import load_skin
 
         skins_dir = tmp_path / "skins"
         skins_dir.mkdir()
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
         (skins_dir / "broken.yaml").write_text(
             yaml.safe_dump(
@@ -85,7 +85,7 @@ class TestUserSkins:
             ),
             encoding="utf-8",
         )
-        monkeypatch.setattr("hermes_cli.skin_engine._skins_dir", lambda: skins_dir)
+        monkeypatch.setattr("devbuddy_cli.skin_engine._skins_dir", lambda: skins_dir)
 
         skin = load_skin("broken")
 
@@ -97,15 +97,15 @@ class TestUserSkins:
         assert skin.tool_prefix == "!"
 
     def test_list_skins_includes_user_skins(self, tmp_path, monkeypatch):
-        from hermes_cli.skin_engine import list_skins
+        from devbuddy_cli.skin_engine import list_skins
         skins_dir = tmp_path / "skins"
         skins_dir.mkdir()
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
         (skins_dir / "pirate.yaml").write_text(yaml.safe_dump({
             "name": "pirate",
             "description": "Arr matey",
         }))
-        monkeypatch.setattr("hermes_cli.skin_engine._skins_dir", lambda: skins_dir)
+        monkeypatch.setattr("devbuddy_cli.skin_engine._skins_dir", lambda: skins_dir)
 
         skins = list_skins()
         names = [s["name"] for s in skins]
@@ -118,7 +118,7 @@ class TestDisplayIntegration:
 
 
     def test_tool_message_uses_skin_prefix(self):
-        from hermes_cli.skin_engine import set_active_skin
+        from devbuddy_cli.skin_engine import set_active_skin
         from agent.display import get_cute_tool_message
         set_active_skin("ares")
         msg = get_cute_tool_message("terminal", {"command": "ls"}, 0.5)
@@ -131,7 +131,7 @@ class TestCliBrandingHelpers:
 
 
     def test_prompt_toolkit_style_overrides_cover_tui_classes(self):
-        from hermes_cli.skin_engine import set_active_skin, get_prompt_toolkit_style_overrides
+        from devbuddy_cli.skin_engine import set_active_skin, get_prompt_toolkit_style_overrides
         set_active_skin("ares")
         overrides = get_prompt_toolkit_style_overrides()
         required = {
@@ -184,7 +184,7 @@ class TestCliBrandingHelpers:
         assert required.issubset(overrides.keys())
 
     def test_prompt_toolkit_style_overrides_use_skin_colors(self):
-        from hermes_cli.skin_engine import (
+        from devbuddy_cli.skin_engine import (
             set_active_skin,
             get_active_skin,
             get_prompt_toolkit_style_overrides,

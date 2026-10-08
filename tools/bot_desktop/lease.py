@@ -28,7 +28,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
-from hermes_constants import get_hermes_home, hermes_home_key, secure_parent_dir
+from devbuddy_constants import get_hermes_home, hermes_home_key, secure_parent_dir
 
 try:
     import fcntl

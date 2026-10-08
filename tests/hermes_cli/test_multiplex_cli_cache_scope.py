@@ -1,4 +1,4 @@
-"""Multiplexed gateway: hermes_cli's process-wide caches must not hand profile A's value to profile B.
+"""Multiplexed gateway: devbuddy_cli's process-wide caches must not hand profile A's value to profile B.
 
 Every test builds two real profile homes (config.yaml / .env / cache files that differ), warms a
 cache under ``set_hermes_home_override(A)`` and reads under B. Only the HTTP transport is canned —
@@ -17,7 +17,7 @@ import httpx
 import pytest
 
 from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
-from hermes_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+from devbuddy_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
 
 
 class _Resp(io.BytesIO):
@@ -64,7 +64,7 @@ def test_deepinfra_catalog_is_fetched_with_each_profiles_key(homes, monkeypatch)
     a, b = homes
     (a / ".env").write_text("DEEPINFRA_API_KEY=key-A\n", encoding="utf-8")
     (b / ".env").write_text("DEEPINFRA_API_KEY=key-B\n", encoding="utf-8")
-    import hermes_cli.models as models
+    import devbuddy_cli.models as models
 
     monkeypatch.setattr(models, "_deepinfra_catalog_cache", {})
     monkeypatch.setattr(models, "_deepinfra_catalog_neg_cache", {})
@@ -81,7 +81,7 @@ def test_deepinfra_catalog_is_fetched_with_each_profiles_key(homes, monkeypatch)
 
 
 def test_copilot_context_cache_hit_requires_same_api_key(homes, monkeypatch):
-    import hermes_cli.models as models
+    import devbuddy_cli.models as models
 
     monkeypatch.setattr(models, "_copilot_context_cache", {})
     monkeypatch.setattr(models, "_copilot_context_cache_time", 0.0)
@@ -103,8 +103,8 @@ def test_nous_reasoning_caps_follow_each_profiles_portal(homes, monkeypatch):
     a, b = homes
     (a / ".env").write_text("NOUS_INFERENCE_BASE_URL=https://portal-a.example/v1\n", encoding="utf-8")
     (b / ".env").write_text("NOUS_INFERENCE_BASE_URL=https://portal-b.example/v1\n", encoding="utf-8")
-    import hermes_cli.models as models
-    import hermes_cli.models_reasoning_caps as caps
+    import devbuddy_cli.models as models
+    import devbuddy_cli.models_reasoning_caps as caps
 
     for attr, value in (("_nous_reasoning_caps_cache", None), ("_nous_reasoning_caps_failed_at", None),
                         ("_nous_caps_disk_checked", False), ("_nous_caps_warm_started", False)):
@@ -124,7 +124,7 @@ def test_nous_reasoning_caps_follow_each_profiles_portal(homes, monkeypatch):
 
 def test_swr_refresh_runs_as_the_profile_that_spawned_it(homes):
     a, b = homes
-    import hermes_cli.models as models
+    import devbuddy_cli.models as models
 
     seen: dict[str, str] = {}
     done = threading.Event()
@@ -154,7 +154,7 @@ def _write_manifest(home, model_id: str, mtime: float) -> None:
 
 def test_model_catalog_in_process_copy_is_bound_to_its_cache_file(homes, monkeypatch):
     a, b = homes
-    import hermes_cli.model_catalog as mc
+    import devbuddy_cli.model_catalog as mc
 
     for home in (a, b):
         (home / "config.yaml").write_text("model_catalog:\n  ttl_minutes: 600\n", encoding="utf-8")
@@ -171,7 +171,7 @@ def test_model_catalog_in_process_copy_is_bound_to_its_cache_file(homes, monkeyp
 
 def test_openrouter_curated_list_is_per_profile(homes, monkeypatch):
     a, b = homes
-    import hermes_cli.models as models
+    import devbuddy_cli.models as models
 
     for home in (a, b):
         (home / "config.yaml").write_text("model_catalog:\n  ttl_minutes: 600\n", encoding="utf-8")
@@ -188,7 +188,7 @@ def test_openrouter_curated_list_is_per_profile(homes, monkeypatch):
 
 def test_banner_skills_are_the_routed_profiles(homes):
     a, b = homes
-    import hermes_cli.banner as banner
+    import devbuddy_cli.banner as banner
 
     for home, tag in ((a, "a"), (b, "b")):
         skill = home / "skills" / f"skill_{tag}"
@@ -208,8 +208,8 @@ def test_failed_guest_mint_only_suppresses_that_profile(homes, monkeypatch, tmp_
     a, b = homes
     monkeypatch.setenv("HERMES_GUEST_ONBOARDING", "1")
     monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared"))
-    import hermes_cli.anon_auth as anon
-    import hermes_cli.auth_nous as auth_nous
+    import devbuddy_cli.anon_auth as anon
+    import devbuddy_cli.auth_nous as auth_nous
 
     anon.reset_mint_memo_for_tests()
     status = {"code": 429}
@@ -235,7 +235,7 @@ def test_failed_guest_mint_only_suppresses_that_profile(homes, monkeypatch, tmp_
 
 def test_active_skin_is_per_profile_and_leaves_launch_slot_alone(homes):
     a, b = homes
-    from hermes_cli import skin_engine
+    from devbuddy_cli import skin_engine
 
     (a / "config.yaml").write_text("display:\n  skin: ares\n", encoding="utf-8")
     (b / "config.yaml").write_text("display:\n  skin: mono\n", encoding="utf-8")

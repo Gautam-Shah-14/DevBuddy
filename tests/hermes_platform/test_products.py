@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_platform.host import products
-from hermes_platform.host.products import looks_like_nvidia_arm_soc
+from devbuddy_platform.host import products
+from devbuddy_platform.host.products import looks_like_nvidia_arm_soc
 
 _MARKER = products._NVIDIA_SOC_MODEL_MARKERS[0]
 _VENDOR = products._NVIDIA_SOC_VENDOR

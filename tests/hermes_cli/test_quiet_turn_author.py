@@ -113,7 +113,7 @@ def test_quiet_notify_loop_shares_one_linger_budget(monkeypatch):
     A fresh per-round deadline (the pre-fix bug) would pass round 1 as 600 and
     round 2 as 600 again; the shared deadline yields 600 then the remainder.
     """
-    from hermes_cli import quiet_single_query as qsq
+    from devbuddy_cli import quiet_single_query as qsq
     from tools import process_registry as pr
 
     waits = []
@@ -145,7 +145,7 @@ def test_quiet_notify_loop_shares_one_linger_budget(monkeypatch):
 
 def test_quiet_notify_loop_stops_after_timeout_with_drained_texts(monkeypatch):
     """A timed-out process is waited on no further: drained texts still run, then the loop stops."""
-    from hermes_cli import quiet_single_query as qsq
+    from devbuddy_cli import quiet_single_query as qsq
     from tools import process_registry as pr
 
     waits = []
@@ -195,7 +195,7 @@ def test_quiet_notify_loop_injects_owned_async_delegation_events(monkeypatch):
     one-shot's only consumer, so an owned async_delegation text is injected as a
     follow-up turn exactly like a completion.
     """
-    from hermes_cli import quiet_single_query as qsq
+    from devbuddy_cli import quiet_single_query as qsq
     from tools import process_registry as pr
 
     monkeypatch.setattr(pr.process_registry, "wait_for_pending_completions",
@@ -239,7 +239,7 @@ def test_quiet_diagnostic_only_wake_runs_but_reply_displaces_result_only_when_vi
     """Grid sweep: -Q linger had no diagnostic admission rule. A wake made only of automatic early
     failure notices still runs (the agent may act on it) but under suppression its reply must not
     replace the requested one-shot answer; absent/false keep legacy displacement."""
-    from hermes_cli import quiet_single_query as qsq
+    from devbuddy_cli import quiet_single_query as qsq
     _quiet_policy(tmp_path, monkeypatch, setting)
     _quiet_drain(monkeypatch, [({"type": "completion", "task_failure_notice": True, "session_key": "s"},
                                 "[Background process failed early: exit 7]")])
@@ -251,7 +251,7 @@ def test_quiet_diagnostic_only_wake_runs_but_reply_displaces_result_only_when_vi
 
 
 def test_quiet_requested_completion_wake_never_muted(tmp_path, monkeypatch):
-    from hermes_cli import quiet_single_query as qsq
+    from devbuddy_cli import quiet_single_query as qsq
     _quiet_policy(tmp_path, monkeypatch, True)
     _quiet_drain(monkeypatch, [({"type": "completion", "session_key": "s"}, "[Background process finished: OK]"),
                                 ({"type": "completion", "task_failure_notice": True, "session_key": "s"}, "[failed early]")])

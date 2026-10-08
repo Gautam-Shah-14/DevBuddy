@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from hermes_cli import update_cmd
+from devbuddy_cli import update_cmd
 
 
 def _git(cwd, *args, check=True):

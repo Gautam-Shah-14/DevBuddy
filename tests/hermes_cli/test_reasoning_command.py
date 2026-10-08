@@ -69,7 +69,7 @@ class TestHandleReasoningCommand(unittest.TestCase):
 
     def test_effort_defaults_to_session_only(self):
         """Plain /reasoning <level> is session-scoped — no config write."""
-        from hermes_cli.cli_commands_mixin import CLICommandsMixin
+        from devbuddy_cli.cli_commands_mixin import CLICommandsMixin
 
         stub = self._make_cli(reasoning_config={"enabled": True, "effort": "medium"})
         with patch("cli.save_config_value") as save_config, patch("cli._cprint"):
@@ -152,7 +152,7 @@ class TestHandleReasoningCommand(unittest.TestCase):
             CLI_CONFIG,
             {"model": {"default": "config-default-model", "provider": "openrouter"}},
         ), patch(
-            "hermes_cli.model_switch.switch_model", return_value=fake_result
+            "devbuddy_cli.model_switch.switch_model", return_value=fake_result
         ):
             HermesCLI.new_session(stub, silent=True)
 

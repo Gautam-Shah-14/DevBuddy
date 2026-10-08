@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_cli.observability import shared_metrics_contract as contract
+from devbuddy_cli.observability import shared_metrics_contract as contract
 
 
 

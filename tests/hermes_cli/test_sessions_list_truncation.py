@@ -8,12 +8,12 @@ from argparse import Namespace
 
 import pytest
 
-from hermes_cli import sessions_cmd
+from devbuddy_cli import sessions_cmd
 
 
 @pytest.fixture
 def db(tmp_path):
-    from hermes_state import SessionDB
+    from devbuddy_state import SessionDB
     db = SessionDB(db_path=tmp_path / "state.db")
     for i in range(6):
         db.create_session(f"sess_{i}", "cli")

@@ -90,7 +90,7 @@ class TestResolveAutoMainFirst:
         acting model). The virtual moa://local base_url + placeholder key must
         be dropped so the aggregator resolves via its own provider credentials.
         """
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
         home = tmp_path / ".hermes"
         home.mkdir()
@@ -408,14 +408,14 @@ class TestResolveVisionMainFirst:
         ), patch(
             "agent.auxiliary_client.OpenAI",
         ) as mock_openai, patch(
-            "hermes_cli.auth.resolve_api_key_provider_credentials",
+            "devbuddy_cli.auth.resolve_api_key_provider_credentials",
             return_value={
                 "provider": "copilot",
                 "api_key": "copilot-api-token",
                 "base_url": "https://api.githubcopilot.com",
             },
         ), patch(
-            "hermes_cli.copilot_auth.copilot_request_headers",
+            "devbuddy_cli.copilot_auth.copilot_request_headers",
             side_effect=fake_headers,
         ):
             mock_client = MagicMock()
@@ -445,14 +445,14 @@ class TestResolveVisionMainFirst:
         with patch(
             "agent.auxiliary_client.OpenAI",
         ) as mock_openai, patch(
-            "hermes_cli.auth.resolve_api_key_provider_credentials",
+            "devbuddy_cli.auth.resolve_api_key_provider_credentials",
             return_value={
                 "provider": "copilot",
                 "api_key": "copilot-api-token",
                 "base_url": "https://api.githubcopilot.com",
             },
         ), patch(
-            "hermes_cli.copilot_auth.copilot_request_headers",
+            "devbuddy_cli.copilot_auth.copilot_request_headers",
             side_effect=fake_headers,
         ):
             mock_client = MagicMock()

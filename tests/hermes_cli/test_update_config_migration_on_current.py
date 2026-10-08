@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-from hermes_cli import config, update_cmd
+from devbuddy_cli import config, update_cmd
 
 
 @pytest.mark.parametrize('case,expected', [
@@ -76,7 +76,7 @@ def test_migration_policy(monkeypatch, capsys, case, expected):
 @pytest.mark.parametrize('named', [False, True])
 def test_update_copies_bundled_skill_bytes_to_default_active_and_sibling(tmp_path, monkeypatch, named):
     from pathlib import Path
-    from hermes_cli import update_cmd_maint
+    from devbuddy_cli import update_cmd_maint
 
     home = tmp_path / '.hermes'
     homes = [home, home / 'profiles/active', home / 'profiles/sibling'] if named else [home]

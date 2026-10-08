@@ -5,8 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import uninstall
-from tests.hermes_cli.test_data_uninstall import layout  # noqa: F401 — isolated layout
+from devbuddy_cli import uninstall
+from tests.devbuddy_cli.test_data_uninstall import layout  # noqa: F401 — isolated layout
 
 
 @pytest.mark.parametrize("mode", ["confirmed", "cancel", "dry-run"])
@@ -32,7 +32,7 @@ def test_unconfirmed_removal_never_contacts_the_gateway(layout, monkeypatch, mod
 
 
 def test_live_chat_lease_blocks_data_deletion(layout):
-    from hermes_cli.active_sessions import release_active_session, try_acquire_active_session
+    from devbuddy_cli.active_sessions import release_active_session, try_acquire_active_session
 
     home, _, data = layout
     lease, refusal = try_acquire_active_session(
@@ -107,7 +107,7 @@ def test_manual_gateway_drains_over_real_control_transport_before_deletion(layou
 
 @pytest.mark.parametrize("profile", ["", "sibling"])
 def test_backend_initial_profile_is_not_its_write_scope(layout, profile):
-    from hermes_cli.process_identity import register_self
+    from devbuddy_cli.process_identity import register_self
 
     _, _, data = layout
     assert register_self("serve", project_root=uninstall.get_project_root(), detail={"profile": profile})

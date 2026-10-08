@@ -201,7 +201,7 @@ class TestConfigMigration:
 
     def test_migration_creates_platforms_entries(self, tmp_path, monkeypatch):
         """Old overrides are migrated into display.platforms.<plat>.tool_progress."""
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
         config_path = tmp_path / "config.yaml"
         config = {
@@ -218,7 +218,7 @@ class TestConfigMigration:
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         # Re-import to pick up the new HERMES_HOME
         import importlib
-        import hermes_cli.config as cfg_mod
+        import devbuddy_cli.config as cfg_mod
         importlib.reload(cfg_mod)
 
         result = cfg_mod.migrate_config(interactive=False, quiet=True)

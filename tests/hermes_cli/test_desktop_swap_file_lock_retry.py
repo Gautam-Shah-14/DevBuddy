@@ -11,7 +11,7 @@ import os
 import sys
 from pathlib import Path
 
-from hermes_cli import main_desktop
+from devbuddy_cli import main_desktop
 
 
 def _packaged_exe_rel() -> Path:

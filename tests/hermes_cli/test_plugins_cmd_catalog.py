@@ -1,4 +1,4 @@
-"""Catalog-aware ``hermes plugins`` surface (hermes_cli/plugins_cmd_catalog.py): a bare catalog name installs
+"""Catalog-aware ``hermes plugins`` surface (devbuddy_cli/plugins_cmd_catalog.py): a bare catalog name installs
 the PINNED sha and records provenance; the kill list blocks every install path (CLI needs an explicit
 bypass, dashboard/TUI have none); ``update`` re-pins instead of pulling. Real git, file:// repos."""
 
@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import plugin_catalog as pc_cat
-from hermes_cli import plugins_cmd as pc
-from hermes_cli import plugins_cmd_catalog as cat
+from devbuddy_cli import plugin_catalog as pc_cat
+from devbuddy_cli import plugins_cmd as pc
+from devbuddy_cli import plugins_cmd_catalog as cat
 from tests.pm._fixtures import client, isolated_python  # noqa: F401
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
@@ -50,7 +50,7 @@ def world(client, tmp_path, monkeypatch):
     monkeypatch.setattr(pc, "_console", lambda: type("C", (), {"print": lambda *a, **k: None})())
 
     def publish_without_environment(*_args, plugins=None, **_kwargs):
-        from hermes_cli.runtime_state import finish_publication
+        from devbuddy_cli.runtime_state import finish_publication
         from pm import paths
         from pm.plugin_inputs import Selection, StagedUpdate
         from pm.publication import PluginSelection, StagedPlugin
@@ -85,7 +85,7 @@ def _head(path: Path) -> str:
 
 
 def test_catalog_platform_mismatch_refuses_before_install(world):
-    from hermes_platform.host.facts import os_family
+    from devbuddy_platform.host.facts import os_family
     host = os_family()
     other = "linux" if host == "windows" else "windows"
     entry = pc_cat.PluginCatalogEntry(
@@ -137,7 +137,7 @@ def test_kill_list_blocks_cli_dashboard_and_tui_paths(world, monkeypatch):
 
 
 def test_owner_repo_hash_subdir_shorthand_resolves_like_the_catalog_spelling():
-    from hermes_cli.plugins_cmd import _resolve_git_url
+    from devbuddy_cli.plugins_cmd import _resolve_git_url
     assert _resolve_git_url("plastic-labs/honcho#hermes-plugin-honcho") == (
         "https://github.com/plastic-labs/honcho.git", "hermes-plugin-honcho")
     assert _resolve_git_url("owner/repo") == ("https://github.com/owner/repo.git", None)
@@ -207,8 +207,8 @@ def test_repin_keeps_local_files_backs_up_edits_and_follows_manifest_rename(worl
 def test_kill_list_covers_update_enable_and_load_of_an_installed_plugin(world, tmp_path, monkeypatch):
     """A URL install whose name lands on the kill list AFTER install must stop pulling, cannot be enabled
     and is refused at load; an install made with --allow-removed keeps working."""
-    from hermes_cli.plugins_discovery import gate_manifest
-    from hermes_cli.plugins_manifest import PluginManifest
+    from devbuddy_cli.plugins_discovery import gate_manifest
+    from devbuddy_cli.plugins_manifest import PluginManifest
     target = _install_url(tmp_path / "later-killed", "killed", {})
     world["state"]["removed"].append(pc_cat.RemovedEntry(name="killed", reason="backdoor"))
     monkeypatch.setattr(pc_cat, "_live_cache_path", lambda: tmp_path / "no-cache.json")

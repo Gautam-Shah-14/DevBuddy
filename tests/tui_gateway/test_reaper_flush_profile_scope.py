@@ -16,7 +16,7 @@ import time
 
 import pytest
 
-from hermes_constants import get_hermes_home
+from devbuddy_constants import get_hermes_home
 from tui_gateway import server as tui_server
 
 class _Agent:
@@ -52,7 +52,7 @@ def test_incremental_flush_persists_into_the_sessions_own_home(homes, monkeypatc
 def test_exit_flush_never_waits_on_an_external_secret_source(homes, monkeypatch):
     """A slow ``op run`` / ``bws`` source must not cost the transcript the exit flush exists to save."""
     _launch, served = homes
-    from hermes_cli import env_loader
+    from devbuddy_cli import env_loader
 
     def _slow_source(_home):
         time.sleep(2.0)  # a real secret CLI gets a 30s budget; this whole flush gets 1s

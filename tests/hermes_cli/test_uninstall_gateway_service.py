@@ -14,8 +14,8 @@ import platform
 
 import pytest
 
-import hermes_cli.gateway as gateway
-import hermes_cli.uninstall as uninstall
+import devbuddy_cli.gateway as gateway
+import devbuddy_cli.uninstall as uninstall
 
 
 @pytest.fixture

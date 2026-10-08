@@ -2,9 +2,9 @@
 
 Updaters up to v2026.9.14 finish the post-pull phases in the pre-pull interpreter and
 purge only package prefixes, so root ``utils`` stays cached without ``file_signature``;
-the restart phase's fresh ``hermes_cli.config`` import then died with
-``cannot import name 'file_signature' from 'utils'``. Freshly imported hermes_cli code
-drops the incomplete root cache first (``hermes_cli.stale_modules``).
+the restart phase's fresh ``devbuddy_cli.config`` import then died with
+``cannot import name 'file_signature' from 'utils'``. Freshly imported devbuddy_cli code
+drops the incomplete root cache first (``devbuddy_cli.stale_modules``).
 """
 
 from __future__ import annotations
@@ -15,9 +15,9 @@ import sys
 import pytest
 
 # Mirrors the post-pull purge of a pre-hand-off updater (v2026.9.14
-# hermes_cli/update_cmd_maint.py): package prefixes only, root-level modules survive.
-_PRE_HANDOFF_PURGE_PREFIXES = ("hermes_cli", "gateway", "tools", "tui_gateway", "agent")
-_PRE_HANDOFF_PURGE_PROTECTED = {"hermes_cli", "hermes_cli.main", "hermes_cli.hermes_logging"}
+# devbuddy_cli/update_cmd_maint.py): package prefixes only, root-level modules survive.
+_PRE_HANDOFF_PURGE_PREFIXES = ("devbuddy_cli", "gateway", "tools", "tui_gateway", "agent")
+_PRE_HANDOFF_PURGE_PROTECTED = {"devbuddy_cli", "devbuddy_cli.main", "devbuddy_cli.devbuddy_logging"}
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def pre_handoff_purge():
 
     def _purge() -> None:
         for name in list(sys.modules):
-            if name in _PRE_HANDOFF_PURGE_PROTECTED or name.startswith("hermes_cli.update_"):
+            if name in _PRE_HANDOFF_PURGE_PROTECTED or name.startswith("devbuddy_cli.update_"):
                 continue
             if name.split(".", 1)[0] in _PRE_HANDOFF_PURGE_PREFIXES:
                 module = sys.modules.pop(name, None)
@@ -40,11 +40,11 @@ def pre_handoff_purge():
             sys.modules[name] = module
 
 
-@pytest.mark.parametrize("consumer", ["hermes_cli.config", "hermes_cli.managed_scope"])
+@pytest.mark.parametrize("consumer", ["devbuddy_cli.config", "devbuddy_cli.managed_scope"])
 def test_fresh_hermes_cli_import_heals_stale_utils_missing_file_signature(
     monkeypatch, pre_handoff_purge, consumer
 ):
-    """Restart-phase shape: hermes_cli.* purged, root utils stale, consumer freshly imported."""
+    """Restart-phase shape: devbuddy_cli.* purged, root utils stale, consumer freshly imported."""
     import utils
 
     monkeypatch.delattr(utils, "file_signature")
@@ -58,7 +58,7 @@ def test_fresh_hermes_cli_import_heals_stale_utils_missing_file_signature(
 
 def test_drop_stale_root_modules_leaves_complete_utils_alone():
     import utils
-    from hermes_cli.stale_modules import drop_stale_root_modules
+    from devbuddy_cli.stale_modules import drop_stale_root_modules
 
     assert hasattr(utils, "file_signature")
     before = sys.modules["utils"]

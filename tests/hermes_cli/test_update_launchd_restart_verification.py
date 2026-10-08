@@ -24,8 +24,8 @@ import subprocess
 
 import pytest
 
-import hermes_cli.gateway as gateway_cli
-import hermes_cli.update_cmd as update_cmd
+import devbuddy_cli.gateway as gateway_cli
+import devbuddy_cli.update_cmd as update_cmd
 
 LABEL = "ai.hermes.gateway"
 

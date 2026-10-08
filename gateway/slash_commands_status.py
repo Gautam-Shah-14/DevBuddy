@@ -16,7 +16,7 @@ from agent.i18n import t
 from gateway.config import Platform
 from gateway.platforms.event import MessageEvent
 from gateway.session_transcript import TranscriptReadError
-from hermes_cli.status_report import build_status_fields
+from devbuddy_cli.status_report import build_status_fields
 
 # Log-record parity with gateway/run.py and the origin module.
 logger = logging.getLogger("gateway.run")
@@ -282,8 +282,8 @@ class GatewayStatusCommandsMixin:
         elif fields["model"]:
             lines.append(t("gateway.status.model", model=fields["model"]))
         try:
-            from hermes_cli.auth import resolve_provider
-            from hermes_cli.anon_auth import guest_carries_inference
+            from devbuddy_cli.auth import resolve_provider
+            from devbuddy_cli.anon_auth import guest_carries_inference
 
             free_tier_active = await self._run_in_executor_with_context(
                 lambda: resolve_provider("auto") == "nous" and guest_carries_inference()
@@ -677,7 +677,7 @@ class GatewayStatusCommandsMixin:
                 days = int(flag) if flag.isdigit() else days
                 i += 1
         try:
-            from hermes_state_registry import acquire
+            from devbuddy_state_registry import acquire
             from agent.insights import InsightsEngine
 
             def _run_insights():
@@ -686,7 +686,7 @@ class GatewayStatusCommandsMixin:
                     engine = InsightsEngine(db)
                     return engine.format_gateway(engine.generate(days=days, source=source))
                 finally:
-                    from hermes_state_registry import release_or_close
+                    from devbuddy_state_registry import release_or_close
                     release_or_close(db)
 
             # Not a bare hop: ``SessionDB()`` resolves ``get_hermes_home()`` at call time, a

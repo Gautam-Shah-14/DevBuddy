@@ -1,4 +1,4 @@
-"""Cross-process update mutual exclusion (``hermes_cli.update_lock``).
+"""Cross-process update mutual exclusion (``devbuddy_cli.update_lock``).
 
 Three surfaces can start an update of one install tree: a terminal ``hermes
 update``, the dashboard's Update button (which spawns that same command
@@ -24,7 +24,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.update_lock import (
+from devbuddy_cli.update_lock import (
     HANDOFF_PID_ENV,
     UPDATE_MARKER_MAX_AGE_SECONDS,
     UpdateLock,
@@ -34,7 +34,7 @@ from hermes_cli.update_lock import (
 )
 
 # Repo root: the -I -S -B subprocesses insert it on sys.path to import the
-# real hermes_cli without site-packages.
+# real devbuddy_cli without site-packages.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # A pid no live process owns. os.kill(pid, 0) must report it dead so a crashed
@@ -276,7 +276,7 @@ class TestAncestryHandoff:
 
     @pytest.fixture(autouse=True)
     def _liveness_pinned_true(self, monkeypatch):
-        monkeypatch.setattr("hermes_cli.update_lock._pid_alive", lambda pid: True)
+        monkeypatch.setattr("devbuddy_cli.update_lock._pid_alive", lambda pid: True)
 
     def test_marker_owned_by_our_parent_process_is_our_orchestrator(self, marker):
         marker.write_text(f"{os.getppid()}\n{int(time.time())}\n", encoding="utf-8")
@@ -317,7 +317,7 @@ class TestAncestryHandoff:
             import sys
             from pathlib import Path
             sys.path.insert(0, %(root)r)
-            from hermes_cli.update_lock import UpdateLock
+            from devbuddy_cli.update_lock import UpdateLock
             lock = UpdateLock(path=Path(%(marker)r))
             if not lock.acquire():
                 print("REFUSED", lock.holder.pid)
@@ -368,7 +368,7 @@ class TestAncestryHandoff:
                 import sys
                 from pathlib import Path
                 sys.path.insert(0, %(root)r)
-                from hermes_cli.update_lock import UpdateLock
+                from devbuddy_cli.update_lock import UpdateLock
                 lock = UpdateLock(path=Path(%(marker)r))
                 print("ADOPTED" if lock.acquire() else "REFUSED")
                 """

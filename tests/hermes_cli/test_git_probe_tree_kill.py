@@ -19,8 +19,8 @@ import time
 
 import pytest
 
-from hermes_cli import _subprocess_compat
-from hermes_cli._subprocess_compat import bounded_git_probe, kill_process_tree
+from devbuddy_cli import _subprocess_compat
+from devbuddy_cli._subprocess_compat import bounded_git_probe, kill_process_tree
 
 pytestmark = pytest.mark.platforms("posix")  # POSIX process-group semantics
 

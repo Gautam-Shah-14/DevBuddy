@@ -22,7 +22,7 @@ for _stream in (sys.stdout, sys.stderr):
     if hasattr(_stream, "reconfigure"):
         with suppress(ValueError, TypeError):
             _stream.reconfigure(encoding="utf-8", errors="replace")
-from hermes_constants import get_bundled_skills_dir, get_hermes_home, get_optional_skills_dir
+from devbuddy_constants import get_bundled_skills_dir, get_hermes_home, get_optional_skills_dir
 from agent.skill_utils import ESSENTIAL_SKILLS, is_excluded_skill_path
 from tools.skill_usage import _read_skill_name
 from tools.skills_sync_optional import (
@@ -67,7 +67,7 @@ def _manifest_file() -> Path:
 
 
 # Written by `hermes profile create --no-skills` / installer `--no-skills`: sync seeds only
-# essential skills. Mirrors hermes_cli.profiles.NO_BUNDLED_SKILLS_MARKER (no CLI import here).
+# essential skills. Mirrors devbuddy_cli.profiles.NO_BUNDLED_SKILLS_MARKER (no CLI import here).
 NO_BUNDLED_SKILLS_MARKER = ".no-bundled-skills"
 
 
@@ -157,7 +157,7 @@ def _read_suppressed_names() -> set:
 
 def _write_manifest(entries: Dict[str, str]):
     """Atomic v2 write, preserving an existing file's mode/owner (not mkstemp's 0600)."""
-    from hermes_constants import mkdir_under_hermes_home
+    from devbuddy_constants import mkdir_under_hermes_home
     mkdir_under_hermes_home(_manifest_file().parent)
     try:
         data = "".join(f"{n}:{h}\n" for n, h in sorted(entries.items()))
@@ -515,7 +515,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

@@ -22,7 +22,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from hermes_time import now as _hermes_now
+from devbuddy_time import now as _hermes_now
 
 logger = logging.getLogger("cron.scheduler")
 
@@ -42,7 +42,7 @@ def retry_enabled(cfg: Optional[dict] = None) -> bool:
     model calls were made)."""
     if cfg is None:
         try:
-            from hermes_cli.config import load_config
+            from devbuddy_cli.config import load_config
 
             cfg = load_config() or {}
         except Exception:  # config unreadable — keep the reliability default

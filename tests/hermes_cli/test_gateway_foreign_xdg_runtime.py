@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-import hermes_cli.gateway as gateway_cli
+import devbuddy_cli.gateway as gateway_cli
 
 pytestmark = pytest.mark.platforms("linux")
 

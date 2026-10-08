@@ -17,7 +17,7 @@ import random
 import shutil
 import tempfile
 import time
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 import logging
 import asyncio
 from pathlib import Path
@@ -29,9 +29,9 @@ from utils import base_url_host_matches, base_url_hostname
 import fire
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, TimeElapsedColumn, TimeRemainingColumn
 from rich.console import Console
-from hermes_constants import OPENROUTER_BASE_URL, get_hermes_home
+from devbuddy_constants import OPENROUTER_BASE_URL, get_hermes_home
 from agent.retry_utils import jittered_backoff
-from hermes_cli.env_loader import load_hermes_dotenv
+from devbuddy_cli.env_loader import load_hermes_dotenv
 
 # Load .env from HERMES_HOME first, then project root as a dev fallback.
 load_hermes_dotenv(hermes_home=get_hermes_home(), project_env=Path(__file__).parent / ".env")

@@ -188,7 +188,7 @@ class _DepletedAccount:
 
 def _cold_pricing_cache(monkeypatch):
     """Empty the process-wide pricing cache (and its expiry map) so the peek starts cold."""
-    from hermes_cli import models_pricing
+    from devbuddy_cli import models_pricing
 
     monkeypatch.setattr(models_pricing, "_pricing_cache", {})
     monkeypatch.setattr(models_pricing, "_pricing_cache_retry_after", {})
@@ -205,7 +205,7 @@ def _run_bg_seed(monkeypatch, agent, *, warm):
     import threading
 
     import agent.memory_provider as memory_provider
-    import hermes_cli.nous_account as nous_account
+    import devbuddy_cli.nous_account as nous_account
     from agent import credits_tracker
 
     release_worker = threading.Event()

@@ -9,7 +9,7 @@ developer's production state.db.
 
 ``HERMES_TEST_ISOLATION`` is Hermes's own marker: the hermetic conftest
 exports it (value = the isolation root) before any test module imports, it
-inherits into children by default, and ``hermes_state`` honors it as a
+inherits into children by default, and ``devbuddy_state`` honors it as a
 test-context signal. These tests pin all three properties.
 """
 
@@ -19,22 +19,22 @@ import subprocess
 import sys
 from pathlib import Path
 
-import hermes_state_guard
+import devbuddy_state_guard
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 _CHILD_PROBE = r"""
 import json, os, sys
 sys.path.insert(0, {repo!r})
-import hermes_state as hs
-import hermes_state_guard
+import devbuddy_state as hs
+import devbuddy_state_guard
 fired = False
 try:
     hs._ensure_test_isolation(hs._real_platform_state_root() / "state.db")
 except RuntimeError:
     fired = True
 print(json.dumps({{
-    "armed": hermes_state_guard._running_under_pytest(),
+    "armed": devbuddy_state_guard._running_under_pytest(),
     "fired": fired,
 }}))
 """
@@ -72,7 +72,7 @@ def test_marker_alone_reports_test_context(monkeypatch):
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     monkeypatch.delenv("PYTEST_VERSION", raising=False)
     monkeypatch.setenv("HERMES_TEST_ISOLATION", "/tmp/some-isolation-root")
-    assert hermes_state_guard._running_under_pytest() is True
+    assert devbuddy_state_guard._running_under_pytest() is True
 
 
 def test_no_signals_reports_production(monkeypatch):
@@ -81,7 +81,7 @@ def test_no_signals_reports_production(monkeypatch):
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     monkeypatch.delenv("PYTEST_VERSION", raising=False)
     monkeypatch.delenv("HERMES_TEST_ISOLATION", raising=False)
-    assert hermes_state_guard._running_under_pytest() is False
+    assert devbuddy_state_guard._running_under_pytest() is False
 
 
 def test_child_with_rebuilt_env_keeping_marker_refuses_production_db():

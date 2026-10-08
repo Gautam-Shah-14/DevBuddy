@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from cron.jobs import effective_job_state
 
-import hermes_time
+import devbuddy_time
 
 # Logger parity with the origin module.
 logger = logging.getLogger("tools.cronjob_tools")
@@ -45,7 +45,7 @@ def _first_fire_within_thread_horizon(
         fire_at = datetime.fromisoformat(str(run_at).replace("Z", "+00:00"))
     except ValueError:
         return False
-    now = hermes_time.now()
+    now = devbuddy_time.now()
     if fire_at.tzinfo is None:
         fire_at = fire_at.replace(tzinfo=now.tzinfo)
     # Bounded interval: an already-expired run_at gives a negative delta that would
@@ -262,7 +262,7 @@ def _validate_bot_chat_deliver(deliver: Optional[str]) -> Optional[str]:
         return None
     try:
         from cron.scheduler_delivery import parse_bot_chat_deliver_token
-        from hermes_cli.profiles import normalize_profile_name, profile_exists
+        from devbuddy_cli.profiles import normalize_profile_name, profile_exists
     except Exception:
         return None  # best-effort; resolution re-checks at fire time
     for part in str(deliver).split(","):
@@ -323,11 +323,11 @@ def _validate_cron_base_url(
             "base_url override requires an explicit provider. Set provider to a "
             "configured custom provider to use a custom endpoint.")
     try:
-        from hermes_cli.runtime_provider import (
+        from devbuddy_cli.runtime_provider import (
             has_named_custom_provider,
             resolve_requested_provider,
             _get_named_custom_provider)
-        from hermes_cli.auth import PROVIDER_REGISTRY
+        from devbuddy_cli.auth import PROVIDER_REGISTRY
         from utils import base_url_host_matches, base_url_hostname
     except Exception:
         return f"Unable to validate base_url override for provider {prov!r}; refused."
@@ -368,7 +368,7 @@ def _validate_cron_script_path(script: Optional[str]) -> Optional[str]:
     if not script or not script.strip():
         return None
 
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
     raw = script.strip()
     scripts_dir = get_hermes_home() / "scripts"
     if raw.startswith(("/", "~")) or (len(raw) >= 2 and raw[1] == ":"):
@@ -479,12 +479,12 @@ def _gateway_liveness_notice(plural: bool = False) -> dict:
     """``gateway_running``/``warning`` payload via the shared CLI helper so CLI and tool agree
     on "scheduler active". False -> warning (no gateway process), None -> probe failed.
 
-    Thin adapter over the shared CLI helper ``hermes_cli.cron._builtin_gateway_liveness`` (#87033) so the
+    Thin adapter over the shared CLI helper ``devbuddy_cli.cron._builtin_gateway_liveness`` (#87033) so the
     CLI and this tool can never disagree about what "scheduler active" means. ``plural`` rewords the warning
     for multi-job results (the ``list`` action).
     """
     try:
-        from hermes_cli.cron import _builtin_gateway_liveness
+        from devbuddy_cli.cron import _builtin_gateway_liveness
         _gw = _builtin_gateway_liveness()
     except Exception:
         return {"gateway_running": None}

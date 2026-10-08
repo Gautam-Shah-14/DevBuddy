@@ -25,7 +25,7 @@ import json
 from datetime import timedelta
 from unittest.mock import patch
 
-import hermes_time
+import devbuddy_time
 from tools.cronjob_tools import _origin_from_env
 
 
@@ -103,7 +103,7 @@ _TOP_LEVEL_SLACK = {
 
 
 def _run_at_in(minutes: int) -> str:
-    return (hermes_time.now() + timedelta(minutes=minutes)).isoformat()
+    return (devbuddy_time.now() + timedelta(minutes=minutes)).isoformat()
 
 
 class TestNearHorizonSlackThreadKept:
@@ -152,10 +152,10 @@ class TestNearHorizonSlackThreadKept:
         """A fire at this instant still happens inside the live conversation: the lower
         bound is inclusive on purpose. The clock is frozen so the boundary itself is
         tested, not the microseconds between two now() calls."""
-        frozen = hermes_time.now()
+        frozen = devbuddy_time.now()
         with (
             _session_env(_TOP_LEVEL_SLACK),
-            patch("tools.cronjob_job_args.hermes_time") as frozen_clock,
+            patch("tools.cronjob_job_args.devbuddy_time") as frozen_clock,
         ):
             frozen_clock.now.return_value = frozen
             origin = _origin_from_env({"kind": "once", "run_at": frozen.isoformat()})

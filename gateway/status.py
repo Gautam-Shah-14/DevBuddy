@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, NamedTuple, Optional
 
-from hermes_constants import _get_platform_default_hermes_home, get_hermes_home, get_process_hermes_home
+from devbuddy_constants import _get_platform_default_hermes_home, get_hermes_home, get_process_hermes_home
 from utils import atomic_json_write
 
 if sys.platform == "win32":
@@ -264,8 +264,8 @@ def recorded_gateway_home_conflicts(
         return True
 
 
-# Mirrors hermes_cli.profiles._PROFILE_ID_RE -- duplicated so gateway identity code
-# stays import-light (hermes_constants + stdlib only).
+# Mirrors devbuddy_cli.profiles._PROFILE_ID_RE -- duplicated so gateway identity code
+# stays import-light (devbuddy_constants + stdlib only).
 _PROFILE_LABEL_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 
 
@@ -277,8 +277,8 @@ def _profile_label_for_home(home: Path | str) -> Optional[str]:
         return None
     if canonical.parent.name == "profiles" and _PROFILE_LABEL_RE.match(canonical.name):
         return canonical.name
-    import hermes_constants
-    default_homes = (hermes_constants.get_default_hermes_root, _get_platform_default_hermes_home)
+    import devbuddy_constants
+    default_homes = (devbuddy_constants.get_default_hermes_root, _get_platform_default_hermes_home)
     for default_home in default_homes:
         with contextlib.suppress(Exception):
             if _same_hermes_home(canonical, default_home()):
@@ -417,7 +417,7 @@ def terminate_pid(
         os.kill(pid, signal.SIGTERM if not force else getattr(signal, "SIGKILL", signal.SIGTERM))
         return
     # Hide flags: a bare taskkill spawn from windowless pythonw.exe would flash a conhost window.
-    from hermes_cli._subprocess_compat import windows_hide_flags
+    from devbuddy_cli._subprocess_compat import windows_hide_flags
 
     try:
         result = subprocess.run(
@@ -555,7 +555,7 @@ def _gateway_command_subcommand(command: str | None) -> str | None:
     if any(b in ("hermes-gateway", "hermes-gateway.exe") for b in basenames):
         return "run"
     joined = " ".join(tokens)
-    if "hermes_cli.main" not in joined and "hermes_cli/main.py" not in joined and not any(
+    if "devbuddy_cli.main" not in joined and "devbuddy_cli/main.py" not in joined and not any(
         b in ("hermes", "hermes.exe") for b in basenames
     ):
         return None
@@ -648,7 +648,7 @@ def command_line_names_hermes_home(command_lc: str, home_lc: str) -> bool:
 
 def _command_line_belongs_to_profile(command: str, profile_home: Path) -> bool:
     """True when a gateway command line belongs to ``profile_home`` (mirrors
-    ``hermes_cli.gateway._matches_current_profile``): a stale state file can record a PID recycled
+    ``devbuddy_cli.gateway._matches_current_profile``): a stale state file can record a PID recycled
     onto ANOTHER profile's live gateway. Named profiles carry ``-p``/``--profile <name>`` or
     ``HERMES_HOME=`` on argv; the default gateway runs bare. Separators normalized."""
     command_lc = command.lower().replace("\\", "/")
@@ -713,7 +713,7 @@ def _build_pid_record() -> dict:
 
 def _get_code_identity_fields() -> dict[str, Any]:
     """Code identity of THIS process for ``gateway_state.json`` (restart picked up new code?).
-    Lazy import keeps ``gateway.status`` free of ``hermes_cli`` at import time. Never raises.
+    Lazy import keeps ``gateway.status`` free of ``devbuddy_cli`` at import time. Never raises.
 
     A gateway keeps serving the module versions it imported at startup, so stamping the identity into
     ``gateway_state.json`` lets `hermes update` (and the dashboard) prove whether a running gateway actually
@@ -721,7 +721,7 @@ def _get_code_identity_fields() -> dict[str, Any]:
     degrades to absent fields.
     """
     try:
-        from hermes_cli.version_info import get_code_identity
+        from devbuddy_cli.version_info import get_code_identity
 
         identity = get_code_identity()
         return {"code_sha": identity.get("sha"), "code_version": identity.get("version")}
@@ -1272,7 +1272,7 @@ def profile_name_for_home(profile_home: Path) -> Optional[str]:
     if named:
         return named
     try:
-        from hermes_constants import get_default_hermes_root
+        from devbuddy_constants import get_default_hermes_root
         if home.resolve() == Path(get_default_hermes_root()).resolve():
             return "default"
     except Exception:
@@ -1294,9 +1294,9 @@ def multiplexer_liveness_for_profile(profile_dir: Path) -> Optional[tuple[int, d
     if not name:
         return None
     from gateway.host_topology import host_gateway_topology
-    from hermes_cli.gateway import named_profile_served_by_running_multiplexer
-    from hermes_cli.gateway_multiplex_served import live_default_gateway_pid
-    from hermes_constants import get_default_hermes_root
+    from devbuddy_cli.gateway import named_profile_served_by_running_multiplexer
+    from devbuddy_cli.gateway_multiplex_served import live_default_gateway_pid
+    from devbuddy_constants import get_default_hermes_root
     # The roster is matched by NAME, and the multiplexer only serves ``<default root>/profiles/<name>``:
     # a profile directory copied to another root (sandbox, restore-from-backup) keeps the name but is
     # not the home being served, so it must not borrow the multiplexer's PID.

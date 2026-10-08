@@ -2,8 +2,8 @@ import re
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import hermes_cli.memory_setup as memory_setup
-from hermes_cli.memory_setup import _CANCELLED
+import devbuddy_cli.memory_setup as memory_setup
+from devbuddy_cli.memory_setup import _CANCELLED
 
 
 
@@ -34,8 +34,8 @@ def test_cmd_setup_generic_choice_cancel_writes_nothing(tmp_path, monkeypatch):
     monkeypatch.setattr(memory_setup, "_curses_select", lambda *args, **kwargs: next(selections))
     monkeypatch.setattr(memory_setup, "_install_dependencies", install_dependencies)
     monkeypatch.setattr(memory_setup, "get_hermes_home", lambda: tmp_path)
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"memory": {}})
-    monkeypatch.setattr("hermes_cli.config.save_config", save_config)
+    monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: {"memory": {}})
+    monkeypatch.setattr("devbuddy_cli.config.save_config", save_config)
 
     memory_setup.cmd_setup(SimpleNamespace())
 
@@ -46,7 +46,7 @@ def test_cmd_setup_generic_choice_cancel_writes_nothing(tmp_path, monkeypatch):
 
 
 # _write_env_vars's CR/LF-stripping, denylist, and plain-value-roundtrip
-# behavior is covered by tests/hermes_cli/test_memory_setup_env_denylist.py,
+# behavior is covered by tests/devbuddy_cli/test_memory_setup_env_denylist.py,
 # which exercises the current save_env_value-routed signature
 # (env_writes, hermes_home=None) \u2014 these three tests pinned the prior direct
 # Path.write_text(env_path, env_writes) signature/implementation and were
@@ -63,7 +63,7 @@ def test_cmd_setup_generic_choice_cancel_writes_nothing(tmp_path, monkeypatch):
 
 def test_install_dependencies_prepares_declared_extra_even_if_importable(tmp_path, monkeypatch):
     """PM, not ambient importability, decides whether constraints are current."""
-    import hermes_yaml as _yaml
+    import devbuddy_yaml as _yaml
 
     plugin_dir = tmp_path / "mem0"
     plugin_dir.mkdir()
@@ -92,10 +92,10 @@ def test_install_dependencies_prepares_declared_extra_even_if_importable(tmp_pat
 def test_cmd_status_memory_tool_gate_disabled(capsys, monkeypatch):
     """When both memory stores are disabled, Memory status reports memory tool as disabled."""
     _cfg = {"memory": {"memory_enabled": False, "user_profile_enabled": False}}
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: _cfg)
+    monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: _cfg)
     # check_memory_requirements() reads the readonly loader, not load_config.
     monkeypatch.setattr(
-        "hermes_cli.config.load_config_readonly", lambda: _cfg, raising=False
+        "devbuddy_cli.config.load_config_readonly", lambda: _cfg, raising=False
     )
     monkeypatch.setattr(memory_setup, "_get_available_providers", lambda: [])
 
@@ -110,9 +110,9 @@ def test_cmd_status_memory_tool_gate_disabled(capsys, monkeypatch):
 def test_cmd_status_memory_tool_gate_enabled(capsys, monkeypatch):
     """When at least one memory store is enabled, Memory status reports memory tool as enabled."""
     _cfg = {"memory": {"memory_enabled": True, "user_profile_enabled": False}}
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: _cfg)
+    monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: _cfg)
     monkeypatch.setattr(
-        "hermes_cli.config.load_config_readonly", lambda: _cfg, raising=False
+        "devbuddy_cli.config.load_config_readonly", lambda: _cfg, raising=False
     )
     monkeypatch.setattr(memory_setup, "_get_available_providers", lambda: [])
 

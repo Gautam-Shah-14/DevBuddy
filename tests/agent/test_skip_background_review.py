@@ -108,7 +108,7 @@ def test_finalize_turn_fires_review_when_flag_unset() -> None:
 def test_persistence_failure_error_fallback_is_pinned_and_leaves_final_response_empty(monkeypatch, tmp_path) -> None:
     """With no model text, result["error"] carries a profile-pinned `hermes doctor`, while the
     memory sync and the background-review gate still see the turn as having produced nothing."""
-    from hermes_constants import profile_cli_selector
+    from devbuddy_constants import profile_cli_selector
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes" / "profiles" / "research"))
     selector = profile_cli_selector()

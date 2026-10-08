@@ -1,11 +1,11 @@
-"""Tests for provider-aware `/model` validation in hermes_cli.models."""
+"""Tests for provider-aware `/model` validation in devbuddy_cli.models."""
 
 import pytest
 from unittest.mock import MagicMock, patch
 
-from hermes_cli.models import azure_foundry_model_api_mode, copilot_model_api_mode, curated_models_for_provider, fetch_api_models, normalize_provider, opencode_model_api_mode, parse_model_input, probe_api_models, provider_model_ids
-from hermes_cli.models_local import fetch_lmstudio_models
-from hermes_cli.models_validate import validate_requested_model
+from devbuddy_cli.models import azure_foundry_model_api_mode, copilot_model_api_mode, curated_models_for_provider, fetch_api_models, normalize_provider, opencode_model_api_mode, parse_model_input, probe_api_models, provider_model_ids
+from devbuddy_cli.models_local import fetch_lmstudio_models
+from devbuddy_cli.models_validate import validate_requested_model
 
 
 # -- helpers -----------------------------------------------------------------
@@ -28,8 +28,8 @@ def _validate(model, provider="openrouter", api_models=FAKE_API_MODELS, **kw):
         "suggested_base_url": None,
         "used_fallback": False,
     }
-    with patch("hermes_cli.models.fetch_api_models", return_value=api_models), \
-         patch("hermes_cli.models.probe_api_models", return_value=probe_payload):
+    with patch("devbuddy_cli.models.fetch_api_models", return_value=api_models), \
+         patch("devbuddy_cli.models.probe_api_models", return_value=probe_payload):
         return validate_requested_model(model, provider, **kw)
 
 
@@ -50,10 +50,10 @@ class TestCuratedModelsForProvider:
         assert curated_models_for_provider("totally-unknown") == []
 
     def test_live_catalog_projected_to_tuples_else_static_fallback(self):
-        with patch("hermes_cli.models.provider_model_ids", return_value=["m-live"]):
+        with patch("devbuddy_cli.models.provider_model_ids", return_value=["m-live"]):
             assert curated_models_for_provider("nous") == [("m-live", "")]
-        with patch("hermes_cli.models.provider_model_ids", return_value=[]), patch.dict(
-            "hermes_cli.models._PROVIDER_MODELS", {"nous": ["m-static"]}
+        with patch("devbuddy_cli.models.provider_model_ids", return_value=[]), patch.dict(
+            "devbuddy_cli.models._PROVIDER_MODELS", {"nous": ["m-static"]}
         ):
             assert curated_models_for_provider("nous") == [("m-static", "")]
 
@@ -87,7 +87,7 @@ class TestProviderModelIds:
                 return b'{"data": [{"id": "enterprise-claude"}]}'
 
         with patch(
-            "hermes_cli.config.load_config",
+            "devbuddy_cli.config.load_config",
             return_value={
                 "model": {
                     "provider": "anthropic",
@@ -96,7 +96,7 @@ class TestProviderModelIds:
                 }
             },
         ), patch(
-            "hermes_cli.models._urlopen_model_catalog_request",
+            "devbuddy_cli.models._urlopen_model_catalog_request",
             return_value=_Resp(),
         ) as mock_urlopen:
             assert provider_model_ids("anthropic") == ["enterprise-claude"]
@@ -107,7 +107,7 @@ class TestProviderModelIds:
 
     def test_custom_provider_passes_anthropic_mode_for_versioned_proxy_catalog(self):
         with patch(
-            "hermes_cli.config.load_config",
+            "devbuddy_cli.config.load_config",
             return_value={
                 "model": {
                     "provider": "custom",
@@ -116,7 +116,7 @@ class TestProviderModelIds:
                 }
             },
         ), patch(
-            "hermes_cli.models.fetch_api_models",
+            "devbuddy_cli.models.fetch_api_models",
             return_value=["enterprise-claude"],
         ) as mock_fetch:
             assert provider_model_ids("custom") == ["enterprise-claude"]
@@ -183,7 +183,7 @@ class TestFetchApiModels:
             def read(self):
                 return b'{"data": [{"id": "gpt-5.4", "model_picker_enabled": true, "supported_endpoints": ["/responses"], "capabilities": {"type": "chat", "supports": {"reasoning_effort": ["low", "medium", "high"]}}}, {"id": "claude-sonnet-4.6", "model_picker_enabled": true, "supported_endpoints": ["/chat/completions"], "capabilities": {"type": "chat", "supports": {"reasoning_effort": ["low", "medium", "high"]}}}, {"id": "text-embedding-3-small", "model_picker_enabled": true, "capabilities": {"type": "embedding"}}]}'
 
-        with patch("hermes_cli.models._urlopen_model_catalog_request", return_value=_Resp()) as mock_urlopen:
+        with patch("devbuddy_cli.models._urlopen_model_catalog_request", return_value=_Resp()) as mock_urlopen:
             probe = probe_api_models("gh-token", "https://api.githubcopilot.com")
 
         assert mock_urlopen.call_args[0][0].full_url == "https://api.githubcopilot.com/models"
@@ -285,7 +285,7 @@ class TestNormalizeOpencodeBaseUrl:
     """
 
     def test_strips_v1_for_anthropic_messages(self):
-        from hermes_cli.models import normalize_opencode_base_url
+        from devbuddy_cli.models import normalize_opencode_base_url
         assert normalize_opencode_base_url(
             "opencode-go", "anthropic_messages", "https://opencode.ai/zen/go/v1"
         ) == "https://opencode.ai/zen/go"
@@ -295,7 +295,7 @@ class TestNormalizeOpencodeBaseUrl:
 
 
     def test_non_opencode_provider_untouched(self):
-        from hermes_cli.models import normalize_opencode_base_url
+        from devbuddy_cli.models import normalize_opencode_base_url
         assert normalize_opencode_base_url(
             "openrouter", "chat_completions", "https://openrouter.ai/api"
         ) == "https://openrouter.ai/api"
@@ -325,7 +325,7 @@ class TestNormalizeOpencodeBaseUrlFamilyPath:
         ("opencode-go", "anthropic_messages", "https://opencode.ai/zen/v1?x=1", "https://opencode.ai/zen/go?x=1"),
     ])
     def test_family_path_follows_the_resolved_provider(self, provider, api_mode, url, expected):
-        from hermes_cli.models import normalize_opencode_base_url
+        from devbuddy_cli.models import normalize_opencode_base_url
         assert normalize_opencode_base_url(provider, api_mode, url) == expected
 
 
@@ -431,7 +431,7 @@ class TestValidateApiFallback:
             b']}'
         )
 
-        with patch("hermes_cli.models._urlopen_model_catalog_request", return_value=mock_resp):
+        with patch("devbuddy_cli.models._urlopen_model_catalog_request", return_value=mock_resp):
             models = fetch_lmstudio_models(base_url="http://localhost:1234/v1")
 
         assert models == ["publisher/chat-model"]
@@ -448,7 +448,7 @@ class TestValidateApiFallback:
             fp=None,
         )
 
-        with patch("hermes_cli.models._urlopen_model_catalog_request", side_effect=http_error):
+        with patch("devbuddy_cli.models._urlopen_model_catalog_request", side_effect=http_error):
             result = validate_requested_model(
                 "publisher/chat-model",
                 "lmstudio",
@@ -481,7 +481,7 @@ class TestRequestedIdIsNeverRewritten:
 
     def test_static_catalog_near_miss_keeps_requested_id(self):
         codex_models = ["gpt-5.4-mini", "gpt-5.4", "gpt-5.3-codex"]
-        with patch("hermes_cli.models.provider_model_ids", return_value=codex_models):
+        with patch("devbuddy_cli.models.provider_model_ids", return_value=codex_models):
             result = validate_requested_model("gpt5.3-codex", "openai-codex")
         assert "corrected_model" not in result
         assert result["recognized"] is False
@@ -496,14 +496,14 @@ class TestValidateCodex900kVariants:
     _CATALOG = ["gpt-5.6-sol", "gpt-5.6-sol-900k", "gpt-5.5", "gpt-5.4-mini"]
 
     def test_catalog_listed_variant_accepted(self):
-        with patch("hermes_cli.models.provider_model_ids", return_value=self._CATALOG):
+        with patch("devbuddy_cli.models.provider_model_ids", return_value=self._CATALOG):
             result = validate_requested_model("gpt-5.6-sol-900k", "openai-codex")
         assert result["accepted"] is True
         assert result["recognized"] is True
 
     @pytest.mark.parametrize("alias", ["gpt-5.5-900k", "gpt-5.4-mini-900k", "gpt-5.6-sol-pro-900k"])
     def test_ineligible_900k_alias_rejected_not_soft_accepted(self, alias):
-        with patch("hermes_cli.models.provider_model_ids", return_value=self._CATALOG):
+        with patch("devbuddy_cli.models.provider_model_ids", return_value=self._CATALOG):
             result = validate_requested_model(alias, "openai-codex")
         assert result["accepted"] is False
         assert result["persist"] is False
@@ -512,7 +512,7 @@ class TestValidateCodex900kVariants:
     def test_valid_variant_missing_from_catalog_still_accepted(self):
         """A verified variant not yet in the (possibly stale) catalog is
         accepted via the eligibility predicate, not the soft-accept."""
-        with patch("hermes_cli.models.provider_model_ids", return_value=["gpt-5.6-sol"]):
+        with patch("devbuddy_cli.models.provider_model_ids", return_value=["gpt-5.6-sol"]):
             result = validate_requested_model("gpt-5.6-sol-900k", "openai-codex")
         assert result["accepted"] is True
 
@@ -543,7 +543,7 @@ class TestProbeApiModelsUserAgent:
 
         body = b'{"data":[{"id":"claude-opus-4.7"}]}'
         with patch(
-            "hermes_cli.models._urlopen_model_catalog_request",
+            "devbuddy_cli.models._urlopen_model_catalog_request",
             return_value=self._make_mock_response(body),
         ) as mock_urlopen:
             result = probe_api_models("sk-test", "https://example.com/v1")
@@ -565,7 +565,7 @@ class TestProbeApiModelsUserAgent:
 
         body = b'{"data":[]}'
         with patch(
-            "hermes_cli.models._urlopen_model_catalog_request",
+            "devbuddy_cli.models._urlopen_model_catalog_request",
             return_value=self._make_mock_response(body),
         ) as mock_urlopen:
             probe_api_models(None, "https://example.com/v1")
@@ -628,9 +628,9 @@ class TestValidateOpenRouterVariantSuffixes:
     def test_static_catalog_fallback_accepts_variant(self):
         """Gateway path: /models unreachable → static catalog validates the
         base id and preserves the suffix."""
-        with patch("hermes_cli.models.fetch_api_models", return_value=None), \
+        with patch("devbuddy_cli.models.fetch_api_models", return_value=None), \
              patch(
-                 "hermes_cli.models.provider_model_ids",
+                 "devbuddy_cli.models.provider_model_ids",
                  return_value=["x-ai/grok-4.6", "anthropic/claude-opus-4.6"],
              ):
             result = validate_requested_model(
@@ -678,11 +678,11 @@ class TestValidateRequestedModelNousPortalRecommendations:
                 raise RuntimeError("portal unreachable")
             return portal_payload if portal_payload is not None else self.PORTAL_PAYLOAD
 
-        with patch("hermes_cli.models.fetch_api_models", return_value=api_models), \
-             patch("hermes_cli.models.probe_api_models", return_value=probe_payload), \
-             patch("hermes_cli.models.fetch_nous_recommended_models", side_effect=_fetch_portal), \
-             patch("hermes_cli.models._resolve_nous_portal_url", return_value="https://portal.nousresearch.com"), \
-             patch("hermes_cli.models._model_in_provider_catalog", return_value=False):
+        with patch("devbuddy_cli.models.fetch_api_models", return_value=api_models), \
+             patch("devbuddy_cli.models.probe_api_models", return_value=probe_payload), \
+             patch("devbuddy_cli.models.fetch_nous_recommended_models", side_effect=_fetch_portal), \
+             patch("devbuddy_cli.models._resolve_nous_portal_url", return_value="https://portal.nousresearch.com"), \
+             patch("devbuddy_cli.models._model_in_provider_catalog", return_value=False):
             return validate_requested_model(model, "nous")
 
     def test_free_portal_recommendation_accepted(self):
@@ -745,10 +745,10 @@ class TestValidateRequestedModelNousPortalRecommendations:
             "suggested_base_url": None,
             "used_fallback": False,
         }
-        with patch("hermes_cli.models.fetch_api_models", return_value=["some/other-model"]), \
-             patch("hermes_cli.models.probe_api_models", return_value=probe_payload), \
-             patch("hermes_cli.models.fetch_nous_recommended_models") as mock_portal, \
-             patch("hermes_cli.models._model_in_provider_catalog", return_value=False):
+        with patch("devbuddy_cli.models.fetch_api_models", return_value=["some/other-model"]), \
+             patch("devbuddy_cli.models.probe_api_models", return_value=probe_payload), \
+             patch("devbuddy_cli.models.fetch_nous_recommended_models") as mock_portal, \
+             patch("devbuddy_cli.models._model_in_provider_catalog", return_value=False):
             result = validate_requested_model("inclusionai/ling-3.0-flash:free", "openrouter")
         mock_portal.assert_not_called()
         assert result["accepted"] is False
@@ -762,7 +762,7 @@ class TestValidateCustomUnreachableFallback:
     def _validate(self, model, provider, models, **kw):
         probe = {"models": models, "probed_url": "http://localhost:8000/v1/models",
                  "resolved_base_url": "http://localhost:8000/v1", "suggested_base_url": None, "used_fallback": False}
-        with patch("hermes_cli.models.probe_api_models", return_value=probe):
+        with patch("devbuddy_cli.models.probe_api_models", return_value=probe):
             return validate_requested_model(model, provider, api_key="k", base_url="http://localhost:8000/v1", **kw)
 
     @pytest.mark.parametrize("provider", ["custom", "custom:myproxy"])
@@ -826,8 +826,8 @@ class TestProfileCatalogAuthoritative:
     def test_unavailable_profile_catalog_keeps_generic_fallback(self, relay_profile):
         """The profile's own catalog unreachable/empty (e.g. no credentials yet):
         the generic listing stays the validator, as before (#116667's carve-out)."""
-        with patch("hermes_cli.models.fetch_api_models", return_value=["other-vendor/model-a"]), \
-             patch("hermes_cli.models.provider_model_ids", return_value=[]):
+        with patch("devbuddy_cli.models.fetch_api_models", return_value=["other-vendor/model-a"]), \
+             patch("devbuddy_cli.models.provider_model_ids", return_value=[]):
             result = validate_requested_model(
                 "other-vendor/model-a", "relay-owned-catalog", api_key="k")
         assert result["accepted"] is True
@@ -885,7 +885,7 @@ class TestModelIdWhitespace:
         for provider in ("vllm", "ollama", "llamacpp", "local", "lmstudio"):
             model = "Meta Llama 3.1 8B"
             if provider == "lmstudio":
-                with patch("hermes_cli.models_local.probe_lmstudio_models", return_value=[model]):
+                with patch("devbuddy_cli.models_local.probe_lmstudio_models", return_value=[model]):
                     result = validate_requested_model(model, provider)
             else:
                 result = _validate(
@@ -912,7 +912,7 @@ class TestModelIdWhitespace:
 def test_picker_payload_omits_ids_the_validator_rejects_for_whitespace():
     """Desktop model.options is this payload. A cloud row must not offer a spaced id;
     a self-hosted row and a user-configured base_url row must keep theirs."""
-    from hermes_cli.inventory import ConfigContext, build_models_payload
+    from devbuddy_cli.inventory import ConfigContext, build_models_payload
 
     rows = [
         {
@@ -935,9 +935,9 @@ def test_picker_payload_omits_ids_the_validator_rejects_for_whitespace():
     ctx = ConfigContext(
         current_provider="anthropic", current_model="claude-opus-4.6",
         current_base_url="", user_providers={}, custom_providers=[])
-    with patch("hermes_cli.model_switch.list_authenticated_providers", return_value=rows), \
-         patch("hermes_cli.inventory._local_runtime_row", return_value=None), \
-         patch("hermes_cli.inventory._moa_provider_row", return_value=None):
+    with patch("devbuddy_cli.model_switch.list_authenticated_providers", return_value=rows), \
+         patch("devbuddy_cli.inventory._local_runtime_row", return_value=None), \
+         patch("devbuddy_cli.inventory._moa_provider_row", return_value=None):
         payload = build_models_payload(ctx)
     by_slug = {row["slug"]: row["models"] for row in payload["providers"]}
     assert "claude opus" not in by_slug["anthropic"]

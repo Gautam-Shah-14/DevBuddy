@@ -12,7 +12,7 @@ from agent.secret_scope import (
     set_multiplex_active,
     set_secret_scope,
 )
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 from gateway.config import (
     ChannelOverride,
     GatewayConfig,
@@ -964,7 +964,7 @@ class TestLoadGatewayConfig:
         and the restart/dashboard child envs never carry the bridged value (a sticky env var would make
         the restarted gateway ignore the flipped config and stay open)."""
         from gateway.run_shutdown import GatewayShutdownMixin
-        from hermes_cli.web_server_gateway import _profile_action_environment
+        from devbuddy_cli.web_server_gateway import _profile_action_environment
 
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()

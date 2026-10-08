@@ -504,7 +504,7 @@ def test_tool_progress_mode_follows_profile_through_the_real_scoping_seam(monkey
     (root / ".env").write_text("HERMES_TOOL_PROGRESS_MODE=log\n")
     (beta / ".env").write_text("HERMES_TOOL_PROGRESS_MODE=verbose\n")
     monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setattr("devbuddy_constants.get_default_hermes_root", lambda: root)
 
     prev_multiplex = secret_scope.is_multiplex_active()
     secret_scope.set_multiplex_active(True)
@@ -534,7 +534,7 @@ async def test_run_agent_progress_uses_event_message_id_for_slack_dm(monkeypatch
     # Since PR #8006, Slack's built-in display tier sets tool_progress="off"
     # by default. Override via config so this test still exercises the
     # progress-callback path the Slack DM event_message_id threading depends on.
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"display": {"platforms": {"slack": {"tool_progress": "all"}}}}),
         encoding="utf-8",
@@ -626,7 +626,7 @@ async def test_progress_carries_anchor_for_relay_discord_auto_thread(monkeypatch
     SAME auto-thread as the final reply — otherwise the search-status updates
     leak into the parent channel (staging repro 2026-08-02)."""
     monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "all")
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"display": {"platforms": {"discord": {"tool_progress": "all"}}}}),
         encoding="utf-8",
@@ -685,7 +685,7 @@ async def test_progress_no_anchor_for_native_discord_thread_event(monkeypatch, t
     auto-thread lane) must NOT get the synthetic prospective anchor — it already
     routes by its real thread. Guards against over-broadening the relay fix."""
     monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "all")
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"display": {"platforms": {"discord": {"tool_progress": "all"}}}}),
         encoding="utf-8",
@@ -768,7 +768,7 @@ def _run_long_preview_helper(monkeypatch, tmp_path, preview_length=0):
     that _run_agent reads — so the gateway picks it up the same way production does.
     """
     import asyncio
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
 
     monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "all")
 
@@ -827,7 +827,7 @@ def test_all_mode_respects_custom_preview_length(monkeypatch, tmp_path):
 
 def test_discord_truncated_tool_url_links_to_full_destination(monkeypatch, tmp_path):
     """The real gateway path must retain the URL beyond its visible cap."""
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
 
     monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "all")
 
@@ -1077,7 +1077,7 @@ async def _run_with_agent(
     scope_id=None,
 ):
     if config_data:
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
         (tmp_path / "config.yaml").write_text(yaml.safe_dump(config_data), encoding="utf-8")
 
@@ -1802,7 +1802,7 @@ async def test_base_processing_stops_typing_before_hung_post_delivery_callback(
 
 @pytest.mark.asyncio
 async def test_run_agent_drops_tool_progress_after_generation_invalidation(monkeypatch, tmp_path):
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
 
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"display": {"tool_progress": "all"}}),
@@ -1864,7 +1864,7 @@ async def test_run_agent_drops_tool_progress_after_generation_invalidation(monke
 
 @pytest.mark.asyncio
 async def test_run_agent_drops_interim_commentary_after_generation_invalidation(monkeypatch, tmp_path):
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
 
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"display": {"tool_progress": "off", "interim_assistant_messages": True}}),

@@ -10,7 +10,7 @@ from pm import paths
 
 @pytest.mark.parametrize("record_executable", [False, True])
 def test_chromium_resolves_installed_binary_without_mutation(tmp_path, monkeypatch, record_executable):
-    from hermes_cli.browser_runtime import chromium_executable
+    from devbuddy_cli.browser_runtime import chromium_executable
 
     home = tmp_path / "home"
     store = home / "tools"
@@ -44,7 +44,7 @@ def test_chromium_resolves_installed_binary_without_mutation(tmp_path, monkeypat
 
 
 def test_chromium_override_wins_without_installing(tmp_path, monkeypatch):
-    from hermes_cli.browser_runtime import chromium_executable
+    from devbuddy_cli.browser_runtime import chromium_executable
 
     store = tmp_path / "missing-store"
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))

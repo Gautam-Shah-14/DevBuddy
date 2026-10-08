@@ -12,7 +12,7 @@ before rotating (flush-then-rotate, #47202), so nothing lands on the wrong row.
 import pytest
 
 from cli import HermesCLI
-from hermes_cli import cli_commands_mixin
+from devbuddy_cli import cli_commands_mixin
 
 
 class _Agent:
@@ -30,7 +30,7 @@ class _Agent:
 @pytest.fixture
 def cli(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    from hermes_state import SessionDB
+    from devbuddy_state import SessionDB
 
     db = SessionDB(db_path=tmp_path / "state.db")
     obj = object.__new__(HermesCLI)

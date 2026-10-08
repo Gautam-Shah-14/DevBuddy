@@ -2,8 +2,8 @@
 
 import pytest
 
-from hermes_cli import plugin_catalog as pc
-from hermes_cli import plugin_catalog_presence as presence_mod
+from devbuddy_cli import plugin_catalog as pc
+from devbuddy_cli import plugin_catalog_presence as presence_mod
 
 SHA = "0" * 40
 NEEDS_APP = {"extensions": {"com.nousresearch.hermes": {"servers": {"srv": {
@@ -22,7 +22,7 @@ def _entry(name, *, onboarding=True, platforms=(), title=""):
 
 @pytest.fixture
 def catalog(monkeypatch):
-    from hermes_platform.host import facts
+    from devbuddy_platform.host import facts
 
     here = {"darwin": "macos", "win32": "windows"}.get(facts.os_family(), "linux")
     other = "windows" if here != "windows" else "macos"

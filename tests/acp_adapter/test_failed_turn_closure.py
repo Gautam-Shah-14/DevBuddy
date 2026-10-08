@@ -93,9 +93,9 @@ def acp(tmp_path, monkeypatch):
     provider = _LoopbackProvider()
 
     import acp_adapter.session as acp_session
-    import hermes_cli.config as cli_config
-    import hermes_cli.mcp_startup as mcp_startup
-    import hermes_cli.runtime_provider as runtime_provider
+    import devbuddy_cli.config as cli_config
+    import devbuddy_cli.mcp_startup as mcp_startup
+    import devbuddy_cli.runtime_provider as runtime_provider
 
     monkeypatch.setattr(cli_config, "load_config", lambda *a, **k: {
         "model": {"provider": "openai-compat", "default": _MODEL, "context_length": 131072},
@@ -110,7 +110,7 @@ def acp(tmp_path, monkeypatch):
 
     from acp_adapter.server import HermesACPAgent, TextContentBlock
     from acp_adapter.session import SessionManager
-    from hermes_state import SessionDB
+    from devbuddy_state import SessionDB
 
     db_path = tmp_path / "state.db"
     db = SessionDB(db_path)
@@ -198,7 +198,7 @@ def test_failed_turn_boundary_is_idempotent_on_the_durable_tail_and_skips_contex
 
     from agent.conversation_loop import _close_durable_failed_turn
     from agent.turn_failure_copy import PARTIAL_FAILED_TURN_NOTICE
-    from hermes_state import SessionDB
+    from devbuddy_state import SessionDB
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     db = SessionDB(tmp_path / "state.db")

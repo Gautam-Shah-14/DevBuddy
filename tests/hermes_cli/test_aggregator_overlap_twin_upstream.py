@@ -2,7 +2,7 @@
 
 import pytest
 
-from hermes_cli import inventory
+from devbuddy_cli import inventory
 
 
 def _builtin_openrouter_row(models: list) -> dict:

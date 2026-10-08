@@ -26,8 +26,8 @@ from gateway.restart import (
 )
 from gateway.session import SessionSource
 from gateway.session_state import SERVICE_TIER_UNSET as _SERVICE_TIER_UNSET
-from hermes_cli.config import cfg_get, resolve_ephemeral_system_prompt_from_config
-from hermes_cli.fallback_config import get_fallback_chain
+from devbuddy_cli.config import cfg_get, resolve_ephemeral_system_prompt_from_config
+from devbuddy_cli.fallback_config import get_fallback_chain
 from utils import is_truthy_value
 
 if TYPE_CHECKING:  # string annotations only; never imported at runtime (cycle)
@@ -112,12 +112,12 @@ class GatewayConfigLoadersMixin:
     ) -> str:
         """Resolve model for this channel: channel_overrides else global default.
 
-        Precedence lives in :func:`hermes_cli.model_switch.resolve_effective_model` (shared with the
+        Precedence lives in :func:`devbuddy_cli.model_switch.resolve_effective_model` (shared with the
         API server so the surfaces cannot diverge). No session tier here: session /model overrides
         are applied later by ``_apply_session_model_override``.
         """
         from gateway.run import _resolve_gateway_model
-        from hermes_cli.model_switch import resolve_effective_model
+        from devbuddy_cli.model_switch import resolve_effective_model
         return resolve_effective_model(
             None,  # session tier applied downstream (_apply_session_model_override)
             self._channel_override(platform, chat_id, thread_id, parent_id),
@@ -147,7 +147,7 @@ class GatewayConfigLoadersMixin:
 
     @staticmethod
     def _load_reasoning_config(model: str = "") -> dict | None:
-        """Reasoning effort from config.yaml via :func:`hermes_constants.resolve_reasoning_config`.
+        """Reasoning effort from config.yaml via :func:`devbuddy_constants.resolve_reasoning_config`.
 
         Per-model override > global ``agent.reasoning_effort``; YAML False = disabled. Empty
         ``model`` uses ``model.default``.
@@ -155,7 +155,7 @@ class GatewayConfigLoadersMixin:
         Closes #21256.
         """
         from gateway.run import _load_gateway_config
-        from hermes_constants import resolve_reasoning_config
+        from devbuddy_constants import resolve_reasoning_config
         return resolve_reasoning_config(_load_gateway_config(), model)
 
     @staticmethod
@@ -530,14 +530,14 @@ class GatewayConfigLoadersMixin:
         home handed every secondary profile the default profile's fallback chain.
         """
         from gateway.run import _gateway_config_home
-        from hermes_constants import hermes_home_key
+        from devbuddy_constants import hermes_home_key
         home = _gateway_config_home()
         by_home = getattr(self, "_fallback_model_by_home", None)
         if by_home is None:
             by_home = self._fallback_model_by_home = {}
         home_key = hermes_home_key(home)
         try:
-            from hermes_cli.config_effective import load_user_config_effective
+            from devbuddy_cli.config_effective import load_user_config_effective
             cfg_path = home / "config.yaml"
             if not cfg_path.exists():
                 by_home[home_key] = self._fallback_model = None

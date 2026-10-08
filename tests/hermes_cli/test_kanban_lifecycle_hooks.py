@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import kanban_db as kb
-from hermes_cli import kanban_db_connect as kbc
-from hermes_cli.plugins import VALID_HOOKS, get_plugin_manager
+from devbuddy_cli import kanban_db as kb
+from devbuddy_cli import kanban_db_connect as kbc
+from devbuddy_cli.plugins import VALID_HOOKS, get_plugin_manager
 
 
 @pytest.fixture

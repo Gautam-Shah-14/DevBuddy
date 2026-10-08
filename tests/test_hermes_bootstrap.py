@@ -1,4 +1,4 @@
-"""Tests for hermes_bootstrap — Windows UTF-8 stdio shim.
+"""Tests for devbuddy_bootstrap — Windows UTF-8 stdio shim.
 
 The bootstrap module is imported at the top of every Hermes entry point
 (hermes, hermes-agent, hermes-acp, gateway, batch_runner, cli.py).  It
@@ -12,7 +12,7 @@ Key invariants covered by these tests:
   3. Idempotent: safe to call multiple times
   4. Respects user opt-out: if the user explicitly sets PYTHONUTF8=0 or
      PYTHONIOENCODING=something-else, we leave those alone
-  5. Load order: every Hermes entry point imports hermes_bootstrap as its
+  5. Load order: every Hermes entry point imports devbuddy_bootstrap as its
      first non-docstring import (before anything that might do file I/O
      or print to stdout)
 """
@@ -35,14 +35,14 @@ import pytest
 # We need to be able to reset its state between tests, so we import it
 # fresh in each test that manipulates _IS_WINDOWS.
 def _fresh_import():
-    """Return a freshly-imported hermes_bootstrap module.
+    """Return a freshly-imported devbuddy_bootstrap module.
 
     Drops any cached copy from sys.modules first so module-level code
     runs again and the platform check re-evaluates.
     """
-    sys.modules.pop("hermes_bootstrap", None)
-    import hermes_bootstrap  # noqa: WPS433
-    return hermes_bootstrap
+    sys.modules.pop("devbuddy_bootstrap", None)
+    import devbuddy_bootstrap  # noqa: WPS433
+    return devbuddy_bootstrap
 
 
 class TestWindowsBehavior:
@@ -180,7 +180,7 @@ class TestStdioReconfigureErrorHandling:
 
 
 @pytest.mark.parametrize("path", [
-    "hermes_cli/main.py", "run_agent.py", "acp_adapter/entry.py",
+    "devbuddy_cli/main.py", "run_agent.py", "acp_adapter/entry.py",
     "gateway/run.py", "batch_runner.py", "cli.py",
 ])
 def test_entrypoint_executes_bootstrap_before_application_imports(tmp_path, path):
@@ -205,7 +205,7 @@ def guarded(name, globals=None, locals=None, fromlist=(), level=0):
         if name == '__future__':
             return real_import(name, globals, locals, fromlist, level)
         if not seen:
-            assert name == 'hermes_bootstrap', name
+            assert name == 'devbuddy_bootstrap', name
             module = real_import(name, globals, locals, fromlist, level)
             assert module._pm_repair is True
             assert module._bootstrap_applied is (sys.platform == 'win32')
@@ -217,7 +217,7 @@ builtins.__import__ = guarded
 try:
     runpy.run_path(entry, run_name='__main__')
 except Boundary:
-    assert seen == ['hermes_bootstrap']
+    assert seen == ['devbuddy_bootstrap']
     print('bootstrap-before-app')
 else:
     raise AssertionError('entrypoint never reached the application import boundary')
@@ -229,7 +229,7 @@ else:
     assert result.stdout.strip() == "bootstrap-before-app"
 
 
-# "any": the OS lanes select only platforms-marked tests, and Windows is where hermes_cli's
+# "any": the OS lanes select only platforms-marked tests, and Windows is where devbuddy_cli's
 # stdio repair fires on a cp1252 pipe.
 @pytest.mark.platforms("any")
 def test_library_imports_of_dual_use_entry_modules_stay_side_effect_free(tmp_path):
@@ -241,7 +241,7 @@ def test_library_imports_of_dual_use_entry_modules_stay_side_effect_free(tmp_pat
         before = dict(os.environ)
         import agent.auxiliary_client, gateway.relay, tui_gateway.compute_host  # noqa: F401
         changed = sorted(k for k in before.keys() | os.environ.keys() if before.get(k) != os.environ.get(k))
-        print(json.dumps({"bootstrapped": "hermes_bootstrap" in sys.modules, "changed": changed}))
+        print(json.dumps({"bootstrapped": "devbuddy_bootstrap" in sys.modules, "changed": changed}))
     """)
     repo = Path(__file__).resolve().parents[1]
     env = {k: os.environ[k] for k in ("PATH", "SYSTEMROOT", "WINDIR") if k in os.environ}
@@ -258,7 +258,7 @@ def test_pre_pm_editable_venv_reaches_pm_through_the_bootstrap(tmp_path):
 
     setuptools' flat-layout editable finder maps only the top-level names it saw at
     install time (no ``pm``) and never puts the checkout on ``sys.path``. The console
-    script imports ``hermes_cli`` first, then ``hermes_cli.main`` imports the bootstrap;
+    script imports ``devbuddy_cli`` first, then ``devbuddy_cli.main`` imports the bootstrap;
     both must load, and the bootstrap must reach ``pm``, or PM adoption never runs.
     """
     root = Path(__file__).resolve().parents[1]
@@ -268,18 +268,18 @@ from importlib.abc import MetaPathFinder
 root = sys.argv[1]
 class PrePMEditableFinder(MetaPathFinder):
     def find_spec(self, name, path=None, target=None):
-        if name == 'hermes_cli':
-            pkg = os.path.join(root, 'hermes_cli')
+        if name == 'devbuddy_cli':
+            pkg = os.path.join(root, 'devbuddy_cli')
             return importlib.util.spec_from_file_location(
                 name, os.path.join(pkg, '__init__.py'), submodule_search_locations=[pkg])
-        if name == 'hermes_bootstrap':
-            return importlib.util.spec_from_file_location(name, os.path.join(root, 'hermes_bootstrap.py'))
+        if name == 'devbuddy_bootstrap':
+            return importlib.util.spec_from_file_location(name, os.path.join(root, 'devbuddy_bootstrap.py'))
         return None
 sys.meta_path.append(PrePMEditableFinder())
 sys.argv = ['hermes', 'pm', 'repair']
-import hermes_cli
-import hermes_bootstrap
-assert hermes_bootstrap._pm_repair is True
+import devbuddy_cli
+import devbuddy_bootstrap
+assert devbuddy_bootstrap._pm_repair is True
 print('reached-pm')
 """
     result = subprocess.run([sys.executable, "-I", "-S", "-c", program, str(root)],
@@ -290,7 +290,7 @@ print('reached-pm')
 
 
 @pytest.mark.parametrize("path", [
-    "hermes_cli/main.py", "run_agent.py", "acp_adapter/entry.py",
+    "devbuddy_cli/main.py", "run_agent.py", "acp_adapter/entry.py",
     "gateway/run.py", "batch_runner.py", "cli.py",
 ])
 @pytest.mark.parametrize("bootstrap,expected", [
@@ -309,7 +309,7 @@ def test_entrypoint_tolerates_only_an_absent_bootstrap(tmp_path, path, bootstrap
     fake_root = tmp_path / "root"
     fake_root.mkdir()
     if bootstrap is not None:
-        (fake_root / "hermes_bootstrap.py").write_text(bootstrap)
+        (fake_root / "devbuddy_bootstrap.py").write_text(bootstrap)
     program = r"""
 import builtins, runpy, sys
 fake_root, entry = sys.argv[1:]
@@ -317,7 +317,7 @@ sys.path.insert(0, fake_root)
 real_import = builtins.__import__
 class Boundary(BaseException): pass
 def guarded(name, globals=None, locals=None, fromlist=(), level=0):
-    if globals and globals.get('__file__') == entry and name not in ('__future__', 'hermes_bootstrap'):
+    if globals and globals.get('__file__') == entry and name not in ('__future__', 'devbuddy_bootstrap'):
         raise Boundary()
     return real_import(name, globals, locals, fromlist, level)
 builtins.__import__ = guarded
@@ -410,14 +410,14 @@ class TestEnableWindowsVt:
             import ctypes, msvcrt, sys
             from ctypes import wintypes
             sys.path.insert(0, sys.argv[1])
-            import hermes_bootstrap
+            import devbuddy_bootstrap
             kernel32 = ctypes.WinDLL("kernel32")
             handle = msvcrt.get_osfhandle(sys.stdout.fileno())
             mode = wintypes.DWORD()
             if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
                 sys.exit(4)
             kernel32.SetConsoleMode(handle, mode.value & ~0x0004)
-            ok = hermes_bootstrap.enable_windows_vt()
+            ok = devbuddy_bootstrap.enable_windows_vt()
             kernel32.GetConsoleMode(handle, ctypes.byref(mode))
             sys.exit(0 if ok and mode.value & 0x0004 else 3)
         """).strip()
@@ -435,10 +435,10 @@ class TestEnableWindowsVt:
     def test_leaves_non_console_handles_and_colour_alone(self, tmp_path, monkeypatch):
         # Redirected output must neither fail nor flip Hermes to NO_COLOR.
         monkeypatch.delenv("NO_COLOR", raising=False)
-        import hermes_bootstrap
+        import devbuddy_bootstrap
 
         with open(tmp_path / "out.txt", "w", encoding="utf-8") as stream:
-            assert hermes_bootstrap.enable_windows_vt([stream]) is True
+            assert devbuddy_bootstrap.enable_windows_vt([stream]) is True
         assert "NO_COLOR" not in os.environ
 
 
@@ -489,7 +489,7 @@ class TestHappyEyeballsSocketConnect:
         # The bootstrap must not pay urllib3's import (~50 ms) on every process start: a fresh
         # interpreter gets the patch the moment urllib3 loads, not before.
         subprocess.run([sys.executable, "-c", textwrap.dedent("""
-            import sys, hermes_bootstrap
+            import sys, devbuddy_bootstrap
             assert "urllib3" not in sys.modules, "bootstrap imported urllib3 eagerly"
             import urllib3.util.connection as c
             assert c.create_connection._hermes_happy_eyeballs
@@ -598,7 +598,7 @@ class TestNeverFreeEnviron:
     def test_arrays_superseded_by_new_names_stay_intact(self):
         # Fresh interpreter: the test process's own environ history must not matter.
         subprocess.run([sys.executable, "-c", textwrap.dedent("""
-            import ctypes, os, hermes_bootstrap
+            import ctypes, os, devbuddy_bootstrap
             environ = ctypes.c_void_p.in_dll(ctypes.CDLL(None), "environ")
             def snapshot(addr):
                 array, out = ctypes.cast(addr, ctypes.POINTER(ctypes.c_void_p)), []
@@ -621,7 +621,7 @@ class TestNeverFreeEnviron:
     def test_concurrent_writers_lose_no_name_in_the_c_environ(self):
         # Unserialized writers each copied the live array; the later publish dropped the others' names.
         subprocess.run([sys.executable, "-c", textwrap.dedent("""
-            import ctypes, os, sys, threading, hermes_bootstrap
+            import ctypes, os, sys, threading, devbuddy_bootstrap
             getenv = ctypes.CDLL(None).getenv
             getenv.restype, getenv.argtypes = ctypes.c_char_p, [ctypes.c_char_p]
             sys.setswitchinterval(1e-6)
@@ -640,7 +640,7 @@ class TestNeverFreeEnviron:
     def test_set_del_churn_of_the_same_names_keeps_memory_bounded(self):
         # Kanban ticks, the spinner pause and _restore_env set and pop the same names forever.
         subprocess.run([sys.executable, "-c", textwrap.dedent("""
-            import os, tracemalloc, hermes_bootstrap
+            import os, tracemalloc, devbuddy_bootstrap
             def churn(cycles):
                 for _ in range(cycles):
                     for k in range(4):

@@ -13,9 +13,9 @@ import urllib.request
 
 import pytest
 
-from hermes_cli import main as cli_main, update_cmd, update_receipt
-from hermes_cli.update_inventory import UpdatePlan
-from hermes_cli.update_cmd import _sync_with_upstream_if_needed
+from devbuddy_cli import main as cli_main, update_cmd, update_receipt
+from devbuddy_cli.update_inventory import UpdatePlan
+from devbuddy_cli.update_cmd import _sync_with_upstream_if_needed
 
 
 def git(root, *args):
@@ -71,7 +71,7 @@ def update_tree(tmp_path, monkeypatch):
         plans.append(plan)
         return plan
 
-    monkeypatch.setattr('hermes_cli.update_inventory.collect_runtime_inventory', inventory)
+    monkeypatch.setattr('devbuddy_cli.update_inventory.collect_runtime_inventory', inventory)
     monkeypatch.setattr(cli_main, '_sync_with_upstream_if_needed',
                         lambda *_a, **_k: pytest.fail('stable update reached upstream branch sync'))
 
@@ -194,8 +194,8 @@ def test_stable_git_uses_remote_identity_without_moving_local_tags(update_tree, 
     """A stable update is pinned to the channel's exact commit: no tag lookup on
     origin, the stale local ``v1.1.0`` never moves, and an explicit --branch
     bypasses the channel."""
-    from hermes_cli import source_releases
-    from hermes_cli.release_channels import ChannelResolution
+    from devbuddy_cli import source_releases
+    from devbuddy_cli.release_channels import ChannelResolution
 
     t = update_tree
     # The stable channel is an R2 record whose published build pins t.wanted
@@ -268,8 +268,8 @@ def test_stable_git_uses_remote_identity_without_moving_local_tags(update_tree, 
 @pytest.mark.platforms('windows')
 @pytest.mark.parametrize('transport', ['gitless', 'no-git', 'git-error', 'dirty'])
 def test_stable_zip_consumes_the_same_commit_through_the_real_swap(update_tree, monkeypatch, tmp_path, transport):
-    from hermes_cli import source_releases
-    from hermes_cli.release_channels import ChannelResolution
+    from devbuddy_cli import source_releases
+    from devbuddy_cli.release_channels import ChannelResolution
 
     t = update_tree
     monkeypatch.setattr(cli_main, '_pause_windows_gateways_for_update',
@@ -392,10 +392,10 @@ def test_update_syntax_failure_restores_pre_update_head(update_tree, monkeypatch
         remote = upstream
     else:
         remote = t.origin
-    bad = remote / 'hermes_cli' / 'config.py'
+    bad = remote / 'devbuddy_cli' / 'config.py'
     bad.parent.mkdir()
     bad.write_text('def broken(:\n', encoding='utf-8')
-    git(remote, 'add', 'hermes_cli/config.py')
+    git(remote, 'add', 'devbuddy_cli/config.py')
     git(remote, '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
         '-c', 'commit.gpgsign=false', 'commit', '-qm', 'invalid syntax')
     unexpected_head = git(remote, 'rev-parse', 'HEAD')
@@ -422,13 +422,13 @@ def test_update_syntax_failure_restores_pre_update_head(update_tree, monkeypatch
     if sync_phase == 'late-other-branch':
         assert git(t.clone, 'rev-parse', 'unexpected') == unexpected_head
         assert git(t.clone, 'branch', '--show-current') == 'unexpected'
-        assert (t.clone / 'hermes_cli/config.py').read_bytes() == bad.read_bytes()
+        assert (t.clone / 'devbuddy_cli/config.py').read_bytes() == bad.read_bytes()
         assert "checkout is on 'unexpected'" in output
         assert 'Rolling back' not in output
     else:
         assert 'Pulled code has a syntax error' in output
         assert git(t.clone, 'rev-parse', 'HEAD') == t.base
-        assert not (t.clone / 'hermes_cli' / 'config.py').exists()
+        assert not (t.clone / 'devbuddy_cli' / 'config.py').exists()
     assert not git(t.clone, 'status', '--porcelain')
     assert bool(git(t.clone, 'stash', 'list')) is dirty
     if dirty:

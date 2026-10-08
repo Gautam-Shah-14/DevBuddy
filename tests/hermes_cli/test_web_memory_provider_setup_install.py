@@ -8,7 +8,7 @@ import sys
 
 import pytest
 
-from hermes_cli.web_routers import memory_providers as mp
+from devbuddy_cli.web_routers import memory_providers as mp
 
 
 @pytest.mark.parametrize("surface", ["dashboard", "cli"])
@@ -18,8 +18,8 @@ def test_setup_admits_real_provider_union_and_keeps_selection_on_failure(tmp_pat
     from pm.environments import venv_python
     from pm.environments import selected_venv
     from tests.pm._fixtures import _wheel
-    from hermes_cli import memory_setup
-    from hermes_cli.web_server_memory import _memory_provider_setup_info
+    from devbuddy_cli import memory_setup
+    from devbuddy_cli.web_server_memory import _memory_provider_setup_info
 
     uv = shutil.which("uv")
     assert uv, "real PM admission test requires uv"

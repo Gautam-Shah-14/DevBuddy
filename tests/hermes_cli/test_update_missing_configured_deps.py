@@ -39,9 +39,9 @@ def configured_update(source_launch, tmp_path, monkeypatch):
     # Application source is unchanged; the toy manifest keeps PM resolution
     # offline while exercising the real selected-environment launch boundary.
     for path in repository.iterdir():
-        if path.name in {"hermes_cli", "gateway", "agent", "tools", "plugins", "pm"} or path.suffix == ".py":
+        if path.name in {"devbuddy_cli", "gateway", "agent", "tools", "plugins", "pm"} or path.suffix == ".py":
             if (root / path.name).exists():
-                # source_launch already stubs hermes_cli/source_completion.py; link the rest of that
+                # source_launch already stubs devbuddy_cli/source_completion.py; link the rest of that
                 # package's modules beside it.
                 for module in path.iterdir():
                     if not (root / path.name / module.name).exists():
@@ -51,7 +51,7 @@ def configured_update(source_launch, tmp_path, monkeypatch):
     def build_in_child():
         script = (
             "import json, sys; from pathlib import Path\n"
-            "from hermes_cli import source_build\n"
+            "from devbuddy_cli import source_build\n"
             "source_build.source_build_env = lambda **kwargs: {}\n"
             "source_build.prepare_source_dependencies = lambda *args, **kwargs: None\n"
             "source_build.build_source_tui = lambda *args, **kwargs: None\n"

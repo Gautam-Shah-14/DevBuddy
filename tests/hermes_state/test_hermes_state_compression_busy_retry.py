@@ -22,8 +22,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_state import SessionDB
-from hermes_state_errors import CompressionSessionBusyError
+from devbuddy_state import SessionDB
+from devbuddy_state_errors import CompressionSessionBusyError
 
 
 @pytest.fixture

@@ -20,7 +20,7 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _platform_home(tmp_path, monkeypatch):
-    monkeypatch.setattr("hermes_constants._get_platform_default_hermes_home", lambda: tmp_path / ".hermes")
+    monkeypatch.setattr("devbuddy_constants._get_platform_default_hermes_home", lambda: tmp_path / ".hermes")
 
 
 def _run_apply_profile_override(
@@ -63,7 +63,7 @@ def _run_apply_profile_override(
     for key, value in (extra_env or {}).items():
         monkeypatch.setenv(key, value)
 
-    from hermes_cli.main import _apply_profile_override
+    from devbuddy_cli.main import _apply_profile_override
     _apply_profile_override()
 
     return os.environ.get("HERMES_HOME")
@@ -126,7 +126,7 @@ class TestApplyProfileOverrideHermesHomeGuard:
 
         monkeypatch.setattr(pwd, "getpwnam", lambda name: SimpleNamespace(pw_dir=str(user_home)))
 
-        from hermes_cli.main import _apply_profile_override, _resolve_sudo_user_profile_env
+        from devbuddy_cli.main import _apply_profile_override, _resolve_sudo_user_profile_env
         _apply_profile_override()
 
         assert os.environ.get("HERMES_HOME") == str(profile_dir)
@@ -183,7 +183,7 @@ class TestSupervisedChildIgnoresStickyProfile:
         monkeypatch.setenv("HERMES_S6_SUPERVISED_CHILD", "1")
         monkeypatch.setattr(sys, "argv", ["hermes", "-p", "coder", "gateway", "run"])
 
-        from hermes_cli.main import _apply_profile_override
+        from devbuddy_cli.main import _apply_profile_override
         _apply_profile_override()
 
         result = os.environ.get("HERMES_HOME")
@@ -300,7 +300,7 @@ class TestGeneralizedSupervisorMarkers:
         are protected without relying on the INVOCATION_ID heuristic."""
         monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
         (tmp_path / "home").mkdir()
-        from hermes_cli.gateway import generate_systemd_unit
+        from devbuddy_cli.gateway import generate_systemd_unit
 
         unit = generate_systemd_unit()
         assert 'Environment="HERMES_SUPERVISED_CHILD=1"' in unit
@@ -310,7 +310,7 @@ class TestGeneralizedSupervisorMarkers:
     ):
         monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
         (tmp_path / "home").mkdir()
-        from hermes_cli.gateway import generate_launchd_plist
+        from devbuddy_cli.gateway import generate_launchd_plist
 
         plist = generate_launchd_plist()
         assert "<key>HERMES_SUPERVISED_CHILD</key>" in plist
@@ -324,7 +324,7 @@ class TestS6ContainerGatewayRun:
     def test_the_redirected_run_keeps_the_root_home_despite_the_active_profile(
         self, tmp_path, monkeypatch
     ):
-        monkeypatch.setattr("hermes_cli.service_manager._s6_running", lambda: True)
+        monkeypatch.setattr("devbuddy_cli.service_manager._s6_running", lambda: True)
         root = tmp_path / ".hermes"
         result = _run_apply_profile_override(
             tmp_path, monkeypatch, hermes_home=str(root), active_profile="coder",
@@ -335,7 +335,7 @@ class TestS6ContainerGatewayRun:
     def test_a_foreground_run_and_other_verbs_still_follow_the_active_profile(
         self, tmp_path, monkeypatch
     ):
-        monkeypatch.setattr("hermes_cli.service_manager._s6_running", lambda: True)
+        monkeypatch.setattr("devbuddy_cli.service_manager._s6_running", lambda: True)
         root = tmp_path / ".hermes"
         for argv in (["hermes", "gateway", "run", "--no-supervise"], ["hermes", "chat"]):
             result = _run_apply_profile_override(

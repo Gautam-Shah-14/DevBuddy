@@ -16,10 +16,10 @@ import threading
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-from hermes_cli.config import get_hermes_home
-from hermes_constants import hermes_home_key
+from devbuddy_cli.config import get_hermes_home
+from devbuddy_constants import hermes_home_key
 
 
 HOOKS_DIR = get_hermes_home() / "hooks"

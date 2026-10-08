@@ -27,8 +27,8 @@ def hermes_env(tmp_path, monkeypatch):
 
     # Reload modules that cache get_hermes_home() at import time.
     import importlib
-    import hermes_constants
-    importlib.reload(hermes_constants)
+    import devbuddy_constants
+    importlib.reload(devbuddy_constants)
     import cron.jobs
     importlib.reload(cron.jobs)
     import cron.scheduler
@@ -100,7 +100,7 @@ def test_run_job_no_agent_reloads_dotenv_before_script(hermes_env, monkeypatch):
     vars in its environment, and the agent path's per-run dotenv reload never
     executes for no_agent jobs — delivery home channels stayed unresolved.
     run_job must load .env at the top of the no_agent branch."""
-    import hermes_cli.env_loader as env_loader
+    import devbuddy_cli.env_loader as env_loader
     from cron.jobs import create_job
     from cron.scheduler import run_job
 
@@ -140,7 +140,7 @@ def test_no_agent_script_gets_owning_profiles_declared_secret_never_launch_resid
     from agent.secret_scope import (
         build_profile_secret_scope, reset_secret_scope, set_multiplex_active, set_secret_scope)
     from cron.scheduler_script import _run_job_script
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 
     (hermes_env / ".env").write_text("LAUNCH_ONLY_TOKEN=launch-secret\n", encoding="utf-8")
     monkeypatch.setenv("LAUNCH_ONLY_TOKEN", "launch-secret")  # what load_hermes_dotenv() did at startup

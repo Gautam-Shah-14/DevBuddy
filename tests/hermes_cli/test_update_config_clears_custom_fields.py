@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.auth._update_config_for_provider clearing stale fields.
+"""Tests for devbuddy_cli.auth._update_config_for_provider clearing stale fields.
 
 When the user switches from a custom provider (e.g. MiniMax with
 ``api_mode: anthropic_messages``, ``api_key: mxp-...``) to a built-in
@@ -13,10 +13,10 @@ the persisted value here is safe.
 
 from __future__ import annotations
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-from hermes_cli.auth import _update_config_for_provider
-from hermes_cli.config import clear_model_endpoint_credentials, get_config_path
+from devbuddy_cli.auth import _update_config_for_provider
+from devbuddy_cli.config import clear_model_endpoint_credentials, get_config_path
 
 
 def _read_model_cfg() -> dict:

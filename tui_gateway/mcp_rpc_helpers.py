@@ -13,7 +13,7 @@ def server_configs_with_sources(config_servers: Mapping[str, dict]) -> tuple[Dic
     servers = {name: dict(cfg) for name, cfg in config_servers.items() if isinstance(cfg, dict)}
     plugins: Dict[str, str | None] = {name: None for name in servers}
     try:
-        from hermes_cli.plugins import discover_plugins, get_plugin_manager
+        from devbuddy_cli.plugins import discover_plugins, get_plugin_manager
         from tools.mcp_tool_config import _filter_suspicious_mcp_servers
 
         discover_plugins()
@@ -30,7 +30,7 @@ def server_configs_with_sources(config_servers: Mapping[str, dict]) -> tuple[Dic
 
 
 def summarize_server(name: str, cfg: dict, plugin: str | None = None) -> Dict[str, Any]:
-    from hermes_cli.mcp_config import _oauth_tokens_present
+    from devbuddy_cli.mcp_config import _oauth_tokens_present
     from tools.mcp_tool_common import mcp_server_enabled
 
     cfg = cfg if isinstance(cfg, dict) else {}
@@ -72,8 +72,8 @@ def resolve_profile(rid, params, err_fn) -> Tuple[Optional[Any], Optional[dict]]
     profile = str(params.get("profile") or "").strip()
     if not profile:
         return None, None
-    from hermes_cli.profiles import get_profile_dir
-    from hermes_constants import set_hermes_home_override
+    from devbuddy_cli.profiles import get_profile_dir
+    from devbuddy_constants import set_hermes_home_override
 
     try:
         profile_dir = get_profile_dir(profile)

@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-from hermes_cli.config import DEFAULT_CONFIG
+from devbuddy_cli.config import DEFAULT_CONFIG
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "scripts" / "docker_config_migrate.py"

@@ -15,7 +15,7 @@ These tests exercise the real resolution chain (config on disk → check_fn →
 import json
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 from model_tools import get_tool_definitions
 
@@ -154,7 +154,7 @@ class TestBuiltinMemoryToolAvailability:
             raise RuntimeError("config unreadable")
 
         monkeypatch.setattr(
-            "hermes_cli.config.load_config_readonly", _boom, raising=False
+            "devbuddy_cli.config.load_config_readonly", _boom, raising=False
         )
         assert memory_tool_module.check_memory_requirements() is True
 

@@ -37,7 +37,7 @@ def stamp_product(root, product, out):
 
 
 def test_source_build_uses_selected_python_for_isolated_icon_child(tmp_path, monkeypatch):
-    from hermes_cli.source_build import source_build_env
+    from devbuddy_cli.source_build import source_build_env
     from pm import paths
     from pm.environments import site_packages, venv_python
 
@@ -58,7 +58,7 @@ def test_source_build_uses_selected_python_for_isolated_icon_child(tmp_path, mon
 
 
 def test_automatic_build_preserves_pm_admission_intent(monkeypatch):
-    from hermes_cli.source_build import source_build_env
+    from devbuddy_cli.source_build import source_build_env
 
     intent = []
     def acquire(name, *, base_env, explicit):
@@ -70,7 +70,7 @@ def test_automatic_build_preserves_pm_admission_intent(monkeypatch):
 
 
 def test_installed_npm_does_not_authorize_missing_workspace_dependencies(source_checkout, monkeypatch):
-    from hermes_cli.source_build import prepare_source_dependencies, source_build_env
+    from devbuddy_cli.source_build import prepare_source_dependencies, source_build_env
 
     root, _ = source_checkout
     env = source_build_env()
@@ -169,7 +169,7 @@ def source_products(source_checkout):
     for script, step, output in [
         ("generate-icons.mjs", "icons", "never-rendered-at-install"),
         ("build/tui.mjs", "tui", "ui-tui/dist/entry.js"),
-        ("build/web.mjs", "web", "hermes_cli/web_dist/index.html"),
+        ("build/web.mjs", "web", "devbuddy_cli/web_dist/index.html"),
     ]:
         relative = "../../" if script.startswith("build/") else "../"
         (root / "scripts" / script).write_text(
@@ -201,7 +201,7 @@ def _events(root):
 
 @pytest.mark.platforms("posix")
 def test_preparation_reuses_only_the_exact_completed_workspace_union(source_checkout):
-    from hermes_cli.source_build import prepare_source_dependencies, source_build_env
+    from devbuddy_cli.source_build import prepare_source_dependencies, source_build_env
 
     root, acquired = source_checkout
     before = (root / "package-lock.json").read_bytes()
@@ -246,8 +246,8 @@ def test_preparation_reuses_only_the_exact_completed_workspace_union(source_chec
 @pytest.mark.platforms("linux")
 @pytest.mark.parametrize("desktop", [False, True])
 def test_update_builds_selected_products_after_one_union_preparation(source_products, desktop):
-    from hermes_cli.source_build import build_update_products
-    from hermes_cli.main_web_build import _web_ui_build_needed
+    from devbuddy_cli.source_build import build_update_products
+    from devbuddy_cli.main_web_build import _web_ui_build_needed
 
     root, acquired = source_products
     app = root / "apps/desktop/release/linux-unpacked/hermes"
@@ -258,7 +258,7 @@ def test_update_builds_selected_products_after_one_union_preparation(source_prod
     assert steps == ["deps", "tui", "web"] + (["desktop"] if desktop else [])
     assert acquired == ["npm"]
     assert (root / "ui-tui/dist/entry.js").read_text() == "tui"
-    assert (root / "hermes_cli/web_dist/index.html").read_text() == "web"
+    assert (root / "devbuddy_cli/web_dist/index.html").read_text() == "web"
     assert not _web_ui_build_needed(root / "web")
     assert (root / "node_modules/apps-desktop").exists() == desktop
     assert not (root / "node_modules/unrelated").exists()
@@ -269,7 +269,7 @@ def test_update_builds_selected_products_after_one_union_preparation(source_prod
 @pytest.mark.platforms("linux")
 @pytest.mark.parametrize("step", ["tui", "web", "desktop"])
 def test_update_failure_raises_without_retries_or_replacing_live_app(source_products, step):
-    from hermes_cli.source_build import build_update_products
+    from devbuddy_cli.source_build import build_update_products
 
     root, acquired = source_products
     app = root / "apps/desktop/release/linux-unpacked/hermes"
@@ -294,8 +294,8 @@ def test_module_cli_builds_the_requested_products(source_products, desktop, monk
     root, acquired = source_products
     monkeypatch.setattr(sys, "argv", ["source_build", "--source", str(root)] + (["--desktop"] if desktop else []))
     # run_module exercises __main__ while substituting only tool acquisition.
-    monkeypatch.delitem(sys.modules, "hermes_cli.source_build", raising=False)
-    runpy.run_module("hermes_cli.source_build", run_name="__main__")
+    monkeypatch.delitem(sys.modules, "devbuddy_cli.source_build", raising=False)
+    runpy.run_module("devbuddy_cli.source_build", run_name="__main__")
     assert acquired == ["npm"]
-    assert (root / "hermes_cli/web_dist/index.html").is_file()
+    assert (root / "devbuddy_cli/web_dist/index.html").is_file()
     assert (root / "apps/desktop/release/linux-unpacked/hermes").exists() == desktop

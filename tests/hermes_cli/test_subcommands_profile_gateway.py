@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import argparse
 
-from hermes_cli.subcommands.gateway import build_gateway_parser
+from devbuddy_cli.subcommands.gateway import build_gateway_parser
 
 
 def _h_gateway(args):  # pragma: no cover - identity only

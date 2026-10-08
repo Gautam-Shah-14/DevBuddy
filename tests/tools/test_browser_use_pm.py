@@ -25,7 +25,7 @@ def main():
                          "[console_scripts]\nbrowser-use = browser_use_probe.cli:main\n")
     monkeypatch.setattr(bu, "_CLI_REQUIREMENTS", (f"browser-use-probe @ {wheel.as_uri()}",))
     monkeypatch.setattr(bu, "_find_cli", bu._find_cli_unpatched)
-    monkeypatch.setattr("hermes_cli.config.read_raw_config", lambda: {"browser": {"backend": "browser-use"}})
+    monkeypatch.setattr("devbuddy_cli.config.read_raw_config", lambda: {"browser": {"backend": "browser-use"}})
     monkeypatch.setattr("tools.browser_tool_cdp._get_cdp_override", lambda: "")
     monkeypatch.setattr("tools.browser_tool_cdp._resolve_cdp_override", lambda url: url)
     monkeypatch.setattr("tools.browser_tool_cloud._get_cloud_provider", lambda: None)

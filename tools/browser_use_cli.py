@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from hermes_constants import get_hermes_home
+from devbuddy_constants import get_hermes_home
 from utils import is_truthy_value
 
 logger = logging.getLogger(__name__)
@@ -173,7 +173,7 @@ def _floor_subprocess_path(path: str) -> str:
 def _read_browser_cfg() -> dict:
     """Return the ``browser:`` config section, or {} on any failure."""
     try:
-        from hermes_cli.config import cfg_get, read_raw_config
+        from devbuddy_cli.config import cfg_get, read_raw_config
         cfg = cfg_get(read_raw_config(), "browser", default={})
         return cfg if isinstance(cfg, dict) else {}
     except Exception as e:
@@ -325,7 +325,7 @@ def _served_profile_tag() -> str:
     """``""`` outside a served-profile scope (every legacy key stays byte-identical); under a
     multiplexed turn, the routed profile's home key — one profile's browser must never be handed
     to another that happens to use the same session name or task id (#110032)."""
-    from hermes_constants import get_hermes_home_override, hermes_home_key
+    from devbuddy_constants import get_hermes_home_override, hermes_home_key
     return "" if get_hermes_home_override() is None else hermes_home_key()
 
 
@@ -448,7 +448,7 @@ def _resolve_backend_cdp(env: dict, task_id: Optional[str], session_name: str = 
 
 def _resolve_real_profile_cdp(env: dict, force_local: bool) -> Optional[str]:
     """Point the harness at the user's real-profile copy-browser (a SNAPSHOT of their default Chromium
-    profile, hermes_cli.browser_connect) when consented. Two ways in: the effective backend is already local
+    profile, devbuddy_cli.browser_connect) when consented. Two ways in: the effective backend is already local
     (no provider, CDP override, or legacy BU cloud config) → silent upgrade; or ``force_local`` (consent-gated
     ``local`` arg) → the user's browser even under a cloud backend. Operator overrides (BU_CDP_* env,
     /browser connect, ``browser.cdp_url``) own the session either way. Fail closed: a launch error is
@@ -513,7 +513,7 @@ def _group_popen_kwargs() -> dict:
     timeout can take down every process that inherited the capture pipes, not just the CLI
     child. Windows also hides the console the .cmd shim would flash (as browser_tool does)."""
     def _flags() -> dict:
-        from hermes_cli._subprocess_compat import windows_hide_flags
+        from devbuddy_cli._subprocess_compat import windows_hide_flags
         si = subprocess.STARTUPINFO()
         si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         return {"creationflags": windows_hide_flags() | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
@@ -537,7 +537,7 @@ def _kill_cli_process_group(proc) -> None:
     """SIGKILL the CLI's whole process group (POSIX; ``start_new_session`` made pgid == pid) or,
     on Windows, its process tree via ``taskkill /T /F`` — the only group-wide kill it offers."""
     if os.name == "nt":
-        from hermes_cli._subprocess_compat import windows_hide_flags
+        from devbuddy_cli._subprocess_compat import windows_hide_flags
         with contextlib.suppress(OSError, subprocess.SubprocessError):
             subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)], stdin=subprocess.DEVNULL,
                            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10,

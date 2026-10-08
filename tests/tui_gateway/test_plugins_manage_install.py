@@ -17,7 +17,7 @@ def test_plugins_manage_install_missing_identifier():
 
 def test_plugins_manage_install_failure():
     with patch(
-        "hermes_cli.plugins_cmd.dashboard_install_plugin",
+        "devbuddy_cli.plugins_cmd.dashboard_install_plugin",
         return_value={"ok": False, "error": "Git clone failed"},
     ):
         resp = server.handle_request(
@@ -36,7 +36,7 @@ def test_plugins_manage_install_failure():
 
 def test_plugins_manage_update_requires_catalog_sidecar(tmp_path, monkeypatch):
     """Non-catalog installs are refused — their update flows stay CLI-owned."""
-    import hermes_cli.plugins_cmd as plugins_cmd
+    import devbuddy_cli.plugins_cmd as plugins_cmd
 
     plugins_root = tmp_path / "plugins"
     (plugins_root / "plain-git-plugin").mkdir(parents=True)
@@ -64,10 +64,10 @@ def test_plugins_manage_list_reports_desktop_half(tmp_path):
         ("media", "1.0", "Media", "user", unified, "media"),
         ("snap", "1.0", "Snap", "user", agent_only, "snap"),
     ]
-    with patch("hermes_cli.plugins_cmd._discover_all_plugins", return_value=rows), \
-         patch("hermes_cli.plugins_cmd._get_enabled_set", return_value=set()), \
-         patch("hermes_cli.plugins_cmd._get_disabled_set", return_value=set()), \
-         patch("hermes_cli.plugins_cmd_catalog.catalog_pins", return_value={}):
+    with patch("devbuddy_cli.plugins_cmd._discover_all_plugins", return_value=rows), \
+         patch("devbuddy_cli.plugins_cmd._get_enabled_set", return_value=set()), \
+         patch("devbuddy_cli.plugins_cmd._get_disabled_set", return_value=set()), \
+         patch("devbuddy_cli.plugins_cmd_catalog.catalog_pins", return_value={}):
         resp = server.handle_request({"id": "1", "method": "plugins.manage", "params": {"action": "list"}})
 
     by_name = {r["name"]: r for r in resp["result"]["plugins"]}

@@ -20,9 +20,9 @@ def test_staged_uv_prepares_pm_before_any_tool_download(tmp_path):
     assert uv, "this bootstrap contract requires real uv"
     repo = Path(__file__).resolve().parents[2]
     stage = tmp_path / "source"
-    for name in ("pm", "hermes_cli"):
+    for name in ("pm", "devbuddy_cli"):
         shutil.copytree(repo / name, stage / name, ignore=shutil.ignore_patterns("__pycache__"))
-    shutil.copy2(repo / "hermes_constants.py", stage / "hermes_constants.py")
+    shutil.copy2(repo / "devbuddy_constants.py", stage / "devbuddy_constants.py")
     home = tmp_path / "home"
     store = home / "tools"
     target = current_target()
@@ -95,9 +95,9 @@ def test_pm_cli_verifies_tls_with_platform_trust(tmp_path, monkeypatch):
     python = prepare_runtime(Path(uv), Path(sys.executable), tmp_path / "runtime")
     source = Path(__file__).resolve().parents[2]
     repo = tmp_path / "source"
-    for name in ("pm", "hermes_cli"):
+    for name in ("pm", "devbuddy_cli"):
         shutil.copytree(source / name, repo / name, ignore=shutil.ignore_patterns("__pycache__"))
-    shutil.copy2(source / "hermes_constants.py", repo / "hermes_constants.py")
+    shutil.copy2(source / "devbuddy_constants.py", repo / "devbuddy_constants.py")
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "PM test CA")])
     now = datetime.now(timezone.utc)

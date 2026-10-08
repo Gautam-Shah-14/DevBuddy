@@ -4,9 +4,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import auth as auth_mod
-import hermes_cli.auth_spotify as auth_spotify
-from hermes_cli.auth import AuthError, resolve_spotify_runtime_credentials
+from devbuddy_cli import auth as auth_mod
+import devbuddy_cli.auth_spotify as auth_spotify
+from devbuddy_cli.auth import AuthError, resolve_spotify_runtime_credentials
 
 
 
@@ -79,7 +79,7 @@ def test_auth_spotify_status_command_reports_logged_in(capsys, monkeypatch: pyte
         },
     )
 
-    from hermes_cli.auth_commands import auth_status_command
+    from devbuddy_cli.auth_commands import auth_status_command
 
     auth_status_command(SimpleNamespace(provider="spotify"))
     output = capsys.readouterr().out

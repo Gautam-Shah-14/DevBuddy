@@ -98,11 +98,11 @@ def test_cold_cli_builds_own_runtime_discovers_plugins_and_repairs_app(tmp_path,
     source = Path(__file__).resolve().parents[2]
     repo = tmp_path / "source"
     repo.mkdir()
-    for name in ("pm", "hermes_cli"):
+    for name in ("pm", "devbuddy_cli"):
         shutil.copytree(source / name, repo / name,
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-    for name in ("utils.py", "hermes_constants.py", "hermes_yaml.py",
-                 "hermes_bootstrap.py"):
+    for name in ("utils.py", "devbuddy_constants.py", "devbuddy_yaml.py",
+                 "devbuddy_bootstrap.py"):
         shutil.copy2(source / name, repo / name)
     # No production application lock or metadata enters this source snapshot.
     recipe = tomllib.loads((repo / "pm" / "pyproject.toml").read_text())
@@ -182,7 +182,7 @@ assert importlib.util.find_spec('yaml') is None
 assert importlib.util.find_spec('packaging') is None
 assert importlib.util.find_spec('idna') is None
 """
-    cli = "\nsys.argv = ['hermes', 'pm', {action!r}]; import hermes_cli.main\n"
+    cli = "\nsys.argv = ['hermes', 'pm', {action!r}]; import devbuddy_cli.main\n"
     try:
         assert not store.exists()
         assert not (hermes_home / "installs").exists()
@@ -200,7 +200,7 @@ assert importlib.util.find_spec('idna') is None
             lock.write_bytes(lock.read_bytes() + b"\n# source update\n")
             entry = repo / "launch_probe.py"
             entry.write_text(
-                "import hermes_bootstrap\n"
+                "import devbuddy_bootstrap\n"
                 "import idna, json, sys\n"
                 "print(json.dumps({'python': sys.executable, 'version': list(sys.version_info[:2]), "
                 "'idna': idna.__file__}))\n", encoding="utf-8",

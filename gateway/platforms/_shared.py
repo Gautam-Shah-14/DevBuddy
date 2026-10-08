@@ -56,7 +56,7 @@ def _unscoped_profile_secrets() -> dict:
     if _UNSCOPED_PROFILE_SECRETS is None:
         try:
             from agent.secret_scope import build_profile_secret_scope
-            from hermes_constants import get_hermes_home
+            from devbuddy_constants import get_hermes_home
             _UNSCOPED_PROFILE_SECRETS = dict(build_profile_secret_scope(get_hermes_home()))
         except Exception:
             logger.warning(
@@ -232,11 +232,11 @@ def seed_extra_from_env(spec: Iterable[tuple[str, str, Callable[[str], Any] | No
 
 def env_is_connected(*names: str) -> Callable[[Any], bool]:
     """``is_connected`` for platforms whose only configuration is env: True when every ``names`` var is
-    non-blank. Resolves ``hermes_cli.gateway.get_env_value`` at call time (scope-aware, .env-backed) so
+    non-blank. Resolves ``devbuddy_cli.gateway.get_env_value`` at call time (scope-aware, .env-backed) so
     setup-status tests that patch it see the same value."""
 
     def is_connected(config: Any) -> bool:
-        import hermes_cli.gateway as gateway_mod
+        import devbuddy_cli.gateway as gateway_mod
         return all((gateway_mod.get_env_value(name) or "").strip() for name in names)
 
     return is_connected

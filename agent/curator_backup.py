@@ -20,10 +20,10 @@ from itertools import chain, count
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from hermes_constants import get_hermes_home
+from devbuddy_constants import get_hermes_home
 from agent.skill_utils import is_excluded_skill_path
 from agent.curator import _read_config_section
-from hermes_cli.sizefmt import format_bytes
+from devbuddy_cli.sizefmt import format_bytes
 
 logger = logging.getLogger(__name__)
 

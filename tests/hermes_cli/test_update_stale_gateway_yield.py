@@ -19,13 +19,13 @@ def cron_home(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(home))
     monkeypatch.setenv("HERMES_HOME", str(home / ".hermes"))
     for name in list(sys.modules):
-        if name.split(".")[0] in ("cron", "gateway", "hermes_cli", "hermes_constants"):
+        if name.split(".")[0] in ("cron", "gateway", "devbuddy_cli", "devbuddy_constants"):
             monkeypatch.delitem(sys.modules, name, raising=False)
     return home / ".hermes"
 
 
 def _status_block(pids):
-    from hermes_cli.cron import _print_ticker_health
+    from devbuddy_cli.cron import _print_ticker_health
 
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
@@ -66,8 +66,8 @@ def test_cron_status_still_green_after_a_clean_tick(cron_home):
 @pytest.mark.skipif(not hasattr(signal, "SIGUSR1"), reason="POSIX drain-first restart signal")
 def test_update_signals_proven_stale_gateway_survivor(cron_home, tmp_path):
     """A `stale` fleet-matrix row gets SIGUSR1 (request_restart); a `current` row is untouched."""
-    from hermes_cli.update_cmd_fleet import _GatewayRestartOutcome
-    from hermes_cli.update_cmd_stale_survivors import signal_stale_fleet_survivors
+    from devbuddy_cli.update_cmd_fleet import _GatewayRestartOutcome
+    from devbuddy_cli.update_cmd_stale_survivors import signal_stale_fleet_survivors
 
     marker = tmp_path / "got_sigusr1"
     child = subprocess.Popen(
@@ -104,10 +104,10 @@ def test_update_signals_proven_stale_gateway_survivor(cron_home, tmp_path):
 
 def test_verify_fleet_hands_stale_rows_to_survivor_signalling(monkeypatch):
     """The wiring: a stale fleet matrix reaches signal_stale_fleet_survivors before exit 1."""
-    import hermes_cli.update_cmd_fleet as fleet_mod
-    import hermes_cli.update_cmd_stale_survivors as surv
-    import hermes_cli.update_cmd as update_cmd
-    from hermes_cli.update_cmd_fleet import _GatewayRestartOutcome
+    import devbuddy_cli.update_cmd_fleet as fleet_mod
+    import devbuddy_cli.update_cmd_stale_survivors as surv
+    import devbuddy_cli.update_cmd as update_cmd
+    from devbuddy_cli.update_cmd_fleet import _GatewayRestartOutcome
 
     stale_fleet = [{"profile": "default", "pid": 4242, "state": "stale", "code_sha": "a" * 40}]
     seen = {}

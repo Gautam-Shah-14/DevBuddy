@@ -571,9 +571,9 @@ def soak_env(tmp_path, monkeypatch):
     else:
         os.environ["TZ"] = original_tz
     time.tzset()
-    import hermes_time
+    import devbuddy_time
 
-    hermes_time.reset_cache()
+    devbuddy_time.reset_cache()
 
 
 def _run_scenario(sc: Scenario, soak_env) -> Dict[str, int]:

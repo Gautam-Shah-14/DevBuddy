@@ -26,7 +26,7 @@ def probe_with_rollback(
 
     ``on_commit`` runs right after the configuration is saved: a card install persists its setup
     values there, so they land with the authorization and never before it."""
-    from hermes_cli.mcp_config import _oauth_tokens_present, _probe_single_server
+    from devbuddy_cli.mcp_config import _oauth_tokens_present, _probe_single_server
     from tools.mcp_dashboard_oauth import exception_message
     from tools.mcp_oauth import HermesTokenStorage, login_connect_timeout
     from tools.mcp_oauth_manager import get_manager
@@ -106,7 +106,7 @@ def cancel_attempt(flow) -> bool:
 
 
 def _commit(server_name: str, cfg: dict, on_commit: Optional[Callable[[], None]], flow=None) -> None:
-    from hermes_cli.mcp_config import _save_mcp_server
+    from devbuddy_cli.mcp_config import _save_mcp_server
 
     with _COMMIT_GUARD:
         if flow is not None and getattr(flow, "cancelled", False):
@@ -126,7 +126,7 @@ def _reuse_saved_authorization(
     Retrying discovery for a server that is authorized must not ask the user to sign in again, and
     must not delete the working grant first. Any failure here falls through to the interactive
     flow, which replaces the grant."""
-    from hermes_cli.mcp_config import _oauth_tokens_present, _probe_single_server
+    from devbuddy_cli.mcp_config import _oauth_tokens_present, _probe_single_server
     from tools.mcp_oauth import suppress_interactive_oauth
 
     if not _oauth_tokens_present(server_name):
@@ -156,7 +156,7 @@ def run_worker(
     so the configuration can reference them before anything is saved. ``reuse_saved`` is the
     card's rule: a server whose saved tokens still work connects with no consent step. The RPC
     session surface keeps it off, because its caller waits for an authorization URL."""
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
     try:
         from agent.secret_scope import (
             build_profile_secret_scope, reset_secret_scope, set_secret_scope)
@@ -301,8 +301,8 @@ def start(
     """Start a card OAuth flow and wait until its authorization URL is published.
 
     ``cfg`` is an install's in-memory configuration; without it the saved one is authorized."""
-    from hermes_cli.mcp_config import _get_mcp_servers
-    from hermes_constants import get_hermes_home
+    from devbuddy_cli.mcp_config import _get_mcp_servers
+    from devbuddy_constants import get_hermes_home
     from tools.mcp_dashboard_oauth import DashboardOAuthFlow
     from tui_gateway import mcp_oauth_sessions
 

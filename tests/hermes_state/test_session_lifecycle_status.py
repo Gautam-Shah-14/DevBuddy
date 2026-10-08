@@ -7,8 +7,8 @@ the delete wiring the picker's 'd' key relies on.
 
 import pytest
 
-from hermes_state import SessionDB
-from hermes_state_sessions import (
+from devbuddy_state import SessionDB
+from devbuddy_state_sessions import (
     SESSION_STATUS_COMPLETE,
     SESSION_STATUS_EMPTY,
     SESSION_STATUS_ERROR,
@@ -147,7 +147,7 @@ def test_session_lifecycle_statuses_unknown_id(db):
 # ---------------------------------------------------------------------------
 
 def test_annotate_session_statuses(db):
-    from hermes_cli.sessions_cmd_browse import _annotate_session_statuses, _session_status_tag
+    from devbuddy_cli.sessions_cmd_browse import _annotate_session_statuses, _session_status_tag
 
     db.create_session("s1", source="cli")
     db.append_message("s1", "user", "hi")

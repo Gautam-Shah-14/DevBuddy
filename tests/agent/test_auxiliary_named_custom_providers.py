@@ -18,7 +18,7 @@ def _isolate(tmp_path, monkeypatch):
 
 def _write_config(tmp_path, config_dict):
     """Write a config.yaml to the test HERMES_HOME."""
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
     config_path = tmp_path / ".hermes" / "config.yaml"
     config_path.write_text(yaml.safe_dump(config_dict))
 
@@ -74,7 +74,7 @@ class TestResolveProviderClientMainAlias:
             "model": {"default": "gpt-5.4", "provider": "github-copilot"},
         })
         with (
-            patch("hermes_cli.auth.resolve_api_key_provider_credentials", return_value={
+            patch("devbuddy_cli.auth.resolve_api_key_provider_credentials", return_value={
                 "api_key": "ghu_test_token",
                 "base_url": "https://api.githubcopilot.com",
             }),
@@ -151,7 +151,7 @@ class TestResolveProviderClientModelNormalization:
             "model": {"default": "zai/glm-5.1", "provider": "zai"},
         })
         with (
-            patch("hermes_cli.auth.resolve_api_key_provider_credentials", return_value={
+            patch("devbuddy_cli.auth.resolve_api_key_provider_credentials", return_value={
                 "api_key": "glm-key",
                 "base_url": "https://api.z.ai/api/paas/v4",
             }),
@@ -189,7 +189,7 @@ class TestResolveVisionProviderClientModelNormalization:
         })
         with (
             patch("agent.auxiliary_client._read_nous_auth", return_value=None),
-            patch("hermes_cli.auth.resolve_api_key_provider_credentials", return_value={
+            patch("devbuddy_cli.auth.resolve_api_key_provider_credentials", return_value={
                 "api_key": "glm-key",
                 "base_url": "https://api.z.ai/api/paas/v4",
             }),

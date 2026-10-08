@@ -5,13 +5,13 @@ synthetic budgets."""
 from __future__ import annotations
 
 
-from hermes_cli.local_runtime.catalog import (
+from devbuddy_cli.local_runtime.catalog import (
     CATALOG,
     catalog_by_id,
     find_entry_for_model,
     select_variant,
 )
-from hermes_cli.local_runtime.estimator import HardwareBudget
+from devbuddy_cli.local_runtime.estimator import HardwareBudget
 
 GIB = 1 << 30
 
@@ -141,13 +141,13 @@ def test_find_entry_for_model_resolves_split_ids():
 def test_catalog_and_preset_agree_on_identical_model_facts(tmp_path, monkeypatch):
     from types import SimpleNamespace
 
-    from hermes_cli.local_runtime import bootstrap, catalog, presets
-    from hermes_cli.local_runtime.context_policy import RUNTIME_OVERHEAD_BYTES, ub_logits_bytes
-    from hermes_cli.local_runtime.estimator import ctx_bytes
-    from hermes_cli.web_routers.local_models import _catalog_row
+    from devbuddy_cli.local_runtime import bootstrap, catalog, presets
+    from devbuddy_cli.local_runtime.context_policy import RUNTIME_OVERHEAD_BYTES, ub_logits_bytes
+    from devbuddy_cli.local_runtime.estimator import ctx_bytes
+    from devbuddy_cli.web_routers.local_models import _catalog_row
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setattr("hermes_cli.web_routers.local_models._engine_too_old", lambda tag: False)
+    monkeypatch.setattr("devbuddy_cli.web_routers.local_models._engine_too_old", lambda tag: False)
     for entry in catalog.CATALOG:
         variant = entry.variants[0]
         profile = entry.profile(variant)
@@ -180,10 +180,10 @@ def test_catalog_and_preset_agree_on_identical_model_facts(tmp_path, monkeypatch
 def test_hybrid_long_context_stays_cheap():
     """The reason Nemotron/Qwen3.6 headline the catalog: their priced
     64K-floor KV must be a small fraction of a dense model's."""
-    from hermes_cli.local_runtime.catalog import FLOOR
-    from hermes_cli.local_runtime.estimator import ctx_bytes
+    from devbuddy_cli.local_runtime.catalog import FLOOR
+    from devbuddy_cli.local_runtime.estimator import ctx_bytes
 
-    from hermes_cli.local_runtime.estimator import LayerKind, ModelProfile
+    from devbuddy_cli.local_runtime.estimator import LayerKind, ModelProfile
 
     hybrid = catalog_by_id()["qwen3.6-35b-a3b"]
     hybrid_profile = hybrid.profile(hybrid.variants[-1])

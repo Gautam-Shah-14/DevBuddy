@@ -59,7 +59,7 @@ REPLACE_HOST = "replace-host"
 
 def _normalize(name: str) -> str:
     try:
-        from hermes_cli.profiles import normalize_profile_name
+        from devbuddy_cli.profiles import normalize_profile_name
 
         return normalize_profile_name(name or "default")
     except Exception:
@@ -108,7 +108,7 @@ class HostGateway:
 def _record_home(record) -> Path:
     """Home the owner was launched from. Records written before the field existed fall back to the
     default root — the home every pre-record multiplexer ran under."""
-    from hermes_constants import get_default_hermes_root
+    from devbuddy_constants import get_default_hermes_root
 
     return Path(record.home) if getattr(record, "home", "") else Path(get_default_hermes_root())
 
@@ -265,7 +265,7 @@ def _unknown_served_message(gateway: HostGateway, profile: str) -> str:
 
 
 def _refuse_message(gateway: HostGateway, profile: str) -> str:
-    from hermes_cli.gateway_migrate import MIGRATE_COMMAND
+    from devbuddy_cli.gateway_migrate import MIGRATE_COMMAND
 
     return (
         f"❌ A gateway already owns this host and will not serve profile '{profile}'.\n"
@@ -291,7 +291,7 @@ def _coexisting_gateways(owner: Optional[HostGateway]):
     record, to ask every running profile gateway what it actually serves.
     """
     from gateway.status import live_gateway_pid_for_home
-    from hermes_cli.profiles import profiles_to_serve
+    from devbuddy_cli.profiles import profiles_to_serve
 
     seen = {os.getpid()}
     if owner is not None:
@@ -315,7 +315,7 @@ def standalone_attach_decision(our_home: Path, owner: Optional[HostGateway]) -> 
 
     Shared by the initial attach check and the lock-losing race check.
     """
-    from hermes_cli.profiles import profile_is_standalone
+    from devbuddy_cli.profiles import profile_is_standalone
 
     if not profile_is_standalone(our_home):
         return None
@@ -379,7 +379,7 @@ def decide(our_home: Path, *, replace: bool = False) -> HostAttachDecision:
         # every unit but the first to claim the host lock. Start beside it. decide() runs twice per
         # start (CLI guard + start_gateway), so this is INFO; the host-lock claim in run.py logs the
         # one WARNING with the `gateway migrate --multiplex` converge hint.
-        from hermes_cli.gateway_migrate import MIGRATE_COMMAND
+        from devbuddy_cli.gateway_migrate import MIGRATE_COMMAND
 
         logger.info(
             "Another profile's standalone gateway owns this host (%s); starting profile '%s' beside it. "

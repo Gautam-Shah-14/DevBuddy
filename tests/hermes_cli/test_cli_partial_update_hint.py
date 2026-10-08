@@ -2,7 +2,7 @@
 
 A half-updated install can ship a newer ``cli.py`` that imports
 ``resolve_turn_limit`` / ``split_model_config_default`` from
-``hermes_cli.config`` while the older ``config.py`` does not export them.
+``devbuddy_cli.config`` while the older ``config.py`` does not export them.
 Construction of ``HermesCLI`` then dies before the agent-setup mixin can
 print ``partial_update_hint``. ``cmd_chat`` is the load-bearing catch:
 bare ``hermes`` and ``hermes chat`` (including the fast-chat launch path)
@@ -16,7 +16,7 @@ import types
 
 import pytest
 
-from hermes_constants import emit_partial_update_hint
+from devbuddy_constants import emit_partial_update_hint
 
 
 def _chat_args(**overrides):
@@ -53,15 +53,15 @@ def _chat_args(**overrides):
 
 def _missing_config_name_error(name: str = "resolve_turn_limit") -> ImportError:
     exc = ImportError(
-        f"cannot import name '{name}' from 'hermes_cli.config'"
+        f"cannot import name '{name}' from 'devbuddy_cli.config'"
     )
-    exc.name = "hermes_cli.config"
+    exc.name = "devbuddy_cli.config"
     return exc
 
 
 @pytest.fixture
 def main_mod(monkeypatch):
-    import hermes_cli.main as mod
+    import devbuddy_cli.main as mod
 
     monkeypatch.setattr(mod, "_has_any_provider_configured", lambda: True)
     monkeypatch.setattr(mod, "_sync_bundled_skills_for_startup", lambda: None)

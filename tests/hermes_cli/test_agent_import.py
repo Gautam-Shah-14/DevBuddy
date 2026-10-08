@@ -1,11 +1,11 @@
-"""Tests for hermes_cli.agent_import — ``hermes import-agent``.
+"""Tests for devbuddy_cli.agent_import — ``hermes import-agent``.
 
 Covers: source detection, Claude Code and Codex parsing, mapping into the
 real Hermes stores (memories/MEMORY.md, config.yaml command_allowlist /
 approvals.deny / mcp_servers, skills/), dry-run write-nothing guarantees,
 malformed-input skip reports, and the never-import-secrets rule.
 
-Uses the profile_env fixture pattern from tests/hermes_cli/test_profiles.py:
+Uses the profile_env fixture pattern from tests/devbuddy_cli/test_profiles.py:
 Path.home() and HERMES_HOME are redirected to tmp_path so nothing touches
 the real ~/.hermes.
 """
@@ -14,9 +14,9 @@ import json
 from pathlib import Path
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-from hermes_cli.agent_import import (
+from devbuddy_cli.agent_import import (
     ENTRY_DELIMITER,
     AgentImporter,
     claude_rule_to_command_pattern,
@@ -653,7 +653,7 @@ class TestExistingConfigPreserved:
     def test_failed_write_does_not_truncate_the_existing_config(
             self, hermes_home, config_path, monkeypatch):
         """An interrupted dump leaves the previous file complete."""
-        from hermes_cli import agent_import
+        from devbuddy_cli import agent_import
 
         config_path.write_text(EXISTING_CONFIG, encoding="utf-8")
         before = config_path.read_bytes()
@@ -676,7 +676,7 @@ class TestCliWiring:
 
     def test_rejects_unknown_agent(self):
         import argparse
-        from hermes_cli.subcommands.import_agent import build_import_agent_parser
+        from devbuddy_cli.subcommands.import_agent import build_import_agent_parser
 
         parser = argparse.ArgumentParser()
         subparsers = parser.add_subparsers(dest="command")
@@ -688,7 +688,7 @@ class TestCliWiring:
             self, claude_tree, hermes_home, capsys):
         """End-to-end through import_agent_command with --dry-run."""
         import types
-        from hermes_cli.agent_import import import_agent_command
+        from devbuddy_cli.agent_import import import_agent_command
 
         args = types.SimpleNamespace(
             agent="claude-code", source=str(claude_tree), dry_run=True,
@@ -712,7 +712,7 @@ class TestCliWiring:
 class TestSyncManifest:
     def _run_command(self, agent, source, dry_run=False, sync=False):
         import types
-        from hermes_cli.agent_import import import_agent_command
+        from devbuddy_cli.agent_import import import_agent_command
 
         import_agent_command(types.SimpleNamespace(
             agent=agent, source=str(source) if source else None,
@@ -720,7 +720,7 @@ class TestSyncManifest:
 
     def test_import_registers_source_and_unchanged_sync_is_noop(
             self, claude_tree, hermes_home):
-        from hermes_cli.agent_import_sync import load_sync_manifest
+        from devbuddy_cli.agent_import_sync import load_sync_manifest
 
         self._run_command("claude-code", claude_tree)
         entry = load_sync_manifest(hermes_home)["agents"]["claude-code"]
@@ -765,7 +765,7 @@ class TestSyncManifest:
         assert (imports / "deploy-helper" / "SKILL.md").read_text(encoding="utf-8") == "my local tweaks"
 
     def test_sync_dry_run_previews_without_writing(self, claude_tree, hermes_home):
-        from hermes_cli.agent_import_sync import load_sync_manifest
+        from devbuddy_cli.agent_import_sync import load_sync_manifest
 
         self._run_command("claude-code", claude_tree)
         old_digest = load_sync_manifest(hermes_home)["agents"]["claude-code"]["digest"]

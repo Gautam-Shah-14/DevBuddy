@@ -1,5 +1,5 @@
-from hermes_cli.main_provider_setup import _prompt_reasoning_effort_selection
-from hermes_cli.setup import _current_reasoning_effort
+from devbuddy_cli.main_provider_setup import _prompt_reasoning_effort_selection
+from devbuddy_cli.setup import _current_reasoning_effort
 
 
 def test_reasoning_menu_orders_minimal_before_low(monkeypatch):
@@ -10,7 +10,7 @@ def test_reasoning_menu_orders_minimal_before_low(monkeypatch):
         captured["selected"] = selected
         return selected  # pick the pre-selected (current) entry
 
-    monkeypatch.setattr("hermes_cli.curses_ui.curses_radiolist", _fake_radiolist)
+    monkeypatch.setattr("devbuddy_cli.curses_ui.curses_radiolist", _fake_radiolist)
 
     selected = _prompt_reasoning_effort_selection(
         ["low", "minimal", "medium", "high"],

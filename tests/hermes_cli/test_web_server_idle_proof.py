@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.web_server_idle_proof import idle_proof, pending_human_input
+from devbuddy_cli.web_server_idle_proof import idle_proof, pending_human_input
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -133,7 +133,7 @@ def _spawn_desktop_child(tmp_path: Path, name: str, *, busy: bool) -> subprocess
     ) if busy else ""
     code = (
         hold
-        + "from hermes_cli.web_server import start_server\n"
+        + "from devbuddy_cli.web_server import start_server\n"
         "start_server(host='127.0.0.1', port=0, open_browser=False, headless=True)\n"
     )
     return subprocess.Popen(

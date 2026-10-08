@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.stderr_timestamp."""
+"""Tests for devbuddy_cli.stderr_timestamp."""
 
 import os
 import re
@@ -15,12 +15,12 @@ from gateway.restart import (
     GATEWAY_SERVICE_RESTART_EXIT_CODE,
     LAUNCHD_LABEL_ENV,
 )
-from hermes_cli import stderr_timestamp
+from devbuddy_cli import stderr_timestamp
 
 _STALE_GATEWAY_ARGV = [
     sys.executable,
     "-m",
-    "hermes_cli.main",
+    "devbuddy_cli.main",
     "gateway",
     "run",
     "--replace",
@@ -134,7 +134,7 @@ def test_main_injects_flag_into_stale_gateway_child(tmp_path, monkeypatch):
         f"Path({str(marker_path)!r}).write_text("
         "'\\n'.join(sys.argv[1:]), encoding='utf-8')\n"
     )
-    stale = [sys.executable, "-c", code, "-m", "hermes_cli.main", "gateway", "run", "--replace"]
+    stale = [sys.executable, "-c", code, "-m", "devbuddy_cli.main", "gateway", "run", "--replace"]
 
     rc = stderr_timestamp.main(
         ["--error-log", str(log_path), "--", *stale]
@@ -207,7 +207,7 @@ def test_main_maps_gateway_ex_config_to_clean_stop(tmp_path):
     turn gateway EX_CONFIG (78) into that clean stop without swallowing the
     please-restart code (75) or a non-gateway child's 78."""
     log_path = tmp_path / "gateway.error.log"
-    gateway_tail = ["-m", "hermes_cli.main", "gateway", "run"]
+    gateway_tail = ["-m", "devbuddy_cli.main", "gateway", "run"]
 
     rc_config = stderr_timestamp.main(
         [
@@ -264,7 +264,7 @@ def test_wrapper_forwards_sigusr1_restart_request_to_child(tmp_path):
         "sys.exit(1)\n"
     )
     wrapper = subprocess.Popen(
-        [sys.executable, "-m", "hermes_cli.stderr_timestamp", "--error-log", str(log_path), "--",
+        [sys.executable, "-m", "devbuddy_cli.stderr_timestamp", "--error-log", str(log_path), "--",
          sys.executable, "-c", child],
         stderr=subprocess.DEVNULL,
         start_new_session=True,

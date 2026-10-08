@@ -121,7 +121,7 @@ def seed_scratch_home(home: Path, *, isolation: str, heartbeat_secs: int, respaw
         "memory": {"enabled": False},
     }
     # config.yaml is the canonical config; write it directly.
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
 
     (home / "config.yaml").write_text(yaml.safe_dump(cfg, sort_keys=True), encoding="utf-8")
     # A stub .env so credential resolution doesn't spelunk the real home.
@@ -174,7 +174,7 @@ class ScratchDashboard:
         env["PYTHONPATH"] = str(REPO_ROOT) + os.pathsep + env.get("PYTHONPATH", "")
         env["HERMES_ISO_CERTIFY_SYNTH_TURN"] = "1"
         cmd = [
-            python, "-m", "hermes_cli.main", "dashboard",
+            python, "-m", "devbuddy_cli.main", "dashboard",
             "--no-open", "--host", "127.0.0.1", "--port", str(self.port),
         ]
         self.proc = subprocess.Popen(

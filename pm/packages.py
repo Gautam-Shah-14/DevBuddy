@@ -244,7 +244,7 @@ class Python(_BionicDebArm, BinaryPackage, DebPackage):
         super().stage(store, staged, version, target)
         binary = self.binary(staged, target)
         if binary is not None and sys.platform == "darwin":
-            from hermes_cli.macos_signing import sign_managed_python
+            from devbuddy_cli.macos_signing import sign_managed_python
 
             sign_managed_python(binary)
         # python-build-standalone ships the x64 VC runtime (vcruntime140_1.dll)
@@ -306,7 +306,7 @@ def uv_cache_dir() -> Path:
     from it is near-free (probed: 0.4s vs 1.2s cold) — the blow-away-
     on-update contract depends on it. uv's default cache location is
     per-user/platform-opinionated and never used by pm."""
-    from hermes_constants import get_default_hermes_root
+    from devbuddy_constants import get_default_hermes_root
 
     machine_cache = get_default_hermes_root() / "cache" / "uv"
     marker = machine_cache / ".seeded"

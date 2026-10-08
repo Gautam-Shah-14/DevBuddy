@@ -9,9 +9,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-from hermes_cli.profiles import (
+from devbuddy_cli.profiles import (
     create_profile,
     format_profile_label,
     get_profile_dir,
@@ -51,7 +51,7 @@ class TestMetaAndValidation:
             "ui_meta:\n  hermes-bots:\n    title: JordyV\n", encoding="utf-8")
         assert read_profile_meta(profile_env)["bot_title"] == "JordyV"
         # The web/Desktop roster carries it through the same dict the chips read.
-        from hermes_cli.web_routers.profiles import _profile_to_dict
+        from devbuddy_cli.web_routers.profiles import _profile_to_dict
         assert _profile_to_dict(list_profiles()[0])["bot_title"] == "JordyV"
 
     def test_bot_title_absent_when_no_bots_meta(self, profile_env):
@@ -121,7 +121,7 @@ class TestRenameDefault:
         self, profile_env, monkeypatch
     ):
         monkeypatch.setattr(
-            "hermes_cli.profiles.check_alias_collision", lambda name: "skip"
+            "devbuddy_cli.profiles.check_alias_collision", lambda name: "skip"
         )
         create_profile("oldname", no_alias=True)
         write_profile_meta(get_profile_dir("oldname"), display_name="Old Friend")

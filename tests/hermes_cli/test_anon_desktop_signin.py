@@ -13,10 +13,10 @@ import time
 import pytest
 from fastapi.testclient import TestClient
 
-from hermes_cli import anon_auth
-from hermes_cli.auth import _load_auth_store
-from hermes_cli.web_server import _SESSION_TOKEN, app
-from tests.hermes_cli.test_anon_upgrade import (
+from devbuddy_cli import anon_auth
+from devbuddy_cli.auth import _load_auth_store
+from devbuddy_cli.web_server import _SESSION_TOKEN, app
+from tests.devbuddy_cli.test_anon_upgrade import (
     EMAIL, FREE_PICK, INFERENCE, PORTAL, WELCOME, _model_config, _write_model_config, free_account, portal)
 
 client = TestClient(app)
@@ -87,7 +87,7 @@ def test_a_sign_in_cancelled_while_waiting_never_persists_the_account(portal, fr
     """The poller is blocked on the transfer when the user cancels; when the wait returns completed,
     nothing may reach the auth store."""
     import threading
-    from hermes_cli import web_server_oauth
+    from devbuddy_cli import web_server_oauth
     guest = anon_auth.ensure_portal_identity(explicit=True)
     release = threading.Event()
 

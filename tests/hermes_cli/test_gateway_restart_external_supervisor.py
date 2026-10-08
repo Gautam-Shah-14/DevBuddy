@@ -12,11 +12,11 @@ from types import SimpleNamespace
 import pytest
 
 from gateway import status as gateway_status
-from hermes_cli import gateway as gw
-from hermes_cli import gateway_supervised_restart as supervised
+from devbuddy_cli import gateway as gw
+from devbuddy_cli import gateway_supervised_restart as supervised
 
 SUPERVISED_ARGV = [
-    "/usr/bin/python", "-m", "hermes_cli.main", "gateway", "run", "--external-supervisor",
+    "/usr/bin/python", "-m", "devbuddy_cli.main", "gateway", "run", "--external-supervisor",
 ]
 
 
@@ -93,7 +93,7 @@ def test_handback_failure_never_takes_ownership(restart_calls, sigusr1_returns, 
 
 
 def test_plain_manual_gateway_still_uses_stop_and_run(restart_calls, monkeypatch):
-    monkeypatch.setattr(gw, "_capture_gateway_argv", lambda pid: ["/usr/bin/python", "-m", "hermes_cli.main", "gateway", "run"])
+    monkeypatch.setattr(gw, "_capture_gateway_argv", lambda pid: ["/usr/bin/python", "-m", "devbuddy_cli.main", "gateway", "run"])
     _run_restart()
     assert restart_calls["sigusr1"] is None, "no supervisor marker: the detached fallback is the restart"
     assert restart_calls["started"], "a plain manually-run gateway must still be restarted in-process"

@@ -14,8 +14,8 @@ from unittest.mock import patch
 import pytest
 
 from cron.scheduler_delivery import BOT_CHAT_PLATFORM, cron_delivery_targets
-from hermes_cli.config import ensure_hermes_home
-from hermes_cli.profiles import (
+from devbuddy_cli.config import ensure_hermes_home
+from devbuddy_cli.profiles import (
     backfill_profile_envs,
     create_profile,
     delete_profile,
@@ -26,12 +26,12 @@ from hermes_cli.profiles import (
     resolve_profile_env,
     set_active_profile,
 )
-from hermes_constants import (
+from devbuddy_constants import (
     named_profile_home,
     reset_hermes_home_override,
     set_hermes_home_override,
 )
-from hermes_logging import setup_logging
+from devbuddy_logging import setup_logging
 
 
 @pytest.fixture()
@@ -48,8 +48,8 @@ def _named_homes(tmp_path: Path) -> list[str]:
 
 
 def _delete(name: str) -> None:
-    with patch("hermes_cli.profiles._cleanup_gateway_service"), patch(
-        "hermes_cli.profiles._stop_profile_backends"
+    with patch("devbuddy_cli.profiles._cleanup_gateway_service"), patch(
+        "devbuddy_cli.profiles._stop_profile_backends"
     ):
         delete_profile(name, yes=True)
 
@@ -57,8 +57,8 @@ def _delete(name: str) -> None:
 class TestDeletedProfileTombstone:
     def test_delete_then_logging_setup_does_not_recreate_home(self, profile_env, monkeypatch):
         profile_dir = create_profile("worker", no_alias=True, no_skills=True)
-        with patch("hermes_cli.profiles._cleanup_gateway_service"), patch(
-            "hermes_cli.profiles._stop_profile_backends"
+        with patch("devbuddy_cli.profiles._cleanup_gateway_service"), patch(
+            "devbuddy_cli.profiles._stop_profile_backends"
         ):
             delete_profile("worker", yes=True)
 
@@ -75,7 +75,7 @@ class TestDeletedProfileTombstone:
 
     def test_late_reasoning_caps_save_does_not_recreate_deleted_home(self, profile_env):
         """A daemon retaining a deleted profile context must not recreate its cache tree."""
-        from hermes_cli import models_reasoning_caps
+        from devbuddy_cli import models_reasoning_caps
 
         profile_dir = create_profile("worker", no_alias=True, no_skills=True)
         _delete("worker")
@@ -92,7 +92,7 @@ class TestDeletedProfileTombstone:
         assert not profile_dir.exists()
 
     def test_atomic_cache_write_allows_live_profile_home(self, profile_env):
-        from hermes_cli.models import _write_json_cache
+        from devbuddy_cli.models import _write_json_cache
 
         profile_dir = create_profile("worker", no_alias=True, no_skills=True)
         cache_path = profile_dir / "cache" / "models.json"
@@ -102,7 +102,7 @@ class TestDeletedProfileTombstone:
         assert cache_path.read_text(encoding="utf-8") == '{\n  "cached": true\n}'
 
     def test_atomic_cache_write_allows_unrelated_profiles_path(self, tmp_path):
-        from hermes_cli.models import _write_json_cache
+        from devbuddy_cli.models import _write_json_cache
 
         cache_path = tmp_path / "custom" / "profiles" / "cache" / "models.json"
 
@@ -112,8 +112,8 @@ class TestDeletedProfileTombstone:
 
     def test_empty_shell_after_delete_is_not_listed_or_served(self, profile_env):
         profile_dir = create_profile("worker", no_alias=True, no_skills=True)
-        with patch("hermes_cli.profiles._cleanup_gateway_service"), patch(
-            "hermes_cli.profiles._stop_profile_backends"
+        with patch("devbuddy_cli.profiles._cleanup_gateway_service"), patch(
+            "devbuddy_cli.profiles._stop_profile_backends"
         ):
             delete_profile("worker", yes=True)
 
@@ -132,8 +132,8 @@ class TestDeletedProfileTombstone:
 
     def test_tombstoned_home_is_not_bootstrapped(self, profile_env, monkeypatch):
         profile_dir = create_profile("worker", no_alias=True, no_skills=True)
-        with patch("hermes_cli.profiles._cleanup_gateway_service"), patch(
-            "hermes_cli.profiles._stop_profile_backends"
+        with patch("devbuddy_cli.profiles._cleanup_gateway_service"), patch(
+            "devbuddy_cli.profiles._stop_profile_backends"
         ):
             delete_profile("worker", yes=True)
         profile_dir.mkdir(parents=True)
@@ -145,8 +145,8 @@ class TestDeletedProfileTombstone:
 
     def test_create_after_delete_clears_tombstone(self, profile_env):
         create_profile("worker", no_alias=True, no_skills=True)
-        with patch("hermes_cli.profiles._cleanup_gateway_service"), patch(
-            "hermes_cli.profiles._stop_profile_backends"
+        with patch("devbuddy_cli.profiles._cleanup_gateway_service"), patch(
+            "devbuddy_cli.profiles._stop_profile_backends"
         ):
             delete_profile("worker", yes=True)
 
@@ -155,7 +155,7 @@ class TestDeletedProfileTombstone:
         assert "worker" in _named_homes(profile_env)
 
     def test_delete_releases_this_process_session_db(self, profile_env):
-        import hermes_state_registry as registry
+        import devbuddy_state_registry as registry
 
         profile_dir = create_profile("worker", no_alias=True, no_skills=True)
         held = registry.acquire(profile_dir / "state.db")
@@ -293,7 +293,7 @@ class TestNamedProfileHome:
         assert named_profile_home(custom_home / "logs") is None
 
     def test_unrelated_profiles_dir_still_mkdirs(self, tmp_path):
-        from hermes_constants import mkdir_under_hermes_home
+        from devbuddy_constants import mkdir_under_hermes_home
 
         custom_home = tmp_path / "srv" / "profiles" / "buildcache"
         log_dir = mkdir_under_hermes_home(custom_home / "logs")

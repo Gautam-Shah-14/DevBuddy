@@ -288,7 +288,7 @@ class TestPromptToolkitTerminalCompatibility:
 
         The native-Windows arm (``_terminal_may_leak_cpr() is False``, plus
         the ``PROMPT_TOOLKIT_NO_CPR`` override that outranks it) lives in
-        ``tests/hermes_cli/test_cpr_local_leak.py`` under ``platforms("windows")``, where it
+        ``tests/devbuddy_cli/test_cpr_local_leak.py`` under ``platforms("windows")``, where it
         runs against a real Windows console.
         """
         from cli import _terminal_may_leak_cpr
@@ -508,7 +508,7 @@ class TestRootLevelProviderOverride:
 
     def test_model_provider_wins_over_root_provider(self, tmp_path, monkeypatch):
         """model.provider takes priority — root-level provider is only a fallback."""
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
@@ -531,7 +531,7 @@ class TestRootLevelProviderOverride:
 
     def test_root_provider_used_as_fallback_when_model_provider_missing(self, tmp_path, monkeypatch):
         """Legacy root-level provider still populates model.provider in the CLI loader."""
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
@@ -554,7 +554,7 @@ class TestRootLevelProviderOverride:
 
     def test_root_base_url_used_as_fallback_when_model_base_url_missing(self, tmp_path, monkeypatch):
         """Legacy root-level base_url still populates model.base_url in the CLI loader."""
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
@@ -576,7 +576,7 @@ class TestRootLevelProviderOverride:
 
     def test_terminal_vercel_runtime_bridged_to_env(self, tmp_path, monkeypatch):
         """Classic CLI must expose terminal.vercel_runtime to terminal_tool.py."""
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
@@ -600,7 +600,7 @@ class TestRootLevelProviderOverride:
 
     def test_normalize_root_model_keys_moves_to_model(self):
         """_normalize_root_model_keys migrates root keys into model section."""
-        from hermes_cli.config import _normalize_root_model_keys
+        from devbuddy_cli.config import _normalize_root_model_keys
 
         config = {
             "provider": "opencode-go",
@@ -619,7 +619,7 @@ class TestRootLevelProviderOverride:
 
     def test_normalize_root_model_keys_does_not_override_existing(self):
         """Existing model.provider is never overridden by root-level key."""
-        from hermes_cli.config import _normalize_root_model_keys
+        from devbuddy_cli.config import _normalize_root_model_keys
 
         config = {
             "provider": "stale-provider",
@@ -645,7 +645,7 @@ class TestRootLevelProviderOverride:
 
     def test_normalize_model_alias_to_default(self):
         """model.model becomes model.default."""
-        from hermes_cli.config import _normalize_root_model_keys
+        from devbuddy_cli.config import _normalize_root_model_keys
 
         result = _normalize_root_model_keys({"model": {"model": "via-model-key"}})
         assert result["model"]["default"] == "via-model-key"
@@ -655,7 +655,7 @@ class TestRootLevelProviderOverride:
 
     def test_normalize_model_wins_over_name(self):
         """Precedence: model > name when both are aliases and default is empty."""
-        from hermes_cli.config import _normalize_root_model_keys
+        from devbuddy_cli.config import _normalize_root_model_keys
 
         result = _normalize_root_model_keys({"model": {"model": "m-key", "name": "n-key"}})
         assert result["model"]["default"] == "m-key"
@@ -671,7 +671,7 @@ class TestRootLevelProviderOverride:
 
     def test_nested_dict_default_flattens_model_and_provider(self):
         """dict model.default -> string default + provider, no outer provider set."""
-        from hermes_cli.config import _normalize_root_model_keys
+        from devbuddy_cli.config import _normalize_root_model_keys
 
         result = _normalize_root_model_keys({
             "model": {
@@ -683,7 +683,7 @@ class TestRootLevelProviderOverride:
 
     def test_nested_dict_default_provider_wins_over_auto(self):
         """Nested provider replaces the merged default "auto"."""
-        from hermes_cli.config import _normalize_root_model_keys
+        from devbuddy_cli.config import _normalize_root_model_keys
 
         result = _normalize_root_model_keys({
             "model": {
@@ -696,7 +696,7 @@ class TestRootLevelProviderOverride:
 
     def test_nested_dict_default_never_overrides_explicit_provider(self):
         """An explicitly configured model.provider beats the nested provider."""
-        from hermes_cli.config import _normalize_root_model_keys
+        from devbuddy_cli.config import _normalize_root_model_keys
 
         result = _normalize_root_model_keys({
             "model": {
@@ -709,7 +709,7 @@ class TestRootLevelProviderOverride:
 
     def test_nested_dict_model_alias_flattens_to_default(self):
         """dict model.model alias also flattens (default > model > name)."""
-        from hermes_cli.config import _normalize_root_model_keys
+        from devbuddy_cli.config import _normalize_root_model_keys
 
         result = _normalize_root_model_keys({
             "model": {
@@ -722,7 +722,7 @@ class TestRootLevelProviderOverride:
 
     def test_flat_string_default_untouched(self):
         """Plain string defaults keep existing behavior exactly."""
-        from hermes_cli.config import _normalize_root_model_keys
+        from devbuddy_cli.config import _normalize_root_model_keys
 
         result = _normalize_root_model_keys({
             "model": {"default": "flat-default-model", "provider": "auto"},
@@ -750,7 +750,7 @@ class TestPluginToolsetStartupValidation:
         monkeypatch.setattr(_cli_mod, "validate_toolset", lambda name: name in registry)
         monkeypatch.setattr(_cli_mod, "CLI_CONFIG", {"agent": {}})
         monkeypatch.setattr(
-            "hermes_cli.plugins.get_plugin_toolset_keys_nowait",
+            "devbuddy_cli.plugins.get_plugin_toolset_keys_nowait",
             lambda: set(plugin_keys),
         )
         stub._init_toolsets(list(toolsets))

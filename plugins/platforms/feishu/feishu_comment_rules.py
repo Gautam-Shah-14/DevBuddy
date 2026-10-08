@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
-from hermes_constants import get_hermes_home
+from devbuddy_constants import get_hermes_home
 
 logger = logging.getLogger(__name__)
 
@@ -251,7 +251,7 @@ def _pairing_cmd(args: list) -> int:
 
 def _main() -> int:
     try:
-        __import__("hermes_cli.env_loader", fromlist=["load_hermes_dotenv"]).load_hermes_dotenv()
+        __import__("devbuddy_cli.env_loader", fromlist=["load_hermes_dotenv"]).load_hermes_dotenv()
     except Exception:
         pass
     usage = f"""Usage: python -m gateway.platforms.feishu_comment_rules <command> [args]

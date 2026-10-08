@@ -21,7 +21,7 @@ import time
 
 import pytest
 
-from hermes_state import SessionDB
+from devbuddy_state import SessionDB
 
 IDLE_S = 6 * 3600  # mirror the TUI gateway's default session TTL
 
@@ -606,7 +606,7 @@ class TestSweepOrphanedSessions:
         then deleted; a fresh one is left open (source survives as 'recovered')."""
         import sqlite3
 
-        from hermes_cli.session_recovery import _reconstruct_missing_sessions
+        from devbuddy_cli.session_recovery import _reconstruct_missing_sessions
 
         stale = time.time() - 200 * 86400
         for sid in ("lost-old", "lost-fresh"):

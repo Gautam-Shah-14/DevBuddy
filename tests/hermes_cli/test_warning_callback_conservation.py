@@ -2,10 +2,10 @@
 from types import SimpleNamespace
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 from agent.status_output import StatusOutputMixin
-from hermes_cli.cli_stream_mixin import CLIStreamMixin
+from devbuddy_cli.cli_stream_mixin import CLIStreamMixin
 
 
 class Agent(StatusOutputMixin):

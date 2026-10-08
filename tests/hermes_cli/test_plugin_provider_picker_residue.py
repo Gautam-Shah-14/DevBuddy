@@ -18,15 +18,15 @@ from providers.base import ProviderProfile
 def plugin(monkeypatch):
     """Register *profile* the way plugin discovery does (providers registry + auth mirror), no leaks."""
     import providers
-    from hermes_cli import auth
-    from hermes_cli.auth_plugin_providers import PLUGIN_MIRRORED_PROVIDERS, register_plugin_provider
+    from devbuddy_cli import auth
+    from devbuddy_cli.auth_plugin_providers import PLUGIN_MIRRORED_PROVIDERS, register_plugin_provider
 
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
     monkeypatch.setattr(providers, "_ALIASES", dict(providers._ALIASES))
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None, raising=False)
     monkeypatch.setattr(auth, "PROVIDER_REGISTRY", dict(auth.PROVIDER_REGISTRY))
     mirrored = set(PLUGIN_MIRRORED_PROVIDERS)
-    monkeypatch.setattr("hermes_cli.auth_plugin_providers.PLUGIN_MIRRORED_PROVIDERS", mirrored)
+    monkeypatch.setattr("devbuddy_cli.auth_plugin_providers.PLUGIN_MIRRORED_PROVIDERS", mirrored)
 
     def _register(profile: ProviderProfile) -> ProviderProfile:
         providers.register_provider(profile)
@@ -56,9 +56,9 @@ def _pool_entry(provider: str, **fields):
 def test_hermes_model_routes_registered_plugin_profiles_to_the_generic_flow(plugin, monkeypatch, tmp_path):
     """Selecting an admitted external-process or OAuth plugin in `hermes model` persists config.model;
     an api_key profile still takes the api-key flow and an unknown slug stays a no-op."""
-    import hermes_cli.main as main
-    from hermes_cli import auth
-    from hermes_cli.config import load_config
+    import devbuddy_cli.main as main
+    from devbuddy_cli import auth
+    from devbuddy_cli.config import load_config
 
     plugin(ProviderProfile(name="example-acp", auth_type="external_process", base_url="acp://example",
                            process_command="example-acp-bin", fallback_models=("acp-a", "acp-b")))
@@ -93,7 +93,7 @@ def test_oauth_plugin_status_follows_the_credential_pool(plugin):
     """``get_auth_status``/``authenticated`` for an OAuth-shaped plugin read the pool: live token →
     logged in; expired token with refresh material → needs_refresh; nothing → signed out with the
     `hermes auth add` hint. Bundled OAuth providers never reach this builder."""
-    from hermes_cli import auth, models
+    from devbuddy_cli import auth, models
 
     plugin(ProviderProfile(name="example-oauth", auth_type="oauth_external",
                            base_url="https://example.invalid/v1", refresh_credential=lambda entry: {}))
@@ -121,8 +121,8 @@ def test_any_external_process_plugin_counts_as_signed_in_when_its_binary_resolve
     """The Desktop ``explicit_only`` filter (``build_model_options_payload`` behind
     ``tui_gateway/methods_complete.py::model.options``) keeps an out-of-tree ACP row exactly like the
     bundled one: binary resolves → auth evidence; missing binary → hidden."""
-    from hermes_cli import auth
-    from hermes_cli.inventory import _external_process_signed_in, _filter_explicit_provider_rows
+    from devbuddy_cli import auth
+    from devbuddy_cli.inventory import _external_process_signed_in, _filter_explicit_provider_rows
 
     plugin(ProviderProfile(name="example-acp", auth_type="external_process", base_url="acp://example",
                            process_command="example-acp-bin", fallback_models=("acp-a",)))

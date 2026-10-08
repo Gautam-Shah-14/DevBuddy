@@ -10,7 +10,7 @@ from prompt_toolkit.utils import get_cwidth
 def hermes_home(tmp_path, monkeypatch):
     from pathlib import Path
 
-    from hermes_cli import goals
+    from devbuddy_cli import goals
 
     home = tmp_path / ".hermes"
     home.mkdir()
@@ -23,8 +23,8 @@ def hermes_home(tmp_path, monkeypatch):
 
 def test_dock_paints_goal_on_top_and_queue_last_and_follows_their_lifecycle(hermes_home):
     from cli import _VoiceInputMessage
-    from hermes_cli.cli_subagent_monitor import SubagentMonitor
-    from hermes_cli.goals import GoalManager
+    from devbuddy_cli.cli_subagent_monitor import SubagentMonitor
+    from devbuddy_cli.goals import GoalManager
     from tools.process_registry_notifications import TimelineNotification
 
     mgr = GoalManager(session_id="sid-a", default_max_turns=20)
@@ -62,8 +62,8 @@ def test_dock_paints_goal_on_top_and_queue_last_and_follows_their_lifecycle(herm
 def test_dock_ignores_a_goal_manager_left_over_from_another_session(hermes_home):
     """After /new the cached manager still names the old session until it is rebuilt; the dock
     must not paint the previous session's goal (and never opens state.db itself)."""
-    from hermes_cli.cli_session_dock import goal_line
-    from hermes_cli.goals import GoalManager
+    from devbuddy_cli.cli_session_dock import goal_line
+    from devbuddy_cli.goals import GoalManager
 
     mgr = GoalManager(session_id="old-sid")
     mgr.set("previous session objective")

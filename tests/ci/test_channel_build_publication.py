@@ -12,10 +12,10 @@ import sys
 import xml.etree.ElementTree as ET
 import zipfile
 
-import hermes_yaml
+import devbuddy_yaml
 import pytest
 
-from hermes_cli.release_channels import canonical_json
+from devbuddy_cli.release_channels import canonical_json
 from scripts.releases import channel_publish, handoff, r2
 from scripts.releases.channels import preview_identity
 from tests.ci.desktop_release_roles import (
@@ -108,7 +108,7 @@ def test_channel_handoff_binds_full_request_and_feed_bytes(tmp_path, r2_server, 
     xml = ET.parse(next(p for p in feeds if p.suffix == ".appinstaller")).getroot()
     assert xml.find("{*}UpdateSettings") is None
     assert xml.find("{*}MainBundle").get("Name") == request["identity"]["msixAppIdWithOrg"]
-    feed = hermes_yaml.safe_load(next(p for p in feeds if p.suffix == ".yml").read_text(encoding="utf-8"))
+    feed = devbuddy_yaml.safe_load(next(p for p in feeds if p.suffix == ".yml").read_text(encoding="utf-8"))
     assert feed["version"] == request["version"]
     for file in feed["files"]:
         filename = file["url"].rsplit("/", 1)[-1]
@@ -167,7 +167,7 @@ def test_scoped_receiver_publication_preserves_existing_head_and_requires_smoke(
 
 
 def workflow_step(workflow, job, name):
-    doc = hermes_yaml.safe_load((ROOT / ".github/workflows" / workflow).read_text(encoding="utf-8"))
+    doc = devbuddy_yaml.safe_load((ROOT / ".github/workflows" / workflow).read_text(encoding="utf-8"))
     return next(step["run"] for step in doc["jobs"][job]["steps"] if step.get("name") == name)
 
 
@@ -463,7 +463,7 @@ def test_receiver_allocation_uses_official_identity_only_inside_scope(tmp_path):
         scope = R2Scope("ci-disposable/12345/17/")
         pub.store.scope = scope
         pub.public_base += "/" + scope.prefix.rstrip("/")
-        from hermes_cli.release_channels import ChannelReader
+        from devbuddy_cli.release_channels import ChannelReader
         pub.reader = ChannelReader(pub.public_base, pub.repository)
         receivers = allocate_receivers(pub, "a" * 40, "1.2.3", "a" * 40)
         assert set(receivers) == {"S", "T"}

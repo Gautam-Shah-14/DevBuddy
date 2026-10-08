@@ -8,9 +8,9 @@ same way the `hermes model` CLI picker does.
 from threading import Event
 from time import monotonic
 
-import hermes_cli.inventory as inv
-import hermes_cli.models as models_mod
-from hermes_cli import models_pricing
+import devbuddy_cli.inventory as inv
+import devbuddy_cli.models as models_mod
+from devbuddy_cli import models_pricing
 
 
 def _patch_pricing(monkeypatch, *, free_tier, pricing, unavailable=None):
@@ -128,7 +128,7 @@ def test_model_options_cold_pricing_fetch_runs_off_the_request_path(monkeypatch)
     }
     monkeypatch.setattr(models_pricing, "get_pricing_for_provider", fake_pricing)
     monkeypatch.setattr(
-        "hermes_cli.model_switch.list_authenticated_providers",
+        "devbuddy_cli.model_switch.list_authenticated_providers",
         lambda **_kwargs: [row],
     )
     monkeypatch.setattr(inv, "_moa_provider_row", lambda *_args, **_kwargs: None)
@@ -186,7 +186,7 @@ def test_prewarm_preserves_context_and_runs_once_per_profile(tmp_path, monkeypat
         reset_secret_scope,
         set_secret_scope,
     )
-    from hermes_constants import (
+    from devbuddy_constants import (
         hermes_home_key,
         reset_hermes_home_override,
         set_hermes_home_override,
@@ -273,7 +273,7 @@ def test_prewarm_deduplicates_inflight_scope_and_cleans_up(monkeypatch):
 
 def test_prewarm_endpoint_rotation_starts_a_new_worker(tmp_path, monkeypatch):
     """A live endpoint-A worker must not suppress endpoint B for its profile."""
-    from hermes_constants import (
+    from devbuddy_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )
@@ -346,7 +346,7 @@ def test_prewarm_endpoint_rotation_starts_a_new_worker(tmp_path, monkeypatch):
 
 def test_prewarm_nous_rotation_when_another_provider_is_current(tmp_path, monkeypatch):
     """Nous endpoint identity must not depend on Nous being selected."""
-    from hermes_constants import (
+    from devbuddy_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )
@@ -438,7 +438,7 @@ def test_cached_only_pricing_returns_a_warm_value_without_fetching(monkeypatch):
 
 def test_cached_only_dynamic_pricing_is_profile_scoped(tmp_path, monkeypatch):
     """Alternating profiles read the endpoint each profile warmed."""
-    from hermes_constants import (
+    from devbuddy_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )

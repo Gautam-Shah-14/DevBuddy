@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from hermes_platform.declaration import DeclarationError, parse_declaration
-from hermes_platform.resolver.app import AppDef, AppResolver
-from hermes_platform.resolver.availability import Availability, availability, version_at_least
+from devbuddy_platform.declaration import DeclarationError, parse_declaration
+from devbuddy_platform.resolver.app import AppDef, AppResolver
+from devbuddy_platform.resolver.availability import Availability, availability, version_at_least
 
 WHERE = "test-plugin/plugin.yaml"
 
@@ -134,7 +134,7 @@ def test_unexpanded_locations_are_missing_even_when_cwd_contains_them(tmp_path, 
 
 
 def test_registry_mutations_are_visible_and_notify_once(monkeypatch):
-    from hermes_platform import declaration
+    from devbuddy_platform import declaration
 
     decl = parse_declaration("thing-mcp", None, None, where=WHERE)
     changes = []
@@ -151,7 +151,7 @@ def test_registry_mutations_are_visible_and_notify_once(monkeypatch):
 
 def test_skill_requires_apps_gate(tmp_path, monkeypatch):
     from agent import skill_utils
-    from hermes_platform import declaration
+    from devbuddy_platform import declaration
 
     monkeypatch.setattr(declaration, "_REGISTRY", {})
     decl = parse_declaration(

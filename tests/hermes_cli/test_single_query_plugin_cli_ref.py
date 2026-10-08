@@ -11,7 +11,7 @@ from types import SimpleNamespace
 import pytest
 
 import cli
-from hermes_cli.plugins import get_plugin_manager
+from devbuddy_cli.plugins import get_plugin_manager
 
 
 @pytest.fixture(autouse=True)

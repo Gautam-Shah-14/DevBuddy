@@ -494,13 +494,13 @@ class TestOnSessionEndHook:
 class TestBundledDiscovery:
     def _write_enabled_config(self, hermes_home, names):
         """Write plugins.enabled allow-list to config.yaml."""
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
         cfg_path = hermes_home / "config.yaml"
         cfg_path.write_text(yaml.safe_dump({"plugins": {"enabled": list(names)}}))
 
     def test_disk_cleanup_discovered_but_not_loaded_by_default(self, _isolate_env):
         """Bundled plugins are discovered but NOT loaded without opt-in."""
-        from hermes_cli import plugins as pmod
+        from devbuddy_cli import plugins as pmod
         mgr = pmod.PluginManager()
         mgr.discover_and_load()
         # Discovered — appears in the registry
@@ -514,7 +514,7 @@ class TestBundledDiscovery:
 
     def test_disabled_beats_enabled(self, _isolate_env):
         """plugins.disabled wins even if the plugin is also in plugins.enabled."""
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
         cfg_path = _isolate_env / "config.yaml"
         cfg_path.write_text(yaml.safe_dump({
             "plugins": {
@@ -522,7 +522,7 @@ class TestBundledDiscovery:
                 "disabled": ["disk-cleanup"],
             }
         }))
-        from hermes_cli import plugins as pmod
+        from devbuddy_cli import plugins as pmod
         mgr = pmod.PluginManager()
         mgr.discover_and_load()
         loaded = mgr._plugins["disk-cleanup"]
@@ -535,7 +535,7 @@ class TestBundledDiscovery:
         self._write_enabled_config(
             _isolate_env, ["memory", "context_engine", "disk-cleanup"]
         )
-        from hermes_cli import plugins as pmod
+        from devbuddy_cli import plugins as pmod
         mgr = pmod.PluginManager()
         mgr.discover_and_load()
         assert "memory" not in mgr._plugins

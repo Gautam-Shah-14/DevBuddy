@@ -51,7 +51,7 @@ def _named_endpoint(name: str) -> Tuple[str, str]:
     """``(base_url, api_key)`` of the user-declared custom endpoint *name* (``providers:`` /
     ``custom_providers:``), so image generation reuses a chat endpoint's URL and credential without
     duplicating the key into OpenAI variables (#83080). Unknown name → ``("", "")`` with a warning."""
-    from hermes_cli.runtime_provider import _get_named_custom_provider
+    from devbuddy_cli.runtime_provider import _get_named_custom_provider
 
     entry = _get_named_custom_provider(name)
     if not entry:
@@ -240,7 +240,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

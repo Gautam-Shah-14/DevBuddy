@@ -13,16 +13,16 @@ import tarfile
 
 import pytest
 
-from hermes_cli.profiles import export_profile
+from devbuddy_cli.profiles import export_profile
 
 # Long enough to match agent.redact prefix patterns (sk- + 10+ chars).
 _LEAKED_KEY = "sk-or-v1-reallyLongSecretKeyValue12345678"
 
 
 def _patch_named_profile(monkeypatch, profiles_root, profile_dir):
-    monkeypatch.setattr("hermes_cli.profiles._get_profiles_root", lambda: profiles_root)
-    monkeypatch.setattr("hermes_cli.profiles.get_profile_dir", lambda n: profile_dir)
-    monkeypatch.setattr("hermes_cli.profiles.validate_profile_name", lambda n: None)
+    monkeypatch.setattr("devbuddy_cli.profiles._get_profiles_root", lambda: profiles_root)
+    monkeypatch.setattr("devbuddy_cli.profiles.get_profile_dir", lambda n: profile_dir)
+    monkeypatch.setattr("devbuddy_cli.profiles.validate_profile_name", lambda n: None)
 
 
 class TestCredentialExclusion:

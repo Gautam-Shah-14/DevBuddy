@@ -61,7 +61,7 @@ def validate_manifest(source: Path) -> dict:
 
 class PluginSelection:
     def __init__(self, selection: dict):
-        from hermes_yaml import roundtrip_yaml
+        from devbuddy_yaml import roundtrip_yaml
 
         self.configs = selection_snapshot()
         self.home = Path(selection["home"]).resolve()
@@ -142,7 +142,7 @@ class StagedPlugin:
     def publish(self, project: Path) -> None:
         import os
         import uuid
-        from hermes_cli.auth import _file_lock
+        from devbuddy_cli.auth import _file_lock
         from pm.store import tree_digest
 
         if selection_snapshot() != self.configs:

@@ -332,7 +332,7 @@ def _permanent_set() -> set:
     launch profile's "always" approvals must not pre-approve commands for a secondary, nor may a
     secondary's "always" choice be written back into the launch profile's config. Callers hold ``_lock``.
     """
-    from hermes_constants import get_hermes_home_override, hermes_home_key
+    from devbuddy_constants import get_hermes_home_override, hermes_home_key
     if get_hermes_home_override() is None:
         return _permanent_approved
     home_key = hermes_home_key()
@@ -396,13 +396,13 @@ def _persist_choice(session_key: str, choice: str, warnings: list[tuple]) -> Non
 
 def _read_permanent_allowlist() -> set:
     """``command_allowlist`` of the active profile's config as a set (empty on malformed input)."""
-    from hermes_cli.config import load_config_readonly
+    from devbuddy_cli.config import load_config_readonly
     config = load_config_readonly()
     raw = config.get("command_allowlist")
     legacy = isinstance(raw, str)
     if legacy:
         # Old config-set versions serialized list values as scalar strings.
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
         try:
             raw = yaml.safe_load(raw)
         except yaml.YAMLError:
@@ -427,7 +427,7 @@ _permanent_baseline_by_home: dict[str, set] = {}
 
 
 def _baseline_key() -> str:
-    from hermes_constants import get_hermes_home_override, hermes_home_key
+    from devbuddy_constants import get_hermes_home_override, hermes_home_key
     return "" if get_hermes_home_override() is None else hermes_home_key()
 
 
@@ -462,7 +462,7 @@ def save_permanent_allowlist(patterns: set):
     entries by editing ``command_allowlist`` in config.yaml.
     """
     try:
-        from hermes_cli.config import load_config, save_config
+        from devbuddy_cli.config import load_config, save_config
         config = load_config()
         on_disk = set(config.get("command_allowlist", []) or [])
         with _lock:
@@ -1327,7 +1327,7 @@ _PLUGIN_COMPAT_LAZY = {
     'HARDLINE_PATTERNS': ('tools.approval_detection', 'HARDLINE_PATTERNS'),
     'HARDLINE_PATTERNS_COMPILED': ('tools.approval_detection', 'HARDLINE_PATTERNS_COMPILED'),
     'HUMAN_WAIT_MARGIN_S': ('tools.approval_human_wait', 'HUMAN_WAIT_MARGIN_S'),
-    'cfg_get': ('hermes_cli.config', 'cfg_get'),
+    'cfg_get': ('devbuddy_cli.config', 'cfg_get'),
     'get_plugin_manager': ('tools.approval_prompt', 'get_plugin_manager'),
     'human_wait_ceiling': ('tools.approval_human_wait', 'human_wait_ceiling'),
     'human_wait_seconds': ('tools.approval_human_wait', 'human_wait_seconds'),
@@ -1348,7 +1348,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

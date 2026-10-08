@@ -146,7 +146,7 @@ def test_external_worker_adopts_execution_and_runs_payload_once(
         }),
         encoding="utf-8",
     )
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
 
     observed_homes = []
     adopted = Mock(
@@ -586,7 +586,7 @@ def test_launch_external_worker_degrades_by_default_with_real_helper(
 def test_launch_external_worker_pins_the_gateways_tree_on_pythonpath(
     tmp_path, monkeypatch,
 ):
-    """#112729: the worker starts in ``cron.scheduler`` (no ``hermes_cli.main`` bootstrap),
+    """#112729: the worker starts in ``cron.scheduler`` (no ``devbuddy_cli.main`` bootstrap),
     so its import path must be explicit — a rotted editable mapping or PYTHONSAFEPATH
     otherwise kills it with "No module named 'cron'" before the ack. The spawn env carries
     the gateway's own checkout first and keeps the gateway's other PYTHONPATH entries."""

@@ -24,9 +24,9 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import main as cli_main
-from hermes_cli import main_desktop
-from hermes_platform.host import facts
+from devbuddy_cli import main as cli_main
+from devbuddy_cli import main_desktop
+from devbuddy_platform.host import facts
 
 PE_AMD64 = 0x8664
 PE_ARM64 = 0xAA64
@@ -77,7 +77,7 @@ def make_pe(path: Path, machine: int = PE_AMD64, *, truncate_to: int | None = No
 
 # ─── _windows_native_machine ────────────────────────────────────────────────
 
-# MACHINE_ATTRIBUTES.UserEnabled — mirrors hermes_cli.main.
+# MACHINE_ATTRIBUTES.UserEnabled — mirrors devbuddy_cli.main.
 _USER_ENABLED = 0x00000001
 
 
@@ -343,14 +343,14 @@ def test_build_only_fails_when_pack_produces_corrupt_exe(tmp_path, monkeypatch, 
         assert name == "git"
         return SimpleNamespace(env={**base_env, "PATH": "C:\\pm-pinned-git\\cmd;" + base_env["PATH"]})
 
-    with patch("hermes_cli.main_desktop.shutil.which", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.source_build.source_build_env", return_value={"PATH": "/usr/bin"}), \
-         patch("hermes_cli.source_build.prepare_source_dependencies"), \
+    with patch("devbuddy_cli.main_desktop.shutil.which", return_value="/usr/bin/npm"), \
+         patch("devbuddy_cli.source_build.source_build_env", return_value={"PATH": "/usr/bin"}), \
+         patch("devbuddy_cli.source_build.prepare_source_dependencies"), \
          patch("pm.ensure", side_effect=pinned_git), \
-         patch("hermes_cli.main_desktop._desktop_build_needed", return_value=True), \
-         patch("hermes_cli.main_desktop._stop_desktop_processes_locking_build", return_value=[]), \
-         patch("hermes_cli.main_desktop._windows_native_machine", return_value="AMD64"), \
-         patch("hermes_cli.main_desktop.subprocess.run", side_effect=pack_into_staging), \
+         patch("devbuddy_cli.main_desktop._desktop_build_needed", return_value=True), \
+         patch("devbuddy_cli.main_desktop._stop_desktop_processes_locking_build", return_value=[]), \
+         patch("devbuddy_cli.main_desktop._windows_native_machine", return_value="AMD64"), \
+         patch("devbuddy_cli.main_desktop.subprocess.run", side_effect=pack_into_staging), \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns())
 

@@ -106,6 +106,6 @@ def test_flatten_exception_chain_caps_depth():
 def test_quiet_mode_does_not_clobber_runagent_logger_level():
     """Regression guard for the parent fix — must persist across this PR."""
     _ = _make_agent()
-    for name in ("run_agent", "tools", "trajectory_compressor", "cron", "hermes_cli"):
+    for name in ("run_agent", "tools", "trajectory_compressor", "cron", "devbuddy_cli"):
         logger = logging.getLogger(name)
         assert logger.getEffectiveLevel() <= logging.WARNING

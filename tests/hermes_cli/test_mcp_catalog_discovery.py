@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 from fastapi.testclient import TestClient
 
 
@@ -38,15 +38,15 @@ def catalog_client(tmp_path, monkeypatch):
     from tui_gateway import launch_profile_policy
     monkeypatch.setattr(secret_scope, "_MULTIPLEX_ACTIVE", False)
     monkeypatch.setattr(launch_profile_policy, "_snapshot", None)
-    from hermes_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
+    from devbuddy_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
     client = TestClient(app)
     client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
     return client, home, other
 
 
 def test_catalog_detection_is_opt_in_and_preserves_profile_state(catalog_client, tmp_path, monkeypatch):
-    from hermes_cli import mcp_app_detection as detection
-    from hermes_constants import get_hermes_home
+    from devbuddy_cli import mcp_app_detection as detection
+    from devbuddy_constants import get_hermes_home
 
     client, home, other = catalog_client
     import socket
@@ -131,7 +131,7 @@ def test_catalog_detection_is_opt_in_and_preserves_profile_state(catalog_client,
 
 
 def test_catalog_discovery_failure_retains_entries_as_unknown(catalog_client, monkeypatch):
-    from hermes_cli import mcp_app_detection as detection
+    from devbuddy_cli import mcp_app_detection as detection
 
     client, _home, _other = catalog_client
     calls = []

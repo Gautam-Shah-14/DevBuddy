@@ -5,8 +5,8 @@ import subprocess
 
 import pytest
 
-import hermes_cli.doctor as doctor
-from hermes_cli.doctor_state import check_legacy_desktop_checkout
+import devbuddy_cli.doctor as doctor
+from devbuddy_cli.doctor_state import check_legacy_desktop_checkout
 
 
 def _git(cwd, *args):
@@ -27,7 +27,7 @@ def embedded_context(tmp_path, monkeypatch):
     (bundle / "install-stamp.json").write_text(
         json.dumps({"commit": "a" * 40, "distribution": "desktop-app", "updateMechanism": "electron-updater"})
     )
-    import hermes_cli.main as hermes_main
+    import devbuddy_cli.main as hermes_main
 
     monkeypatch.setattr(hermes_main, "PROJECT_ROOT", bundle)
 
@@ -96,7 +96,7 @@ class TestLegacyDesktopCheckout:
     def test_silent_when_running_from_a_git_checkout(self, embedded_context, monkeypatch, capsys):
         # A git-managed install (dev tree or ejected) is not embedded; the
         # checkout at the managed root might BE the running tree.
-        import hermes_cli.main as hermes_main
+        import devbuddy_cli.main as hermes_main
 
         monkeypatch.setattr(hermes_main, "PROJECT_ROOT", embedded_context)
         check_legacy_desktop_checkout()

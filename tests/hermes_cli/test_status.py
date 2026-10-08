@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from hermes_cli.status import show_status
+from devbuddy_cli.status import show_status
 import subprocess
 
 
@@ -29,9 +29,9 @@ def test_show_status_all_does_not_print_tavily_key_value(monkeypatch, capsys, tm
 
 
 def test_show_status_termux_gateway_section_skips_systemctl(monkeypatch, capsys, tmp_path):
-    from hermes_cli import status as status_mod
-    import hermes_cli.auth as auth_mod
-    import hermes_cli.gateway as gateway_mod
+    from devbuddy_cli import status as status_mod
+    import devbuddy_cli.auth as auth_mod
+    import devbuddy_cli.gateway as gateway_mod
 
     monkeypatch.setenv("TERMUX_VERSION", "0.118.3")
     monkeypatch.setenv("PREFIX", "/data/data/com.termux/files/usr")
@@ -58,9 +58,9 @@ def test_show_status_termux_gateway_section_skips_systemctl(monkeypatch, capsys,
 
 
 def test_show_status_reports_vercel_backend_contract(monkeypatch, capsys, tmp_path):
-    from hermes_cli import status as status_mod
-    import hermes_cli.auth as auth_mod
-    import hermes_cli.gateway as gateway_mod
+    from devbuddy_cli import status as status_mod
+    import devbuddy_cli.auth as auth_mod
+    import devbuddy_cli.gateway as gateway_mod
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setenv("TERMINAL_ENV", "vercel_sandbox")
@@ -90,9 +90,9 @@ def test_show_status_reports_vercel_backend_contract(monkeypatch, capsys, tmp_pa
 
 def _base_xai_mocks(monkeypatch, tmp_path):
     """Set up the minimal environment for show_status, returning status_mod."""
-    from hermes_cli import status as status_mod
-    import hermes_cli.auth as auth_mod
-    import hermes_cli.gateway as gateway_mod
+    from devbuddy_cli import status as status_mod
+    import devbuddy_cli.auth as auth_mod
+    import devbuddy_cli.gateway as gateway_mod
 
     monkeypatch.setattr(status_mod, "get_env_path", lambda: tmp_path / ".env", raising=False)
     monkeypatch.setattr(status_mod, "get_hermes_home", lambda: tmp_path, raising=False)
@@ -117,7 +117,7 @@ class TestShowStatusXaiOAuth:
 
 
     def test_logged_in_shows_auth_store(self, monkeypatch, capsys, tmp_path):
-        import hermes_cli.auth as auth_mod
+        import devbuddy_cli.auth as auth_mod
         status_mod = _base_xai_mocks(monkeypatch, tmp_path)
         monkeypatch.setattr(auth_mod, "get_xai_oauth_auth_status",
                             lambda: {"logged_in": True, "auth_store": "/home/u/.hermes/auth.json"},
@@ -144,7 +144,7 @@ class TestShowStatusXaiOAuth:
 
     def test_import_failure_does_not_break_other_oauth_providers(self, monkeypatch, capsys, tmp_path):
         """Nous/Codex/MiniMax rows must still appear when xAI import fails."""
-        import hermes_cli.auth as auth_mod
+        import devbuddy_cli.auth as auth_mod
         status_mod = _base_xai_mocks(monkeypatch, tmp_path)
         monkeypatch.setattr(auth_mod, "get_nous_auth_status_local",
                             lambda: {"logged_in": True}, raising=False)
@@ -158,7 +158,7 @@ class TestShowStatusXaiOAuth:
 
     def test_status_function_exception_does_not_crash(self, monkeypatch, capsys, tmp_path):
         """show_status must not propagate an exception raised by get_xai_oauth_auth_status."""
-        import hermes_cli.auth as auth_mod
+        import devbuddy_cli.auth as auth_mod
         status_mod = _base_xai_mocks(monkeypatch, tmp_path)
 
         def _raises():
@@ -173,7 +173,7 @@ class TestShowStatusXaiOAuth:
 
     def test_status_function_returns_none_does_not_crash(self, monkeypatch, capsys, tmp_path):
         """get_xai_oauth_auth_status returning None must be handled gracefully."""
-        import hermes_cli.auth as auth_mod
+        import devbuddy_cli.auth as auth_mod
         status_mod = _base_xai_mocks(monkeypatch, tmp_path)
         monkeypatch.setattr(auth_mod, "get_xai_oauth_auth_status",
                             lambda: None, raising=False)
@@ -186,10 +186,10 @@ class TestShowStatusXaiOAuth:
 
 def test_show_status_reports_gateway_session_last_activity(monkeypatch, capsys, tmp_path):
     """hermes status should surface freshest gateway last_active (#72016)."""
-    from hermes_cli import status as status_mod
-    import hermes_cli.auth as auth_mod
-    import hermes_cli.gateway as gateway_mod
-    import hermes_state
+    from devbuddy_cli import status as status_mod
+    import devbuddy_cli.auth as auth_mod
+    import devbuddy_cli.gateway as gateway_mod
+    import devbuddy_state
     import time
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
@@ -218,7 +218,7 @@ def test_show_status_reports_gateway_session_last_activity(monkeypatch, capsys, 
         def close(self):
             return None
 
-    monkeypatch.setattr(hermes_state, "SessionDB", _FakeDB)
+    monkeypatch.setattr(devbuddy_state, "SessionDB", _FakeDB)
 
     status_mod.show_status(SimpleNamespace(all=False, deep=False))
     output = capsys.readouterr().out

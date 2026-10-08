@@ -19,7 +19,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes_cli.focus_view import (
+from devbuddy_cli.focus_view import (
     FOCUS_CONFIG_KEY,
     FOCUS_STATUSBAR_LABEL,
     FOCUS_TOOL_PROGRESS_MODE,
@@ -28,7 +28,7 @@ from hermes_cli.focus_view import (
     resolve_focus_arg,
     would_display_tool_line,
 )
-from hermes_cli.cli_commands_mixin import CLICommandsMixin
+from devbuddy_cli.cli_commands_mixin import CLICommandsMixin
 
 
 # =========================================================================
@@ -234,7 +234,7 @@ def _make_agent(tool_progress_mode: str):
     with (
         patch("model_tools.get_tool_definitions", return_value=tool_defs),
         patch("model_tools.check_toolset_requirements", return_value={}),
-        patch("hermes_cli.config.load_config", return_value={}),
+        patch("devbuddy_cli.config.load_config", return_value={}),
         patch("agent.process_bootstrap.OpenAI"),
     ):
         agent = AIAgent(

@@ -6,9 +6,9 @@ from types import SimpleNamespace
 
 def test_update_notice_offers_v1_trigram_tool_calls_rebuild(tmp_path, monkeypatch, capsys):
     """A deployed v1 trigram projection still receives the opt-in notice."""
-    from hermes_cli import update_cmd
-    import hermes_constants
-    import hermes_state
+    from devbuddy_cli import update_cmd
+    import devbuddy_constants
+    import devbuddy_state
 
     db_path = tmp_path / "state.db"
     db_path.touch()
@@ -29,11 +29,11 @@ def test_update_notice_offers_v1_trigram_tool_calls_rebuild(tmp_path, monkeypatc
             pass
 
         _db_needs_fts_storage_upgrade = staticmethod(
-            hermes_state.SessionDB._db_needs_fts_storage_upgrade
+            devbuddy_state.SessionDB._db_needs_fts_storage_upgrade
         )
 
-    monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: tmp_path)
-    monkeypatch.setattr(hermes_state, "SessionDB", FakeSessionDB)
+    monkeypatch.setattr(devbuddy_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(devbuddy_state, "SessionDB", FakeSessionDB)
     # Report a large state.db without patching Path.stat globally: a
     # 1-arg lambda on the class breaks pathlib.exists(follow_symlinks=...)
     # for every caller in the process (pytest's own teardown included).

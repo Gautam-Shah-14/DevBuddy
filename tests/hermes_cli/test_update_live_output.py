@@ -9,8 +9,8 @@ import time
 
 import pytest
 
-from hermes_cli import main_dashboard as output
-from hermes_cli import update_cmd
+from devbuddy_cli import main_dashboard as output
+from devbuddy_cli import update_cmd
 
 
 @pytest.mark.parametrize("gateway", [False, True, None])

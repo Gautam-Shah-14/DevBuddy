@@ -1,7 +1,7 @@
 """Core-functionality tests for the kanban kernel + CLI additions.
 
-Complements tests/hermes_cli/test_kanban_db.py (schema + CAS atomicity)
-and tests/hermes_cli/test_kanban_cli.py (end-to-end run_slash).  The
+Complements tests/devbuddy_cli/test_kanban_db.py (schema + CAS atomicity)
+and tests/devbuddy_cli/test_kanban_cli.py (end-to-end run_slash).  The
 tests here exercise the pieces added as part of the kanban hardening
 pass: circuit breaker, crash detection, daemon loop, idempotency,
 retention/gc, stats, notify subscriptions, worker log accessor, run_slash
@@ -16,11 +16,11 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import kanban_db as kb
-from hermes_cli import kanban_db_connect as kbc
-from hermes_cli import kanban_db_notify as kbn
-from hermes_cli import kanban_db_dispatch as kbd
-from hermes_cli import kanban_db_workspace as kbw
+from devbuddy_cli import kanban_db as kb
+from devbuddy_cli import kanban_db_connect as kbc
+from devbuddy_cli import kanban_db_notify as kbn
+from devbuddy_cli import kanban_db_dispatch as kbd
+from devbuddy_cli import kanban_db_workspace as kbw
 
 
 # ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ def kanban_home(tmp_path, monkeypatch):
     # multi-dispatcher reap race in production; setting it to 0 here
     # restores the pre-fix instant-reclaim semantics these tests were
     # written against. The grace-period itself is covered by dedicated
-    # tests in tests/hermes_cli/test_kanban_db.py.
+    # tests in tests/devbuddy_cli/test_kanban_db.py.
     monkeypatch.setenv("HERMES_KANBAN_CRASH_GRACE_SECONDS", "0")
     kb.init_db()
     return home
@@ -264,7 +264,7 @@ def test_max_runtime_terminates_overrun_worker(kanban_home):
         killed.append((pid, sig))
 
     # We bypass _pid_alive by stubbing it so the grace-poll exits fast.
-    import hermes_cli.kanban_db as _kb
+    import devbuddy_cli.kanban_db as _kb
     original_alive = _kb._pid_alive
     _kb._pid_alive = lambda pid: False  # pretend SIGTERM worked immediately
 
@@ -402,7 +402,7 @@ def test_migration_renames_legacy_event_kinds(tmp_path, monkeypatch):
 
 def test_stale_run_cannot_block_or_heartbeat_new_attempt(kanban_home, monkeypatch):
     """Stale retry attempts cannot mutate the active run lifecycle."""
-    import hermes_cli.kanban_db as _kb
+    import devbuddy_cli.kanban_db as _kb
 
     conn = kbc.connect()
     try:
@@ -953,9 +953,9 @@ def test_gateway_dispatcher_disables_corrupt_board_without_traceback(
     import sqlite3
 
     from gateway.run import GatewayRunner
-    import hermes_cli.config as _cfg_mod
-    import hermes_cli.kanban_db as _kb
-    from hermes_cli import kanban_db_connect as _kbc
+    import devbuddy_cli.config as _cfg_mod
+    import devbuddy_cli.kanban_db as _kb
+    from devbuddy_cli import kanban_db_connect as _kbc
 
     runner = object.__new__(GatewayRunner)
     runner._running = True
@@ -1120,7 +1120,7 @@ def test_reclaim_task_resets_running_to_ready(kanban_home, monkeypatch):
     import signal
     import time
     import secrets
-    import hermes_cli.kanban_db as _kb
+    import devbuddy_cli.kanban_db as _kb
     conn = kbc.connect()
     try:
         t = kb.create_task(conn, title="stuck", assignee="broken")
@@ -1199,15 +1199,15 @@ def _drive_worker_exit(conn, tid, fake_pid, raw_status):
     """Claim ``tid``, record ``raw_status`` for its dead worker pid, and run
     one reaper pass.
 
-    Deliberately resolves ``hermes_cli.kanban_db`` fresh and uses that single
+    Deliberately resolves ``devbuddy_cli.kanban_db`` fresh and uses that single
     module object for the exit registry, the liveness patch, AND the reaper:
     earlier tests in a full-suite run can reload the module, and recording
     the exit into one module object while reaping through another (stale)
     one makes ``_classify_worker_exit`` return ``unknown`` — silently turning
     a clean-exit protocol violation into a plain crash.
     """
-    import hermes_cli.kanban_db as _kb
-    from hermes_cli import kanban_db_dispatch as _kbd
+    import devbuddy_cli.kanban_db as _kb
+    from devbuddy_cli import kanban_db_dispatch as _kbd
     host_prefix = _kb._claimer_id().split(":", 1)[0]
     claimed = _kb.claim_task(conn, tid, claimer=f"{host_prefix}:mock")
     assert claimed is not None, "task was not claimable for the next attempt"
@@ -1248,7 +1248,7 @@ def test_protocol_violation_budget_not_consumed_by_other_failures(kanban_home):
     retries, and below-budget violations must leave the unified counter
     untouched (so the two budgets stay independent).
     """
-    from hermes_cli import kanban_db_dispatch as _kbd
+    from devbuddy_cli import kanban_db_dispatch as _kbd
     conn = kbc.connect()
     try:
         tid = kb.create_task(conn, title="mixed", assignee="worker")
@@ -1342,8 +1342,8 @@ def test_dead_worker_reap_surfaces_the_workers_own_last_output(kanban_home, driv
     """Regression for #88603 / #46593: a worker that explained why it could not comply
     (or printed a provider error) and then exited must have that text on the board and
     on the reap event — with the CLI exit summary trimmed — instead of only the canned label."""
-    import hermes_cli.kanban_db as kb
-    from hermes_cli import kanban_db_connect as kbc
+    import devbuddy_cli.kanban_db as kb
+    from devbuddy_cli import kanban_db_connect as kbc
     conn = kbc.connect()
     try:
         tid = kb.create_task(conn, title="handoff", assignee="worker")
@@ -1369,9 +1369,9 @@ def test_dead_worker_reap_reads_the_log_of_the_dispatching_board(kanban_home):
     """The reap must read the worker log under the board the tick runs for, not the
     ambient "current" board — otherwise every non-default board silently gets the canned
     message (the #88603 review finding)."""
-    import hermes_cli.kanban_db as kb
-    from hermes_cli import kanban_db_connect as kbc
-    from hermes_cli import kanban_db_dispatch as kbd
+    import devbuddy_cli.kanban_db as kb
+    from devbuddy_cli import kanban_db_connect as kbc
+    from devbuddy_cli import kanban_db_dispatch as kbd
     assert kb.get_current_board() == "default"
     board = "other-board"
     conn = kbc.connect(board=board)

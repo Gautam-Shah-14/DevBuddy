@@ -14,9 +14,9 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import anon_auth
-from hermes_cli.auth import _load_auth_store, resolve_provider
-from tests.hermes_cli.anon_portal import PORTAL, WELCOME, install_portal, make_jwt as _jwt  # noqa: F401
+from devbuddy_cli import anon_auth
+from devbuddy_cli.auth import _load_auth_store, resolve_provider
+from tests.devbuddy_cli.anon_portal import PORTAL, WELCOME, install_portal, make_jwt as _jwt  # noqa: F401
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def portal(monkeypatch, tmp_path):
 def _write_config(monkeypatch, **nous):
     home = Path(os.environ["HERMES_HOME"])
     (home / "config.yaml").write_text("nous:\n" + "".join(f"  {k}: {str(v).lower()}\n" for k, v in nous.items()))
-    from hermes_cli import config as cfg_mod
+    from devbuddy_cli import config as cfg_mod
     for attr in ("_config_cache", "_cached_config"):
         if hasattr(cfg_mod, attr):
             monkeypatch.setattr(cfg_mod, attr, None, raising=False)
@@ -110,7 +110,7 @@ class TestExplicitProvision:
         token = _load_auth_store()["providers"]["nous"]["anon_token"]
         # A second provision is idempotent, and the runtime now serves nous/welcome on the welcome host.
         anon_auth.ensure_portal_identity(explicit=True)
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from devbuddy_cli.runtime_provider import resolve_runtime_provider
         runtime = resolve_runtime_provider(requested="nous", target_model=anon_auth.GUEST_MODEL)
         assert runtime["base_url"].rstrip("/") == WELCOME
         assert resolve_provider("auto") == "nous"
@@ -126,7 +126,7 @@ class TestExplicitProvision:
         anon_auth.ensure_portal_identity(explicit=True)
         first = _load_auth_store()["providers"]["nous"]["anon_token"]
         portal.dead_tokens.add(first)
-        from hermes_cli.auth_nous import resolve_nous_runtime_credentials
+        from devbuddy_cli.auth_nous import resolve_nous_runtime_credentials
         assert resolve_nous_runtime_credentials(force_refresh=True)["api_key"]   # replaced, not refused
         assert _load_auth_store()["providers"]["nous"]["anon_token"] != first
         assert portal.minted == 2
@@ -146,7 +146,7 @@ class TestResolverIsUnchanged:
 
     def test_runtime_routes_to_welcome_host(self, portal):
         anon_auth.ensure_portal_identity(explicit=True)
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from devbuddy_cli.runtime_provider import resolve_runtime_provider
         runtime = resolve_runtime_provider()
         assert runtime["provider"] == "nous"
         assert runtime["base_url"].rstrip("/") == WELCOME
@@ -159,7 +159,7 @@ class TestRouteFallback:
     def test_exchange_without_inference_url_routes_to_welcome_literal(self, portal):
         portal.inference_base_url = None
         anon_auth.ensure_portal_identity(explicit=True)
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from devbuddy_cli.runtime_provider import resolve_runtime_provider
         runtime = resolve_runtime_provider()
         assert runtime["base_url"].rstrip("/") == WELCOME
         state = _load_auth_store()["providers"]["nous"]
@@ -168,12 +168,12 @@ class TestRouteFallback:
     def test_disallowed_inference_host_heals_to_welcome_literal(self, portal):
         portal.inference_base_url = "https://welcome-api.staging-nousresearch.com/v1"
         anon_auth.ensure_portal_identity(explicit=True)
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from devbuddy_cli.runtime_provider import resolve_runtime_provider
         runtime = resolve_runtime_provider()
         assert runtime["base_url"].rstrip("/") == WELCOME
 
     def test_guest_state_without_url_never_resolves_to_the_paid_host(self, portal):
-        from hermes_cli.auth_nous import _nous_effective_routing
+        from devbuddy_cli.auth_nous import _nous_effective_routing
         guest = {"auth_method": "anonymous", "anon_token": "anon_x"}
         _portal, stored, effective, _client = _nous_effective_routing(guest)
         assert stored.rstrip("/") == WELCOME and effective.rstrip("/") == WELCOME
@@ -181,7 +181,7 @@ class TestRouteFallback:
         assert stored.rstrip("/") == "https://inference-api.nousresearch.com/v1"
 
     def test_shared_store_shape_keeps_a_guest_on_the_welcome_host(self, portal):
-        from hermes_cli.auth_nous import _nous_shared_shape
+        from devbuddy_cli.auth_nous import _nous_shared_shape
         shape = _nous_shared_shape({"auth_method": "anonymous", "anon_token": "anon_x"})
         assert shape["inference_base_url"].rstrip("/") == WELCOME
 
@@ -189,14 +189,14 @@ class TestRouteFallback:
 class TestTokenAcquisitionSeam:
     def test_expired_guest_jwt_reexchanges_and_never_hits_oauth_token(self, portal):
         anon_auth.ensure_portal_identity(explicit=True)
-        from hermes_cli.auth import _auth_store_lock, _save_auth_store
+        from devbuddy_cli.auth import _auth_store_lock, _save_auth_store
         with _auth_store_lock():
             store = _load_auth_store()
             store["providers"]["nous"]["access_token"] = _jwt(exp=int(time.time()) - 10)
             store["providers"]["nous"]["expires_at"] = "2000-01-01T00:00:00+00:00"
             _save_auth_store(store)
         portal.calls.clear()
-        from hermes_cli.auth_nous import resolve_nous_runtime_credentials
+        from devbuddy_cli.auth_nous import resolve_nous_runtime_credentials
         creds = resolve_nous_runtime_credentials()
         paths = [p for _, p in portal.calls]
         assert paths == ["/api/anonymous/token"]
@@ -207,7 +207,7 @@ class TestTokenAcquisitionSeam:
     def test_dead_credential_is_replaced_by_a_fresh_identity(self, portal):
         first = anon_auth.ensure_portal_identity(explicit=True)
         portal.dead_tokens.add(first["anon_token"])
-        from hermes_cli.auth_nous import resolve_nous_runtime_credentials
+        from devbuddy_cli.auth_nous import resolve_nous_runtime_credentials
         creds = resolve_nous_runtime_credentials(force_refresh=True)
         assert creds["api_key"]
         state = _load_auth_store()["providers"]["nous"]
@@ -216,7 +216,7 @@ class TestTokenAcquisitionSeam:
 
     def test_tool_gateway_token_path_reexchanges(self, portal):
         anon_auth.ensure_portal_identity(explicit=True)
-        from hermes_cli.auth import _auth_store_lock, _save_auth_store, resolve_nous_access_token
+        from devbuddy_cli.auth import _auth_store_lock, _save_auth_store, resolve_nous_access_token
         with _auth_store_lock():
             store = _load_auth_store()
             store["providers"]["nous"]["expires_at"] = "2000-01-01T00:00:00+00:00"
@@ -251,7 +251,7 @@ class TestModelPin:
 class TestLogout:
     def test_logout_with_only_free_tier_is_a_true_noop(self, portal):
         from types import SimpleNamespace
-        from hermes_cli.auth import _auth_file_path, logout_command
+        from devbuddy_cli.auth import _auth_file_path, logout_command
         anon_auth.ensure_portal_identity(explicit=True)
         before = _auth_file_path().read_bytes()
         logout_command(SimpleNamespace(provider=None))
@@ -259,8 +259,8 @@ class TestLogout:
 
     def test_logout_of_real_account_clears_shared_store(self, portal, tmp_path):
         from types import SimpleNamespace
-        from hermes_cli.auth import logout_command
-        from hermes_cli.auth_nous import persist_nous_credentials
+        from devbuddy_cli.auth import logout_command
+        from devbuddy_cli.auth_nous import persist_nous_credentials
         persist_nous_credentials({"access_token": _jwt(client_id="hermes-cli", account_tier="free"),
                                   "refresh_token": "rt-1", "expires_at": "2030-01-01T00:00:00+00:00",
                                   "auth_method": "oauth_device_code"})
@@ -273,7 +273,7 @@ class TestLogout:
 class TestModelSwitchCopy:
     def test_switching_away_from_welcome_names_the_account_path_not_another_provider(self, portal, monkeypatch):
         anon_auth.ensure_portal_identity(explicit=True)
-        from hermes_cli import model_switch
+        from devbuddy_cli import model_switch
         monkeypatch.setattr(model_switch, "list_provider_models", lambda *a, **k: [], raising=False)
         result = model_switch.switch_model("gpt-5", "nous", anon_auth.GUEST_MODEL, WELCOME)
         assert not result.success
@@ -313,7 +313,7 @@ class TestBootstrapIsTheOneCreator:
     site is a read. One mint per process; the record says who carries inference."""
 
     def _fresh(self):
-        from hermes_cli import free_tier_bootstrap as fb
+        from devbuddy_cli import free_tier_bootstrap as fb
         fb.reset_for_tests()
         return fb
 
@@ -345,7 +345,7 @@ class TestBootstrapIsTheOneCreator:
         assert read_nous_access_token() is None
         with pytest.raises(anon_auth.AuthError):
             resolve_provider("auto")
-        from hermes_cli.main import _has_any_provider_configured
+        from devbuddy_cli.main import _has_any_provider_configured
         _has_any_provider_configured()
         assert not anon_auth.has_guest()
         assert portal.calls == [], "no read path may reach the portal"
@@ -368,7 +368,7 @@ class TestIdentityOfRecordIsTheSharedStore:
     def test_stale_profile_guest_adopts_a_newer_shared_account(self, portal, tmp_path):
         anon_auth.ensure_portal_identity(explicit=True)
         # A sibling profile signed in: the shared store now holds a real account.
-        from hermes_cli.auth_nous import _write_shared_nous_state
+        from devbuddy_cli.auth_nous import _write_shared_nous_state
         _write_shared_nous_state({"access_token": _jwt(client_id="hermes-cli", account_tier="free"),
                                   "refresh_token": "rt-sibling", "expires_at": "2030-01-01T00:00:00+00:00",
                                   "auth_method": "oauth_device_code"})
@@ -382,7 +382,7 @@ class TestIdentityOfRecordIsTheSharedStore:
         first = anon_auth.ensure_portal_identity(explicit=True)
         assert anon_auth.is_guest_state(first) and "access_token" not in first
         assert [p for _, p in portal.calls] == ["/api/anonymous/create"], "mint alone; exchange is lazy"
-        from hermes_cli.auth_nous import resolve_nous_runtime_credentials
+        from devbuddy_cli.auth_nous import resolve_nous_runtime_credentials
         creds = resolve_nous_runtime_credentials()
         assert creds["api_key"]
         assert portal.minted == 1, "a stored credential is exchanged, never re-minted"
@@ -390,7 +390,7 @@ class TestIdentityOfRecordIsTheSharedStore:
 
     def test_clearing_a_dead_guest_leaves_a_sibling_identity_alone(self, portal, tmp_path):
         anon_auth.ensure_portal_identity(explicit=True)
-        from hermes_cli.auth_nous import _write_shared_nous_state
+        from devbuddy_cli.auth_nous import _write_shared_nous_state
         _write_shared_nous_state({"access_token": _jwt(client_id="hermes-cli"), "refresh_token": "rt-sibling",
                                   "expires_at": "2030-01-01T00:00:00+00:00", "auth_method": "oauth_device_code"})
         anon_auth.clear_dead_guest("test")
@@ -399,7 +399,7 @@ class TestIdentityOfRecordIsTheSharedStore:
 
     def test_lock_order_is_profile_then_shared(self, portal, monkeypatch):
         order = []
-        from hermes_cli import auth as auth_mod, auth_nous
+        from devbuddy_cli import auth as auth_mod, auth_nous
         real_profile, real_shared = auth_mod._auth_store_lock, auth_nous._nous_shared_store_lock
         from contextlib import contextmanager
 
@@ -423,7 +423,7 @@ class TestIdentityOfRecordIsTheSharedStore:
 class TestConnectorTokenPath:
     def test_opt_out_hides_the_free_tier_from_connectors_including_cached_tokens(self, portal, monkeypatch):
         anon_auth.ensure_portal_identity(explicit=True)
-        from hermes_cli.auth_nous import resolve_nous_runtime_credentials
+        from devbuddy_cli.auth_nous import resolve_nous_runtime_credentials
         resolve_nous_runtime_credentials()  # now a cached, valid JWT exists
         from tools import managed_tool_gateway as mtg
         assert mtg.read_nous_access_token()
@@ -433,7 +433,7 @@ class TestConnectorTokenPath:
 
     def test_connector_path_replaces_a_dead_credential_once(self, portal):
         first = anon_auth.ensure_portal_identity(explicit=True)
-        from hermes_cli.auth import _auth_store_lock, _save_auth_store
+        from devbuddy_cli.auth import _auth_store_lock, _save_auth_store
         with _auth_store_lock():
             store = _load_auth_store()
             store["providers"]["nous"]["expires_at"] = "2000-01-01T00:00:00+00:00"

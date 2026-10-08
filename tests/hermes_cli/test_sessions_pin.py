@@ -38,10 +38,10 @@ class _FakeDB:
         self.closed = True
 
 def _run(monkeypatch, capsys, argv_tail, db):
-    import hermes_cli.main as main_mod
-    import hermes_state
+    import devbuddy_cli.main as main_mod
+    import devbuddy_state
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda *args, **kwargs: db)
+    monkeypatch.setattr(devbuddy_state, "SessionDB", lambda *args, **kwargs: db)
     monkeypatch.setattr(sys, "argv", ["hermes", "sessions", *argv_tail])
     try:
         main_mod.main()

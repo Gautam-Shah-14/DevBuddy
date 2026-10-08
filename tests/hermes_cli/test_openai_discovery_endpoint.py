@@ -23,7 +23,7 @@ from unittest.mock import patch as mock_patch
 
 import pytest
 
-from hermes_cli import models as models_mod
+from devbuddy_cli import models as models_mod
 
 
 def _cfg(base_url: str | None, provider: str = "openai-api"):

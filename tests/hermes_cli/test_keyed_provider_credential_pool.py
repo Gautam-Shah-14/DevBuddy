@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 
 POOL_KEY = "sk-real-b-ai-pool-key-12345"
@@ -66,7 +66,7 @@ def test_get_named_custom_provider_exposes_provider_key_and_key_env(
     )
     monkeypatch.setenv("B_AI_API_KEY", "sk-from-env-not-the-pool")
 
-    from hermes_cli.runtime_provider import _get_named_custom_provider
+    from devbuddy_cli.runtime_provider import _get_named_custom_provider
 
     entry = _get_named_custom_provider("b-ai")
     assert entry is not None
@@ -80,7 +80,7 @@ def test_keyed_provider_runtime_uses_durable_pool_slug(tmp_path, monkeypatch):
     """Main turns must send the pooled key, not the no-key-required placeholder."""
     _write_keyed_provider_home(tmp_path, monkeypatch)
 
-    from hermes_cli import runtime_provider as rp
+    from devbuddy_cli import runtime_provider as rp
 
     resolved = rp.resolve_runtime_provider(requested="b-ai")
     assert resolved["base_url"] == ENDPOINT
@@ -95,7 +95,7 @@ def test_keyed_provider_runtime_falls_back_to_legacy_custom_namespace(
     """Older auth.json rows stored under custom:<display-name> must still work."""
     _write_keyed_provider_home(tmp_path, monkeypatch, pool_id="custom:b.ai")
 
-    from hermes_cli import runtime_provider as rp
+    from devbuddy_cli import runtime_provider as rp
 
     resolved = rp.resolve_runtime_provider(requested="b-ai")
     assert resolved["api_key"] == LEGACY_KEY
@@ -152,7 +152,7 @@ def test_prune_keeps_active_legacy_pool_for_keyed_provider(tmp_path, monkeypatch
         encoding="utf-8",
     )
 
-    from hermes_cli.model_setup_flows_common import (
+    from devbuddy_cli.model_setup_flows_common import (
         _prune_replaced_custom_model_config_credentials,
     )
 

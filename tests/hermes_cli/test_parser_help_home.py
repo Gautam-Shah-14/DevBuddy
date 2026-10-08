@@ -13,19 +13,19 @@ import pytest
 
 @pytest.fixture
 def sticky_profile_home(monkeypatch, tmp_path):
-    import hermes_constants
+    import devbuddy_constants
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.delenv("HERMES_HOME", raising=False)
     root = tmp_path / ".hermes"
     (root / "profiles" / "coder").mkdir(parents=True)
     (root / "active_profile").write_text("coder\n", encoding="utf-8")
-    monkeypatch.setattr(hermes_constants, "_profile_fallback_warned", False)
+    monkeypatch.setattr(devbuddy_constants, "_profile_fallback_warned", False)
     return root
 
 
 def test_building_the_parser_before_the_profile_override_stays_silent(sticky_profile_home, capsys):
-    from hermes_cli._parser import build_top_level_parser
+    from devbuddy_cli._parser import build_top_level_parser
 
     build_top_level_parser()
 
@@ -33,7 +33,7 @@ def test_building_the_parser_before_the_profile_override_stays_silent(sticky_pro
 
 
 def test_help_text_names_the_profile_config_once_the_process_is_re_homed(sticky_profile_home, monkeypatch):
-    from hermes_cli._parser import _cfg_path
+    from devbuddy_cli._parser import _cfg_path
 
     monkeypatch.setenv("HERMES_HOME", str(sticky_profile_home / "profiles" / "coder"))
 

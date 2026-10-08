@@ -1,8 +1,8 @@
 import json
 import sys
 
-from hermes_cli.session_export import export_record_count, render_sessions_export
-from hermes_cli.session_export_html import (
+from devbuddy_cli.session_export import export_record_count, render_sessions_export
+from devbuddy_cli.session_export_html import (
     _generate_messages_html,
     generate_multi_session_html_export,
 )
@@ -96,8 +96,8 @@ def test_export_record_count_switches_unit_for_prompt_only_exports():
 
 
 def test_sessions_export_cli_prompt_only_stdout(monkeypatch, capsys):
-    import hermes_cli.main as main_mod
-    import hermes_state
+    import devbuddy_cli.main as main_mod
+    import devbuddy_state
 
     captured = {}
 
@@ -113,7 +113,7 @@ def test_sessions_export_cli_prompt_only_stdout(monkeypatch, capsys):
         def close(self):
             captured["closed"] = True
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda *args, **kwargs: FakeDB())
+    monkeypatch.setattr(devbuddy_state, "SessionDB", lambda *args, **kwargs: FakeDB())
     monkeypatch.setattr(
         sys,
         "argv",

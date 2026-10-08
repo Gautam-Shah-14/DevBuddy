@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from hermes_cli import main_install_repair
-from hermes_cli import main as cli_main
-from hermes_constants import venv_bin_dir
+from devbuddy_cli import main_install_repair
+from devbuddy_cli import main as cli_main
+from devbuddy_constants import venv_bin_dir
 import pytest
 
 

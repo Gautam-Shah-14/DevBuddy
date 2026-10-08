@@ -28,7 +28,7 @@ import os
 import shutil
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 from tests.e2e.core.upgrade import _helpers as H
 from tests.e2e.core.upgrade import _install_helpers as I
@@ -45,8 +45,8 @@ pytestmark = [
 
 UPDATE_TIMEOUT = 1500
 PROFILES = ("default", "work", "research")
-_VERSIONS_PY = ("from hermes_cli.config_defaults import DEFAULT_CONFIG as D; "
-                "from hermes_cli.config_migrations import SUPPORT_FLOOR_VERSION as F; "
+_VERSIONS_PY = ("from devbuddy_cli.config_defaults import DEFAULT_CONFIG as D; "
+                "from devbuddy_cli.config_migrations import SUPPORT_FLOOR_VERSION as F; "
                 "print(D['_config_version'], F)")
 
 

@@ -176,7 +176,7 @@ def check_env_vars():
 
     # Load .env
     try:
-        from hermes_cli.env_loader import load_hermes_dotenv
+        from devbuddy_cli.env_loader import load_hermes_dotenv
 
         load_hermes_dotenv(
             hermes_home=ENV_FILE.parent,
@@ -241,7 +241,7 @@ def check_config(groq_key, eleven_key):
     config_path = HERMES_HOME / "config.yaml"
     if config_path.exists():
         try:
-            import hermes_yaml as yaml
+            import devbuddy_yaml as yaml
             with open(config_path, encoding="utf-8-sig") as f:
                 cfg = yaml.safe_load(f) or {}
 

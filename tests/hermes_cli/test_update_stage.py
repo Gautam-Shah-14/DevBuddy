@@ -1,4 +1,4 @@
-"""Stage publishing into a watching desktop-update UI (hermes_cli.update_stage).
+"""Stage publishing into a watching desktop-update UI (devbuddy_cli.update_stage).
 
 The desktop hand-off shim renders progress from a status JSON file. The
 regression: during an old→new checkout transition the OLD shim never exports
@@ -18,7 +18,7 @@ import time
 
 import pytest
 
-from hermes_cli import update_stage
+from devbuddy_cli import update_stage
 
 
 @pytest.fixture
@@ -70,10 +70,10 @@ def test_marker_fallback_covers_the_old_shim(status_file, tmp_path, monkeypatch)
 def test_marker_fallback_uses_the_platform_home_without_env_var(status_file, tmp_path, monkeypatch):
     """The shim without HERMES_HOME resolved the platform default, which is not ~/.hermes
     on every host (sudo invoker, data-dir suffix); the marker must be looked up there."""
-    import hermes_constants
+    import devbuddy_constants
 
     monkeypatch.delenv("HERMES_HOME", raising=False)
-    monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: tmp_path / "platform")
+    monkeypatch.setattr(devbuddy_constants, "_get_platform_default_hermes_home", lambda: tmp_path / "platform")
     (tmp_path / "platform").mkdir()
     (tmp_path / "platform" / update_stage.MARKER_NAME).write_text(
         f"80335\n{int(time.time())}\n", encoding="utf-8")

@@ -11,19 +11,19 @@ def test_platform_modules_only_import_stdlib_and_hermes_platform() -> None:
     code = """
 import sys
 before = set(sys.modules)
-import hermes_platform.host.facts
-import hermes_platform.host.runtime
-import hermes_platform.host.products
-import hermes_platform.declaration
-import hermes_platform.resolver
-import hermes_platform.resolver.app
-import hermes_platform.resolver.availability
-import hermes_platform.resolver.known_dirs
+import devbuddy_platform.host.facts
+import devbuddy_platform.host.runtime
+import devbuddy_platform.host.products
+import devbuddy_platform.declaration
+import devbuddy_platform.resolver
+import devbuddy_platform.resolver.app
+import devbuddy_platform.resolver.availability
+import devbuddy_platform.resolver.known_dirs
 new_top_levels = {name.partition('.')[0] for name in set(sys.modules) - before}
 unexpected = sorted(
     name
     for name in new_top_levels
-    if name not in sys.stdlib_module_names and not name.startswith('hermes_platform')
+    if name not in sys.stdlib_module_names and not name.startswith('devbuddy_platform')
 )
 assert not unexpected, unexpected
 """

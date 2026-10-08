@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from hermes_constants import hermes_home_key
+from devbuddy_constants import hermes_home_key
 
 DEFAULT_MAX_BYTES = 50_000       # terminal_tool.MAX_OUTPUT_CHARS
 DEFAULT_MAX_LINES = 2000         # file_operations.MAX_LINES
@@ -39,7 +39,7 @@ def get_tool_output_limits() -> Dict[str, int]:
     if cached is not None:
         return cached
     try:
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
         cfg = load_config() or {}
         section = cfg.get("tool_output") if isinstance(cfg, dict) else None
     except Exception:

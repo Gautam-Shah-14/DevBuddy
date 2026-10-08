@@ -96,7 +96,7 @@ def _existing_profile_homes(profile_homes: list) -> list:
 def _profile_cron_scope(home):
     """Scope the calling thread to one profile's home + cron store for the block."""
     from cron.jobs import use_cron_store
-    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from devbuddy_constants import set_hermes_home_override, reset_hermes_home_override
 
     # Record per-profile heartbeat after each tick cycle. Distinguish a COMPLETED cycle (``_tick_error``
     # unset) — where each profile's beat reflects its own outcome, so a yielding profile does not darken
@@ -257,7 +257,7 @@ def provider_supports_split_fire(provider: Any) -> bool:
 def _misfire_grace_minutes() -> float:
     """``cron.misfire_grace_minutes`` from config; non-positive disables the catch-up sweep."""
     try:
-        from hermes_cli.config import cfg_get, load_config
+        from devbuddy_cli.config import cfg_get, load_config
 
         config = load_config()
         return float(
@@ -366,7 +366,7 @@ def resolve_cron_scheduler() -> "CronScheduler":
     with a warning — cron must never be left without a trigger."""
     name = ""
     try:
-        from hermes_cli.config import cfg_get, load_config
+        from devbuddy_cli.config import cfg_get, load_config
         name = (cfg_get(load_config(), "cron", "provider", default="") or "").strip()
     except Exception:
         pass
@@ -420,7 +420,7 @@ class InProcessCronScheduler(CronScheduler):
         from cron.scheduler import tick as cron_tick
         from cron.jobs import clear_ticker_error, record_ticker_error, record_ticker_heartbeat
         from cron.scheduler_ownership import register_ticked_homes
-        from hermes_constants import get_process_hermes_home
+        from devbuddy_constants import get_process_hermes_home
 
         logger.info("In-process cron scheduler started (interval=%ds)", interval)
 

@@ -1,4 +1,4 @@
-"""Regression tests for the OAuth dispatcher in hermes_cli.web_server.
+"""Regression tests for the OAuth dispatcher in devbuddy_cli.web_server.
 
 Bug history (2026-05-09): the `_OAUTH_PROVIDER_CATALOG` had two entries
 flagged ``flow: "pkce"`` — anthropic and minimax-oauth — and the
@@ -28,9 +28,9 @@ from unittest.mock import patch
 import httpx
 from fastapi.testclient import TestClient
 
-from hermes_cli.web_server import _SESSION_TOKEN, app
-import hermes_cli.web_routers.oauth as _rt_oauth
-import hermes_cli.web_server_oauth as _web_server_oauth
+from devbuddy_cli.web_server import _SESSION_TOKEN, app
+import devbuddy_cli.web_routers.oauth as _rt_oauth
+import devbuddy_cli.web_server_oauth as _web_server_oauth
 
 client = TestClient(app)
 HEADERS = {"X-Hermes-Session-Token": _SESSION_TOKEN}
@@ -81,13 +81,13 @@ def test_minimax_login_does_not_launch_anthropic_flow():
         "state": "stub-state",
     }
     with patch(
-        "hermes_cli.auth._minimax_request_user_code",
+        "devbuddy_cli.auth._minimax_request_user_code",
         return_value=fake_user_code_resp,
     ), patch(
-        "hermes_cli.auth._minimax_pkce_pair",
+        "devbuddy_cli.auth._minimax_pkce_pair",
         return_value=("verifier-stub", "challenge-stub", "stub-state"),
     ), patch(
-        "hermes_cli.web_server_oauth._minimax_poller",
+        "devbuddy_cli.web_server_oauth._minimax_poller",
         return_value=None,
     ):
         resp = client.post(
@@ -143,16 +143,16 @@ def test_minimax_start_route_honors_poller_mock_on_owning_module(tmp_path, monke
         raise AssertionError("real _minimax_poller body must not run under the mock")
 
     with patch(
-        "hermes_cli.auth._minimax_request_user_code",
+        "devbuddy_cli.auth._minimax_request_user_code",
         return_value=fake_user_code_resp,
     ), patch(
-        "hermes_cli.auth._minimax_pkce_pair",
+        "devbuddy_cli.auth._minimax_pkce_pair",
         return_value=("verifier-stub", "challenge-stub", "stub-state"),
     ), patch(
-        "hermes_cli.auth._minimax_poll_token",
+        "devbuddy_cli.auth._minimax_poll_token",
         fail_poll_token,
     ), patch(
-        "hermes_cli.web_server_oauth._minimax_poller",
+        "devbuddy_cli.web_server_oauth._minimax_poller",
         fake_poller,
     ):
         resp = client.post("/api/providers/oauth/minimax-oauth/start", headers=HEADERS)
@@ -163,7 +163,7 @@ def test_minimax_start_route_honors_poller_mock_on_owning_module(tmp_path, monke
 
 
 def test_oauth_provider_status_uses_profile_query(tmp_path, monkeypatch):
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
 
     profile_home = _make_profile_home(tmp_path, monkeypatch)
     observed_homes = []
@@ -199,13 +199,13 @@ def test_oauth_start_stores_profile_for_background_completion(tmp_path, monkeypa
         "state": "stub-state",
     }
     with patch(
-        "hermes_cli.auth._minimax_request_user_code",
+        "devbuddy_cli.auth._minimax_request_user_code",
         return_value=fake_user_code_resp,
     ), patch(
-        "hermes_cli.auth._minimax_pkce_pair",
+        "devbuddy_cli.auth._minimax_pkce_pair",
         return_value=("verifier-stub", "challenge-stub", "stub-state"),
     ), patch(
-        "hermes_cli.web_server_oauth._minimax_poller",
+        "devbuddy_cli.web_server_oauth._minimax_poller",
         return_value=None,
     ):
         resp = client.post(
@@ -282,8 +282,8 @@ def test_codex_dashboard_worker_stops_polling_after_cancel(tmp_path, monkeypatch
     endpoint/worker race and the real removal from `_oauth_sessions` are
     both under test.
     """
-    from hermes_cli import auth as auth_mod
-    from hermes_cli import web_server as ws
+    from devbuddy_cli import auth as auth_mod
+    from devbuddy_cli import web_server as ws
 
     class _Resp:
         def __init__(self, status_code, payload):
@@ -355,8 +355,8 @@ def test_codex_worker_final_save_is_atomic_with_cancel_delete(tmp_path, monkeypa
     """
     import threading
 
-    from hermes_cli import auth as auth_mod
-    from hermes_cli import web_server as ws
+    from devbuddy_cli import auth as auth_mod
+    from devbuddy_cli import web_server as ws
 
     class _Resp:
         def __init__(self, status_code, payload):
@@ -449,7 +449,7 @@ def test_codex_worker_final_save_is_atomic_with_cancel_delete(tmp_path, monkeypa
 
 
 def test_nous_dashboard_poller_preserves_effective_scope_when_token_omits_scope(monkeypatch):
-    from hermes_cli import auth as auth_mod
+    from devbuddy_cli import auth as auth_mod
 
     session_id = "nous-effective-scope-test"
     _web_server_oauth._oauth_sessions[session_id] = {
@@ -532,7 +532,7 @@ def test_accounts_offers_every_oauth_provider_from_catalog():
     the desktop Accounts tab in lockstep with the CLI picker — no provider the
     CLI can sign into may be missing from the GUI.
     """
-    from hermes_cli.provider_catalog import provider_catalog
+    from devbuddy_cli.provider_catalog import provider_catalog
 
     resp = client.get("/api/providers/oauth", headers=HEADERS)
     assert resp.status_code == 200, resp.text
@@ -551,7 +551,7 @@ def test_accounts_offers_every_oauth_provider_from_catalog():
 
 def test_external_oauth_disconnect_rejected_before_auth_mutation(monkeypatch):
     """DELETE must not pretend to remove credentials owned by another CLI."""
-    from hermes_cli import auth as auth_mod
+    from devbuddy_cli import auth as auth_mod
 
     def fail_clear_provider_auth(provider_id=None):
         raise AssertionError("external providers must not reach clear_provider_auth")
@@ -592,7 +592,7 @@ def test_xai_dashboard_poller_seeds_single_entry_and_clears_suppression(tmp_path
     ``device_code`` suppression left by a prior ``hermes auth remove
     xai-oauth``.
     """
-    from hermes_cli import auth as auth_mod
+    from devbuddy_cli import auth as auth_mod
     from agent.credential_pool import load_pool
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
@@ -680,7 +680,7 @@ def test_status_falls_through_to_generic_dispatcher_for_catalog_only_provider():
     Providers appended to the Accounts tab from the unified provider_catalog()
     carry status_fn=None and may have no explicit branch in
     _resolve_provider_status. Before the fallthrough they rendered permanently
-    logged-out; now they dispatch to hermes_cli.auth.get_auth_status (the
+    logged-out; now they dispatch to devbuddy_cli.auth.get_auth_status (the
     canonical slug dispatcher) so membership AND status both auto-extend.
     """
 
@@ -692,7 +692,7 @@ def test_status_falls_through_to_generic_dispatcher_for_catalog_only_provider():
         "expires_at": "2026-12-01T00:00:00Z",
         "has_refresh_token": True,
     }
-    with patch("hermes_cli.auth.get_auth_status", return_value=fake_status):
+    with patch("devbuddy_cli.auth.get_auth_status", return_value=fake_status):
         out = _rt_oauth._resolve_provider_status("some-future-oauth", None)
 
     assert out["logged_in"] is True

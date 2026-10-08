@@ -14,12 +14,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import plugin_catalog as pc
-from hermes_cli import plugins_cmd
-from hermes_cli import web_server
-import hermes_cli.config as _cfg_mod
-import hermes_cli.web_server_dashboard as _web_server_dashboard
-import hermes_cli.web_server_memory as _web_server_memory
+from devbuddy_cli import plugin_catalog as pc
+from devbuddy_cli import plugins_cmd
+from devbuddy_cli import web_server
+import devbuddy_cli.config as _cfg_mod
+import devbuddy_cli.web_server_dashboard as _web_server_dashboard
+import devbuddy_cli.web_server_memory as _web_server_memory
 from tools import registry as tools_registry
 
 

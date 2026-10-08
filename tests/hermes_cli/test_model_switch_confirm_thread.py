@@ -17,7 +17,7 @@ synchronous.
 import threading
 from types import SimpleNamespace
 
-from hermes_cli.model_switch import ModelSwitchResult
+from devbuddy_cli.model_switch import ModelSwitchResult
 
 
 class _FakeAgent:
@@ -82,7 +82,7 @@ def _patch_deps(monkeypatch, printed):
 
     monkeypatch.setattr(cli_mod, "_cprint", lambda s, *a, **k: printed.append(str(s)))
     monkeypatch.setattr(
-        "hermes_cli.inventory.load_picker_context",
+        "devbuddy_cli.inventory.load_picker_context",
         lambda: SimpleNamespace(
             user_providers=None,
             custom_providers=None,
@@ -92,10 +92,10 @@ def _patch_deps(monkeypatch, printed):
         ),
     )
     monkeypatch.setattr(
-        "hermes_cli.model_switch.switch_model", lambda **_: _make_result()
+        "devbuddy_cli.model_switch.switch_model", lambda **_: _make_result()
     )
     monkeypatch.setattr(
-        "hermes_cli.model_switch.resolve_display_context_length", lambda *a, **k: None
+        "devbuddy_cli.model_switch.resolve_display_context_length", lambda *a, **k: None
     )
     return cli_mod
 

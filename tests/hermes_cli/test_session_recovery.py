@@ -11,11 +11,11 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_state
-from hermes_state import SessionDB
-from hermes_state_common import FTS_STORAGE_VERSION, SCHEMA_VERSION
-from hermes_cli import session_recovery
-from hermes_cli.session_recovery import (
+import devbuddy_state
+from devbuddy_state import SessionDB
+from devbuddy_state_common import FTS_STORAGE_VERSION, SCHEMA_VERSION
+from devbuddy_cli import session_recovery
+from devbuddy_cli.session_recovery import (
     SessionRecoverySafetyError,
     SessionRecoverySourceError,
     inspect_session_database,
@@ -319,8 +319,8 @@ def test_snapshot_blocks_connections_opened_during_the_copy(
     """
     import threading
 
-    from hermes_cli import session_recovery as recovery_module
-    from hermes_cli.sqlite_safe_read import connect_tracked
+    from devbuddy_cli import session_recovery as recovery_module
+    from devbuddy_cli.sqlite_safe_read import connect_tracked
 
     source = tmp_path / "racy-state.db"
     snapshot_dir = tmp_path / "snapshot"
@@ -526,7 +526,7 @@ def test_cli_allow_partial_salvages_rows_across_a_corrupt_leaf(
         [
             sys.executable,
             "-m",
-            "hermes_cli.main",
+            "devbuddy_cli.main",
             "sessions",
             "recover",
             "--source",
@@ -786,7 +786,7 @@ def test_recovery_flags_delivery_obligation_count_mismatch_as_loss(
     missing on the way over" failure the verifier has to catch.
     """
 
-    from hermes_cli import session_recovery
+    from devbuddy_cli import session_recovery
 
     source = tmp_path / "state.db"
     output = tmp_path / "recovered.db"
@@ -825,7 +825,7 @@ def test_recovery_flags_delivery_obligation_count_mismatch_as_loss(
 def test_lost_and_found_direct_copy_creates_lazy_delivery_ledger(tmp_path: Path) -> None:
     """The .recover lane copies the ledger even though SessionDB never made it."""
 
-    from hermes_cli.session_lost_and_found import _copy_direct_tables
+    from devbuddy_cli.session_lost_and_found import _copy_direct_tables
 
     recovered_source = tmp_path / "lost_and_found.db"
     now = 1_720_000_000.0

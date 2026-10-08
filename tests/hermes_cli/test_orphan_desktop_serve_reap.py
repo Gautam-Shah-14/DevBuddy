@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 from unittest.mock import patch
 
-from hermes_cli.dashboard_procs import (
+from devbuddy_cli.dashboard_procs import (
     _is_desktop_local_serve_cmdline,
     _reap_orphaned_desktop_local_serves,
 )
@@ -19,7 +19,7 @@ from hermes_cli.dashboard_procs import (
 
 def test_desktop_local_serve_shape_matches_ephemeral_loopback():
     assert _is_desktop_local_serve_cmdline(
-        "python -m hermes_cli.main serve --host 127.0.0.1 --port 0"
+        "python -m devbuddy_cli.main serve --host 127.0.0.1 --port 0"
     )
     assert _is_desktop_local_serve_cmdline(
         "hermes serve --isolated --host 127.0.0.1 --port 0 --ssh-owner-nonce abc"
@@ -70,11 +70,11 @@ def test_reap_only_kills_ppid1_local_serves():
 
     with (
         patch(
-            "hermes_cli.dashboard_procs._scan_dashboard_processes",
+            "devbuddy_cli.dashboard_procs._scan_dashboard_processes",
             return_value=scanned,
         ),
         patch(
-            "hermes_cli.dashboard_procs._process_ppid",
+            "devbuddy_cli.dashboard_procs._process_ppid",
             side_effect=lambda pid: ppids.get(pid),
         ),
         patch("os.kill", side_effect=fake_kill),
@@ -97,7 +97,7 @@ def test_reap_only_kills_ppid1_local_serves():
 def test_reap_passes_child_pid_exclude_to_scan():
     with (
         patch(
-            "hermes_cli.dashboard_procs._scan_dashboard_processes",
+            "devbuddy_cli.dashboard_procs._scan_dashboard_processes",
             return_value=[],
         ) as scan,
         patch.dict(os.environ, {"HERMES_DESKTOP_CHILD_PID": "999,111"}, clear=False),
@@ -119,7 +119,7 @@ def test_reap_passes_child_pid_exclude_to_scan():
 # ---------------------------------------------------------------------------
 
 import json
-from hermes_cli.dashboard_procs import (
+from devbuddy_cli.dashboard_procs import (
     _lock_owned_serve_pids,
     _valid_lockfile_payload,
 )
@@ -164,7 +164,7 @@ def test_lock_owned_serve_pids_sees_root_home_locks_from_a_profile_home(tmp_path
     """A profile backend (``HERMES_HOME=<root>/profiles/<name>``) must still see the Desktop's SSH
     locks, which live under ``<root>/desktop-ssh`` — otherwise its reaper kills the sibling
     profile's live SSH backend on every profile switch (#89811)."""
-    import hermes_constants
+    import devbuddy_constants
 
     root = tmp_path / ".hermes"
     profile_home = root / "profiles" / "flocki"
@@ -176,8 +176,8 @@ def test_lock_owned_serve_pids_sees_root_home_locks_from_a_profile_home(tmp_path
         json.dumps(_valid_lock_payload(7777, oid, nonce))
     )
     monkeypatch.setenv("HERMES_HOME", str(profile_home))
-    monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: root)
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None, raising=False)
+    monkeypatch.setattr(devbuddy_constants, "_get_platform_default_hermes_home", lambda: root)
+    monkeypatch.setattr(devbuddy_constants, "_default_hermes_root_memo", None, raising=False)
 
     assert _lock_owned_serve_pids() == {7777}
 
@@ -240,11 +240,11 @@ def test_reap_spare_lock_owned_ssh_remote_backend_of_foreign_client():
 
     with (
         patch(
-            "hermes_cli.dashboard_procs._scan_dashboard_processes",
+            "devbuddy_cli.dashboard_procs._scan_dashboard_processes",
             return_value=scanned,
         ),
         patch(
-            "hermes_cli.dashboard_procs._process_ppid",
+            "devbuddy_cli.dashboard_procs._process_ppid",
             side_effect=lambda pid: ppids.get(pid),
         ),
         patch("os.kill", side_effect=fake_kill),
@@ -279,10 +279,10 @@ def test_reap_spares_young_backend_until_desktop_can_write_lock():
 
     with (
         patch(
-            "hermes_cli.dashboard_procs._scan_dashboard_processes",
+            "devbuddy_cli.dashboard_procs._scan_dashboard_processes",
             return_value=scanned,
         ),
-        patch("hermes_cli.dashboard_procs._process_ppid", return_value=1),
+        patch("devbuddy_cli.dashboard_procs._process_ppid", return_value=1),
         patch("os.kill", side_effect=fake_kill),
     ):
         result = _reap_orphaned_desktop_local_serves(
@@ -306,10 +306,10 @@ def test_reap_spares_backend_when_process_age_is_unknown():
 
     with (
         patch(
-            "hermes_cli.dashboard_procs._scan_dashboard_processes",
+            "devbuddy_cli.dashboard_procs._scan_dashboard_processes",
             return_value=scanned,
         ),
-        patch("hermes_cli.dashboard_procs._process_ppid", return_value=1),
+        patch("devbuddy_cli.dashboard_procs._process_ppid", return_value=1),
         patch("os.kill", side_effect=lambda pid, sig: terms.append(pid) if sig == 15 else None),
     ):
         result = _reap_orphaned_desktop_local_serves(
@@ -345,10 +345,10 @@ def test_reap_age_boundary_makes_180_second_orphan_eligible():
     ages = {779: 179.999, 780: 180.0}
     with (
         patch(
-            "hermes_cli.dashboard_procs._scan_dashboard_processes",
+            "devbuddy_cli.dashboard_procs._scan_dashboard_processes",
             return_value=scanned,
         ),
-        patch("hermes_cli.dashboard_procs._process_ppid", return_value=1),
+        patch("devbuddy_cli.dashboard_procs._process_ppid", return_value=1),
         patch("os.kill", side_effect=fake_kill),
     ):
         result = _reap_orphaned_desktop_local_serves(
@@ -385,11 +385,11 @@ def test_reap_spare_lock_owned_backend_even_without_exclude_match(tmp_path):
 
     with (
         patch(
-            "hermes_cli.dashboard_procs._scan_dashboard_processes",
+            "devbuddy_cli.dashboard_procs._scan_dashboard_processes",
             return_value=scanned,
         ),
         patch(
-            "hermes_cli.dashboard_procs._process_ppid",
+            "devbuddy_cli.dashboard_procs._process_ppid",
             return_value=1,
         ),
         patch("os.kill", side_effect=fake_kill),
@@ -424,9 +424,9 @@ def test_reap_kills_descendants_of_killed_roots_but_spares_a_failed_roots_subtre
         sent.append((pid, sig))
 
     with (
-        patch("hermes_cli.dashboard_procs._scan_dashboard_processes", return_value=scanned),
-        patch("hermes_cli.dashboard_procs._process_ppid", return_value=1),
-        patch("hermes_cli.dashboard_procs._posix_descendants", return_value=descendants) as snap,
+        patch("devbuddy_cli.dashboard_procs._scan_dashboard_processes", return_value=scanned),
+        patch("devbuddy_cli.dashboard_procs._process_ppid", return_value=1),
+        patch("devbuddy_cli.dashboard_procs._posix_descendants", return_value=descendants) as snap,
         patch("gateway.status.get_process_start_time", side_effect=start_times.get),
         patch("psutil.pid_exists", return_value=True),
         patch("os.kill", side_effect=fake_kill),

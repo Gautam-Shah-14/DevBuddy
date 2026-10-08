@@ -1,13 +1,13 @@
 """Suite-wide SessionDB leak-closing contract (OOM incident 20260816).
 
-A raw single-process ``pytest tests/hermes_cli/`` used to accumulate every
+A raw single-process ``pytest tests/devbuddy_cli/`` used to accumulate every
 SessionDB a test constructed and forgot to close — writer connection,
 pooled read connections, and (once token accounting ran) an ``atexit``
 registration pinning the instance alive — ballooning to 16-25 GB RSS.
 
 The fix is two-sided:
 
-* ``hermes_state_guard._register_test_instance`` adds every successfully
+* ``devbuddy_state_guard._register_test_instance`` adds every successfully
   constructed SessionDB to a WeakSet registry when the
   ``HERMES_TEST_ISOLATION`` marker is set (test-isolation runs only).
 * the autouse ``_close_leaked_session_dbs`` fixture in ``tests/conftest.py``
@@ -23,8 +23,8 @@ from __future__ import annotations
 import threading
 import time
 
-import hermes_state_guard
-from hermes_state import SessionDB
+import devbuddy_state_guard
+from devbuddy_state import SessionDB
 
 # Deliberate cross-test handoff: test_leaked_instance_* leaks an instance;
 # the later test (pytest runs file order deterministically without a
@@ -36,7 +36,7 @@ _leaked: list[SessionDB] = []
 def test_constructed_sessiondb_is_registered(tmp_path):
     db = SessionDB(db_path=tmp_path / "state.db")
     try:
-        assert db in hermes_state_guard._test_instance_registry
+        assert db in devbuddy_state_guard._test_instance_registry
     finally:
         db.close()
     # close() must fully release the writer connection…

@@ -19,12 +19,12 @@ from gateway.kanban_watchers_common import _board_slugs, _positive_int_setting, 
 
 
 def _kbc():
-    from hermes_cli import kanban_db_connect
+    from devbuddy_cli import kanban_db_connect
     return kanban_db_connect
 
 
 def _kbd():
-    from hermes_cli import kanban_db_dispatch
+    from devbuddy_cli import kanban_db_dispatch
     return kanban_db_dispatch
 
 _CORRUPT_DB_MARKERS = ("file is not a database", "database disk image is malformed")
@@ -242,7 +242,7 @@ class _KanbanDispatcher:
         load from burst-spending the aux LLM. Returns the number decomposed.
         """
         try:
-            from hermes_cli import kanban_decompose as _decomp
+            from devbuddy_cli import kanban_decompose as _decomp
         except Exception as exc:  # pragma: no cover
             logger.warning("kanban auto-decompose: import failed (%s); skipping", exc)
             return 0
@@ -304,7 +304,7 @@ def _default_profile_secret_scope():
     """
     from agent.secret_scope import (
         build_profile_secret_scope, is_multiplex_active, reset_secret_scope, set_secret_scope)
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
 
     if not is_multiplex_active():
         yield

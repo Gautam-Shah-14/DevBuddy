@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 
 def _invalidate_config_cache():
     try:
-        import hermes_cli.config as cfg_mod
+        import devbuddy_cli.config as cfg_mod
 
         if hasattr(cfg_mod, "_invalidate_load_config_cache"):
             cfg_mod._invalidate_load_config_cache()

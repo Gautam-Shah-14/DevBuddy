@@ -3,9 +3,9 @@
 from prompt_toolkit.completion import CompleteEvent
 from prompt_toolkit.document import Document
 
-from hermes_cli.commands import COMMAND_REGISTRY, COMMANDS_BY_CATEGORY, CommandDef, GATEWAY_KNOWN_COMMANDS, gateway_help_lines, infer_argument_mode, resolve_command
-from hermes_cli.commands_completion import SlashCommandAutoSuggest, SlashCommandCompleter
-from hermes_cli.commands_platforms import _CMD_NAME_LIMIT, _SLACK_RESERVED_COMMANDS, _SLACK_VIA_HERMES_ONLY, _clamp_command_names, _sanitize_telegram_name, slack_app_manifest, slack_native_slashes, slack_subcommand_map, telegram_bot_commands, telegram_menu_commands
+from devbuddy_cli.commands import COMMAND_REGISTRY, COMMANDS_BY_CATEGORY, CommandDef, GATEWAY_KNOWN_COMMANDS, gateway_help_lines, infer_argument_mode, resolve_command
+from devbuddy_cli.commands_completion import SlashCommandAutoSuggest, SlashCommandCompleter
+from devbuddy_cli.commands_platforms import _CMD_NAME_LIMIT, _SLACK_RESERVED_COMMANDS, _SLACK_VIA_HERMES_ONLY, _clamp_command_names, _sanitize_telegram_name, slack_app_manifest, slack_native_slashes, slack_subcommand_map, telegram_bot_commands, telegram_menu_commands
 
 
 def _completions(completer: SlashCommandCompleter, text: str):
@@ -115,9 +115,9 @@ class TestTelegramBotCommands:
         """Stubbed registry entry with em/en dashes comes back hyphenated."""
         fake = CommandDef(name="dashy", description="does a \u2014 b \u2013 c",
                           category="Session")
-        monkeypatch.setattr("hermes_cli.commands_platforms._gateway_available_commands",
+        monkeypatch.setattr("devbuddy_cli.commands_platforms._gateway_available_commands",
                             lambda: [fake])
-        monkeypatch.setattr("hermes_cli.commands_platforms._iter_plugin_command_entries",
+        monkeypatch.setattr("devbuddy_cli.commands_platforms._iter_plugin_command_entries",
                             lambda: iter([]))
         assert ("dashy", "does a - b - c") in telegram_bot_commands(
             include_plugins=False)
@@ -326,12 +326,12 @@ class TestSubcommandCompletion:
     def test_tools_enable_skips_already_listed(self, monkeypatch):
         """If the user already typed a name, don't suggest it again."""
         monkeypatch.setattr(
-            "hermes_cli.tools_config._get_platform_tools",
+            "devbuddy_cli.tools_config._get_platform_tools",
             lambda *_a, **_k: set(),
         )
-        monkeypatch.setattr("hermes_cli.config.load_config", lambda: {})
+        monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: {})
         monkeypatch.setattr(
-            "hermes_cli.tools_config._get_plugin_toolset_keys",
+            "devbuddy_cli.tools_config._get_plugin_toolset_keys",
             lambda: set(),
         )
 
@@ -500,7 +500,7 @@ class TestGatewaySkillCollector:
 
     def test_long_skill_name_clamped_but_cmd_key_retained(self, tmp_path):
         from unittest.mock import patch
-        from hermes_cli.commands_platforms import _collect_gateway_skill_entries
+        from devbuddy_cli.commands_platforms import _collect_gateway_skill_entries
 
         long_name = "this-is-a-very-long-skill-name-that-exceeds-limit"
         skills_dir = tmp_path / "skills"
@@ -528,7 +528,7 @@ class TestGatewaySkillCollector:
 
     def test_cap_trims_skills_only(self, tmp_path):
         from unittest.mock import patch
-        from hermes_cli.commands_platforms import _collect_gateway_skill_entries
+        from devbuddy_cli.commands_platforms import _collect_gateway_skill_entries
 
         skills_dir = tmp_path / "skills"
         skills_dir.mkdir()
@@ -543,7 +543,7 @@ class TestGatewaySkillCollector:
         with (
             patch("agent.skill_commands.get_skill_commands", return_value=fake_cmds),
             patch("tools.skills_tool.SKILLS_DIR", skills_dir),
-            patch("hermes_cli.plugins.get_plugin_commands", return_value={"plug": {"description": "p"}}),
+            patch("devbuddy_cli.plugins.get_plugin_commands", return_value={"plug": {"description": "p"}}),
         ):
             entries, hidden = _collect_gateway_skill_entries(
                 platform="discord", max_slots=5, reserved_names=set(), desc_limit=100,
@@ -725,11 +725,11 @@ class TestTelegramMenuCommands:
         menu_cfg = {"max_commands": 2, "priority_mode": "prepend", "priority": ["gym"]}
 
         with (
-            patch("hermes_cli.commands_platforms.telegram_bot_commands", return_value=fake_core),
+            patch("devbuddy_cli.commands_platforms.telegram_bot_commands", return_value=fake_core),
             patch("agent.skill_commands.get_skill_commands", return_value=fake_cmds),
-            patch("hermes_cli.plugins.get_plugin_commands", return_value=fake_plugins),
+            patch("devbuddy_cli.plugins.get_plugin_commands", return_value=fake_plugins),
             patch("tools.skills_tool.SKILLS_DIR", local_dir),
-            patch("hermes_cli.commands_platforms._telegram_command_menu_config", return_value=menu_cfg),
+            patch("devbuddy_cli.commands_platforms._telegram_command_menu_config", return_value=menu_cfg),
         ):
             menu, hidden = telegram_menu_commands(max_commands=len(fake_core))
 
@@ -766,10 +766,10 @@ class TestTelegramMenuCommands:
         menu_cfg = {"max_commands": 2, "priority_mode": "prepend", "priority": []}
 
         with (
-            patch("hermes_cli.commands_platforms.telegram_bot_commands", return_value=fake_core),
+            patch("devbuddy_cli.commands_platforms.telegram_bot_commands", return_value=fake_core),
             patch("agent.skill_commands.get_skill_commands", return_value=fake_cmds),
             patch("tools.skills_tool.SKILLS_DIR", local_dir),
-            patch("hermes_cli.commands_platforms._telegram_command_menu_config", return_value=menu_cfg),
+            patch("devbuddy_cli.commands_platforms._telegram_command_menu_config", return_value=menu_cfg),
         ):
             menu, hidden = telegram_menu_commands(max_commands=2)
 
@@ -802,10 +802,10 @@ class TestTelegramMenuCommands:
         }
 
         with (
-            patch("hermes_cli.commands_platforms.telegram_bot_commands", return_value=fake_core),
+            patch("devbuddy_cli.commands_platforms.telegram_bot_commands", return_value=fake_core),
             patch("agent.skill_commands.get_skill_commands", return_value=fake_cmds),
             patch("tools.skills_tool.SKILLS_DIR", local_dir),
-            patch("hermes_cli.commands_platforms._telegram_command_menu_config", return_value=menu_cfg),
+            patch("devbuddy_cli.commands_platforms._telegram_command_menu_config", return_value=menu_cfg),
         ):
             menu, hidden = telegram_menu_commands(max_commands=1)
 
@@ -830,10 +830,10 @@ class TestTelegramMenuCommands:
         }
 
         with (
-            patch("hermes_cli.plugins.get_plugin_commands", return_value=fake_plugins),
+            patch("devbuddy_cli.plugins.get_plugin_commands", return_value=fake_plugins),
             patch("agent.skill_commands.get_skill_commands", return_value={}),
             patch("tools.skills_tool.SKILLS_DIR", local_dir),
-            patch("hermes_cli.commands_platforms._telegram_command_menu_config", return_value=menu_cfg),
+            patch("devbuddy_cli.commands_platforms._telegram_command_menu_config", return_value=menu_cfg),
         ):
             menu, hidden = telegram_menu_commands(max_commands=1)
 
@@ -855,7 +855,7 @@ class TestTelegramMenuCommands:
         }
 
         with (
-            patch("hermes_cli.plugins.get_plugin_commands", return_value=fake_plugins),
+            patch("devbuddy_cli.plugins.get_plugin_commands", return_value=fake_plugins),
             patch("agent.skill_commands.get_skill_commands", return_value={}),
             patch("tools.skills_tool.SKILLS_DIR", local_dir),
         ):
@@ -868,7 +868,7 @@ class TestTelegramMenuCommands:
     def test_scalar_configured_priority_is_accepted_as_one_command(self):
         """The config CLI's scalar value form must work for a single priority."""
         from unittest.mock import patch
-        from hermes_cli.commands_platforms import _telegram_command_menu_config
+        from devbuddy_cli.commands_platforms import _telegram_command_menu_config
 
         raw_config = {
             "platforms": {
@@ -880,7 +880,7 @@ class TestTelegramMenuCommands:
             }
         }
 
-        with patch("hermes_cli.config.read_raw_config", return_value=raw_config):
+        with patch("devbuddy_cli.config.read_raw_config", return_value=raw_config):
             menu_cfg = _telegram_command_menu_config()
 
         assert menu_cfg["priority"] == ["gym"]
@@ -891,7 +891,7 @@ class TestTelegramMenuCommands:
 # Discord skill commands grouped by category
 # ---------------------------------------------------------------------------
 
-from hermes_cli.commands_platforms import discord_skill_commands_by_category
+from devbuddy_cli.commands_platforms import discord_skill_commands_by_category
 
 
 class TestDiscordSkillCommandsByCategory:
@@ -1022,8 +1022,8 @@ class TestPluginCommandEnumeration:
     """
 
     def _patch_plugin_commands(self, monkeypatch, commands):
-        """Monkeypatch hermes_cli.plugins.get_plugin_commands() to a fixed dict."""
-        from hermes_cli import plugins as _plugins_mod
+        """Monkeypatch devbuddy_cli.plugins.get_plugin_commands() to a fixed dict."""
+        from devbuddy_cli import plugins as _plugins_mod
 
         monkeypatch.setattr(
             _plugins_mod, "get_plugin_commands", lambda: dict(commands)
@@ -1047,7 +1047,7 @@ class TestPluginCommandEnumeration:
 
     def test_plugin_enumerator_handles_missing_plugin_manager(self, monkeypatch):
         """Enumerators must never raise when plugin discovery raises."""
-        from hermes_cli import plugins as _plugins_mod
+        from devbuddy_cli import plugins as _plugins_mod
 
         def _boom():
             raise RuntimeError("plugin system down")

@@ -13,9 +13,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes_cli import kanban_db as kb
-from hermes_cli import kanban_db_connect as kbc
-from hermes_cli import kanban_decompose as decomp
+from devbuddy_cli import kanban_db as kb
+from devbuddy_cli import kanban_db_connect as kbc
+from devbuddy_cli import kanban_decompose as decomp
 
 
 @pytest.fixture
@@ -70,9 +70,9 @@ def _patch_list_profiles(names: list[str]):
         for i, n in enumerate(names)
     ]
     return [
-        patch("hermes_cli.profiles.list_profiles", return_value=fake_profiles),
-        patch("hermes_cli.profiles.profile_exists", side_effect=lambda x: x in names),
-        patch("hermes_cli.profiles.get_active_profile_name", return_value=names[0] if names else "default"),
+        patch("devbuddy_cli.profiles.list_profiles", return_value=fake_profiles),
+        patch("devbuddy_cli.profiles.profile_exists", side_effect=lambda x: x in names),
+        patch("devbuddy_cli.profiles.get_active_profile_name", return_value=names[0] if names else "default"),
     ]
 
 
@@ -138,7 +138,7 @@ def test_decompose_fanout_children_inherit_root_assignee_when_unrouted(kanban_ho
         p.start()
     try:
         with _patch_aux_client(llm_payload), _patch_extra_body(), patch(
-            "hermes_cli.config.load_config_readonly",
+            "devbuddy_cli.config.load_config_readonly",
             return_value={},
         ):
             outcome = decomp.decompose_task(tid, author="me")
@@ -180,7 +180,7 @@ def test_decompose_explicit_default_assignee_wins_over_root_assignee(kanban_home
         p.start()
     try:
         with _patch_aux_client(llm_payload), _patch_extra_body(), patch(
-            "hermes_cli.config.load_config_readonly",
+            "devbuddy_cli.config.load_config_readonly",
             return_value={"kanban": {"default_assignee": "docs"}},
         ):
             outcome = decomp.decompose_task(tid, author="me")
@@ -213,7 +213,7 @@ def test_decompose_fanout_false_invalid_llm_assignee_uses_default(kanban_home):
         p.start()
     try:
         with _patch_aux_client(llm_payload), _patch_extra_body(), patch(
-            "hermes_cli.config.load_config_readonly",
+            "devbuddy_cli.config.load_config_readonly",
             return_value={"kanban": {"default_assignee": "fallback"}},
         ):
             outcome = decomp.decompose_task(tid, author="me")
@@ -231,7 +231,7 @@ def test_decompose_fanout_false_invalid_llm_assignee_uses_default(kanban_home):
 def test_load_routing_falls_back_to_defaults_when_config_unreadable(kanban_home, monkeypatch):
     """decompose_task promises ok=False on expected failures; a config read that raises (missing
     profile home, HomeInitializationError) must not escape _load_routing as an exception."""
-    from hermes_cli import config as config_mod
+    from devbuddy_cli import config as config_mod
 
     def _boom():
         raise FileNotFoundError("profile home is gone")

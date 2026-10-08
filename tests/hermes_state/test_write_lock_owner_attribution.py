@@ -14,7 +14,7 @@ import time
 
 import pytest
 
-from hermes_state_lockowners import parse_proc_locks, state_db_write_lock_holders
+from devbuddy_state_lockowners import parse_proc_locks, state_db_write_lock_holders
 
 
 def test_parse_proc_locks_keeps_only_write_locks_on_our_inodes_and_decodes_the_wal_write_byte():

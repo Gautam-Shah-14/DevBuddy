@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-import hermes_cli.auth as auth
-import hermes_cli.auth_nous as auth_nous
-from hermes_cli.auth import (
+import devbuddy_cli.auth as auth
+import devbuddy_cli.auth_nous as auth_nous
+from devbuddy_cli.auth import (
     NOUS_BILLING_MANAGE_SCOPE,
     nous_token_has_billing_scope,
     step_up_nous_billing_scope,

@@ -23,7 +23,7 @@ def isolated_home(tmp_path, monkeypatch):
                 "OPENROUTER_BASE_URL", "HERMES_INFERENCE_PROVIDER", "NOUS_API_KEY"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setattr("agent.bedrock_adapter.has_aws_credentials", lambda: False)
-    from hermes_cli import free_tier_bootstrap as fb
+    from devbuddy_cli import free_tier_bootstrap as fb
     fb.reset_for_tests()
     return home
 
@@ -74,8 +74,8 @@ def isolated_home(tmp_path, monkeypatch):
 )
 def test_configured_custom_endpoint_resolves_as_a_provider(isolated_home, model_block, expected):
     (isolated_home / "config.yaml").write_text(model_block, encoding="utf-8")
-    from hermes_cli.auth import resolve_provider
-    from hermes_cli.free_tier_bootstrap import run_bootstrap
+    from devbuddy_cli.auth import resolve_provider
+    from devbuddy_cli.free_tier_bootstrap import run_bootstrap
 
     assert resolve_provider("auto") == expected
     record = run_bootstrap(announce=False)
@@ -93,8 +93,8 @@ def test_stale_remote_base_url_without_a_custom_pin_is_not_a_provider(isolated_h
         "model:\n  default: some/model\n  base_url: https://api.z.ai/v1\n",
         encoding="utf-8",
     )
-    from hermes_cli.auth import AuthError, resolve_provider
-    from hermes_cli.free_tier_bootstrap import run_bootstrap
+    from devbuddy_cli.auth import AuthError, resolve_provider
+    from devbuddy_cli.free_tier_bootstrap import run_bootstrap
 
     with pytest.raises(AuthError):
         resolve_provider("auto")
@@ -107,8 +107,8 @@ def test_auto_provider_with_loopback_base_url_resolves_without_recursing(isolate
         "model:\n  provider: auto\n  base_url: http://127.0.0.1:8000/v1\n",
         encoding="utf-8",
     )
-    from hermes_cli import runtime_provider
-    from hermes_cli.auth import resolve_provider
+    from devbuddy_cli import runtime_provider
+    from devbuddy_cli.auth import resolve_provider
 
     def unexpected_provider_resolution(_name):
         raise AssertionError("the bare custom trust check must not resolve model.provider=auto")
@@ -125,7 +125,7 @@ def test_a_provider_configured_after_boot_flips_the_stale_setup_record(isolated_
     ``hermes setup`` in another process. A ``False`` record is reconciled with the config files
     on read: it flips (+ one ``setup.ready``) once something carries inference, and a blank
     machine stays ``False`` with no broadcast."""
-    from hermes_cli import free_tier_bootstrap as fb
+    from devbuddy_cli import free_tier_bootstrap as fb
 
     broadcasts = []
     monkeypatch.setattr(fb, "_broadcast", broadcasts.append)
@@ -135,7 +135,7 @@ def test_a_provider_configured_after_boot_flips_the_stale_setup_record(isolated_
 
     # The record is the launch profile's: a write scoped to another profile (the dashboard's
     # ``?profile=b``) must not let THAT profile's provider open the launch gate.
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
     profile_b = isolated_home / "profiles" / "b"
     profile_b.mkdir(parents=True)
     (profile_b / "config.yaml").write_text("model:\n  default: qwen3\n  provider: custom\n  base_url: http://127.0.0.1:8000/v1\n  api_key: dummy\n", encoding="utf-8")

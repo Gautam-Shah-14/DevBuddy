@@ -19,7 +19,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import (
+from devbuddy_cli import (
     anon_auth,
     auth_commands,
     nous_account,
@@ -27,8 +27,8 @@ from hermes_cli import (
     portal_cli,
     status_auth,
 )
-from hermes_cli.auth import _load_auth_store  # noqa: F401  (store import name kept for parity with core tests)
-from hermes_constants import get_hermes_home
+from devbuddy_cli.auth import _load_auth_store  # noqa: F401  (store import name kept for parity with core tests)
+from devbuddy_constants import get_hermes_home
 
 WELCOME = "https://welcome-api.nousresearch.com/v1"
 # Words that must never appear on a user-facing free-tier surface.
@@ -76,7 +76,7 @@ def isolated_store(monkeypatch, tmp_path):
     monkeypatch.setattr(nous_account, "_fetch_nous_account_info",
                         lambda *a, **k: pytest.fail("portal fetch must not happen on a read-only surface"))
     nous_account.reset_nous_portal_account_info_cache()
-    import hermes_cli.auth as auth_mod
+    import devbuddy_cli.auth as auth_mod
     auth_mod.invalidate_nous_auth_status_cache()
     yield
     nous_account.reset_nous_portal_account_info_cache()
@@ -189,7 +189,7 @@ def test_the_paid_tool_notice_switches_wording_inside_a_chat():
 
 
 def test_cli_chat_status_names_the_free_tier(isolated_store):
-    from hermes_cli.cli_session_mixin import CLISessionMixin
+    from devbuddy_cli.cli_session_mixin import CLISessionMixin
 
     _write_auth(_guest_state())
     rendered = []

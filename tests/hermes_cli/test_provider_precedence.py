@@ -8,19 +8,19 @@ OPENAI_API_KEY exported (or model.provider set) got routed to Anthropic.
 """
 import pytest
 
-from hermes_cli.auth import resolve_provider, AuthError
+from devbuddy_cli.auth import resolve_provider, AuthError
 
 
 def _login(monkeypatch, provider_id):
     """Simulate a logged-in OAuth active_provider in auth.json."""
-    monkeypatch.setattr("hermes_cli.auth._load_auth_store",
+    monkeypatch.setattr("devbuddy_cli.auth._load_auth_store",
                         lambda: {"active_provider": provider_id})
-    monkeypatch.setattr("hermes_cli.auth.get_auth_status",
+    monkeypatch.setattr("devbuddy_cli.auth.get_auth_status",
                         lambda p: {"logged_in": p == provider_id})
 
 
 def _config(monkeypatch, model_cfg):
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"model": model_cfg})
+    monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: {"model": model_cfg})
 
 
 def _no_aws(monkeypatch):
@@ -82,16 +82,16 @@ class TestProviderPrecedence:
 
 
 def _logged_out(monkeypatch):
-    monkeypatch.setattr("hermes_cli.auth._load_auth_store", lambda: {})
-    monkeypatch.setattr("hermes_cli.auth.get_auth_status", lambda p: {"logged_in": False})
+    monkeypatch.setattr("devbuddy_cli.auth._load_auth_store", lambda: {})
+    monkeypatch.setattr("devbuddy_cli.auth.get_auth_status", lambda p: {"logged_in": False})
 
 
 def _free_tier(monkeypatch, *, on=True, identity=False):
     """Free tier switch + whether a free-tier identity already exists. The resolver is a READ: any
     call into the creator from inside it is a bug, so the stub fails loudly."""
-    monkeypatch.setattr("hermes_cli.anon_auth.guest_enabled", lambda: on)
-    monkeypatch.setattr("hermes_cli.anon_auth.has_guest", lambda: identity)
-    monkeypatch.setattr("hermes_cli.anon_auth.ensure_portal_identity",
+    monkeypatch.setattr("devbuddy_cli.anon_auth.guest_enabled", lambda: on)
+    monkeypatch.setattr("devbuddy_cli.anon_auth.has_guest", lambda: identity)
+    monkeypatch.setattr("devbuddy_cli.anon_auth.ensure_portal_identity",
                         lambda **kw: (_ for _ in ()).throw(AssertionError("resolve_provider must not mint")))
 
 

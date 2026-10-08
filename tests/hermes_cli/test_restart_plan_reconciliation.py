@@ -7,7 +7,7 @@ Pins:
   rows — the silent-miss tripwire.
 """
 
-from hermes_cli.update_inventory import (
+from devbuddy_cli.update_inventory import (
     RuntimeRecord,
     UpdatePlan,
     _restart_mechanism,
@@ -35,7 +35,7 @@ def _rt(profile: str, pid: int, supervisor: str = "manual") -> RuntimeRecord:
 
 
 def test_windows_service_supervisor_classification():
-    from hermes_cli.update_inventory import _detect_supervisor_for_pid
+    from devbuddy_cli.update_inventory import _detect_supervisor_for_pid
 
     # An SCM-owned gateway PID classifies as windows-service even when the
     # generic service-PID probe also knows the pid.

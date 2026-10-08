@@ -9,16 +9,16 @@ import sys
 
 import pytest
 
-from hermes_cli import _launchers
+from devbuddy_cli import _launchers
 from pm.environments import install_state_dir, site_packages
 
 ROOT = Path(__file__).resolve().parents[2]
 BOOT_FILES = (
-    "hermes_bootstrap.py", "hermes_constants.py", "hermes_cli/__init__.py", "hermes_cli/_launchers.py",
-    "pm/environments.py", "pm/filesystem.py", "pm/paths.py", "hermes_cli/runtime_state.py",
-    "hermes_cli/_early_recovery.py", "hermes_cli/_parser.py",
-    "hermes_cli/venv_sync.py", "hermes_cli/steward.py",
-    "hermes_cli/stderr_timestamp.py",
+    "devbuddy_bootstrap.py", "devbuddy_constants.py", "devbuddy_cli/__init__.py", "devbuddy_cli/_launchers.py",
+    "pm/environments.py", "pm/filesystem.py", "pm/paths.py", "devbuddy_cli/runtime_state.py",
+    "devbuddy_cli/_early_recovery.py", "devbuddy_cli/_parser.py",
+    "devbuddy_cli/venv_sync.py", "devbuddy_cli/steward.py",
+    "devbuddy_cli/stderr_timestamp.py",
     "scripts/hermes-gateway",
 )
 
@@ -40,7 +40,7 @@ def fixture_tree(tmp_path, monkeypatch):
         "    return 7\n"
         "if __name__ == '__main__':\n    sys.exit(main())\n"
     )
-    for path in (repo / "hermes_cli/main.py", repo / "acp_adapter/entry.py"):
+    for path in (repo / "devbuddy_cli/main.py", repo / "acp_adapter/entry.py"):
         path.write_text(entry, encoding="utf-8")
     # Windows resolves its default under LOCALAPPDATA, not HOME.
     if os.name == "nt":
@@ -135,7 +135,7 @@ def test_launcher_resolves_default_home_at_use_not_publication(tmp_path, monkeyp
     pytest.param("cmd", marks=pytest.mark.platforms("windows")),
 ])
 def test_profile_publication_preserves_shared_launcher_default_home(tmp_path, monkeypatch, publisher):
-    from hermes_cli import boot_bootstrap, post_update
+    from devbuddy_cli import boot_bootstrap, post_update
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -230,7 +230,7 @@ def test_materializer_cli_refuses_missing_store_without_publishing(tmp_path, mon
     orphan.parent.mkdir(parents=True)
     orphan.touch()  # uncommitted tool bytes are not an installed interpreter
     out = tmp_path / "bin"
-    result = subprocess.run([sys.executable, "-I", str(repo / "hermes_cli/_launchers.py"), str(out)],
+    result = subprocess.run([sys.executable, "-I", str(repo / "devbuddy_cli/_launchers.py"), str(out)],
                             cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", timeout=30)
     assert result.returncode == 1, result.stdout + result.stderr
     assert "store interpreter" in result.stderr
@@ -271,7 +271,7 @@ def test_boot_migrates_legacy_conveniences_to_selected_runtime(tmp_path, monkeyp
 
 
 def _command_survives_generation_collection(tmp_path, monkeypatch, surface):
-    from hermes_cli.runtime_state import collect_generations
+    from devbuddy_cli.runtime_state import collect_generations
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     out = tmp_path / "bin"
@@ -288,7 +288,7 @@ def _command_survives_generation_collection(tmp_path, monkeypatch, surface):
                 command = [sys.executable, "-I", str(repo / "scripts/hermes-gateway"), "--help"]
                 args = ["gateway", "--help"]
             elif surface == "ssh":
-                from hermes_cli.windows_ssh_runtime import _resolve_direct_command
+                from devbuddy_cli.windows_ssh_runtime import _resolve_direct_command
                 command = [*_resolve_direct_command(str(launcher)), *args]
             elif surface == "published":
                 result = subprocess.run([str(launcher), "--print-runtime-command", "--", *args],
@@ -296,11 +296,11 @@ def _command_survives_generation_collection(tmp_path, monkeypatch, surface):
                 assert result.returncode == 0, result.stderr
                 command = json.loads(result.stdout)
             else:
-                from hermes_cli import gateway
+                from devbuddy_cli import gateway
                 monkeypatch.setattr(gateway, "PROJECT_ROOT", repo)
                 if surface == "launchd":
                     import plistlib
-                    from tests.hermes_cli.test_gateway_service import _osascript_exec_argv
+                    from tests.devbuddy_cli.test_gateway_service import _osascript_exec_argv
                     unit = gateway.generate_launchd_plist()
                     # The job runs through osascript (#71206); exec the child it would spawn, minus the
                     # `>> log 2>> log` tail that only means something to the shell.
@@ -343,10 +343,10 @@ def test_running_source_launcher_can_republish_itself(tmp_path, monkeypatch, lau
         import distlib
 
         shutil.copytree(Path(distlib.__file__).parent, site_packages(selected) / "distlib")
-    entry = repo / "hermes_cli/main.py"
+    entry = repo / "devbuddy_cli/main.py"
     entry.write_text(
         "from pathlib import Path\n"
-        "from hermes_cli._launchers import ensure_install_launchers, ENTRY_POINTS\n"
+        "from devbuddy_cli._launchers import ensure_install_launchers, ENTRY_POINTS\n"
         "def main():\n"
         "    root = Path(__file__).resolve().parents[1]\n"
         "    written = ensure_install_launchers(root, root / '.hermes/bin')\n"
@@ -390,7 +390,7 @@ def test_repin_without_distlib_retires_stale_native_launcher(tmp_path, monkeypat
 
 @pytest.mark.platforms("windows")
 def test_windows_repair_upgrades_healthy_old_pm_external_launchers(tmp_path, monkeypatch):
-    from hermes_cli._install_repair import ensure_windows_bin_launchers
+    from devbuddy_cli._install_repair import ensure_windows_bin_launchers
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     managed = home / "hermes-agent"
@@ -411,7 +411,7 @@ def test_windows_repair_upgrades_healthy_old_pm_external_launchers(tmp_path, mon
 
 
 def test_dashboard_action_boots_selected_dependencies(tmp_path, monkeypatch):
-    from hermes_cli import web_server, web_server_gateway
+    from devbuddy_cli import web_server, web_server_gateway
 
     repo, home, _ = fixture_tree(tmp_path, monkeypatch)
     select_generation(repo, 'current', 'selected')
@@ -459,7 +459,7 @@ def test_external_interpreter_keeps_its_owned_dependencies(tmp_path, monkeypatch
 @pytest.mark.platforms("posix")
 @pytest.mark.spawns_gateway_lookalike
 def test_service_survives_python_tool_replacement(tmp_path, monkeypatch):
-    from hermes_cli import gateway
+    from devbuddy_cli import gateway
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(gateway, "PROJECT_ROOT", repo)
@@ -486,7 +486,7 @@ def test_service_survives_python_tool_replacement(tmp_path, monkeypatch):
 def test_sync_migrates_old_store_wrapper_before_python_collection(tmp_path, monkeypatch, create):
     import builtins
 
-    from hermes_cli.venv_sync import publish_launchers
+    from devbuddy_cli.venv_sync import publish_launchers
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(Path, "home", lambda: home)
@@ -497,7 +497,7 @@ def test_sync_migrates_old_store_wrapper_before_python_collection(tmp_path, monk
         original_import = builtins.__import__
 
         def without_config(name, *args, **kwargs):
-            assert name != "hermes_cli.config", "bootstrap publication imported application config"
+            assert name != "devbuddy_cli.config", "bootstrap publication imported application config"
             return original_import(name, *args, **kwargs)
 
         monkeypatch.setattr(builtins, "__import__", without_config)
@@ -527,7 +527,7 @@ def test_sync_migrates_old_store_wrapper_before_python_collection(tmp_path, monk
 
 
 def test_update_import_probe_uses_selected_dependencies(tmp_path, monkeypatch):
-    from hermes_cli import update_cmd, update_cmd_validation
+    from devbuddy_cli import update_cmd, update_cmd_validation
 
     repo, _, _ = fixture_tree(tmp_path, monkeypatch)
     selected = install_state_dir(repo) / "environments" / "current" / "venv"

@@ -30,12 +30,12 @@ def served_root(tmp_path, monkeypatch):
         }}), encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(root))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
-    import hermes_constants
+    import devbuddy_constants
     import gateway.status as status
     # Liveness is a verified identity; this pytest process passes as the default gateway only by
     # wearing a gateway command line.
     monkeypatch.setattr(status, "_read_process_cmdline", lambda pid: "hermes gateway run")
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(devbuddy_constants, "_default_hermes_root_memo", None)
     return root
 
 
@@ -55,7 +55,7 @@ def test_served_profile_projects_the_default_listener_mirrors_with_their_url(ser
 
 
 def test_messaging_card_for_a_served_profile_reads_connected_not_restart_needed(served_root, monkeypatch):
-    from hermes_cli.web_routers import messaging
+    from devbuddy_cli.web_routers import messaging
     monkeypatch.setattr(messaging, "_platform_enablement", lambda *a, **k: (True, True, None))
     entry = {"id": "api_server", "name": "API server", "description": "", "docs_url": "", "env_vars": [],
              "required_env": []}
@@ -71,7 +71,7 @@ def test_messaging_card_ignores_a_served_profiles_stale_own_runtime_record(serve
     pre-multiplex or standalone run (``stopped``, empty platforms) used to shadow the multiplexer's
     record: the fallback only ran when the file was missing, the bare-key lookup found nothing, and
     the card read "Restart needed" forever for a platform that was connected (#112765)."""
-    from hermes_cli.web_routers import messaging
+    from devbuddy_cli.web_routers import messaging
     monkeypatch.setattr(messaging, "_platform_enablement", lambda *a, **k: (True, True, None))
     entry = {"id": "telegram", "name": "Telegram", "description": "", "docs_url": "", "env_vars": [],
              "required_env": []}
@@ -96,7 +96,7 @@ def test_messaging_card_keeps_a_live_own_gateway_record_over_the_multiplexer(ser
     own record (rung 3) before the multiplexer (rung 4); the card must read the same record, or
     liveness and platform state come from two different gateways."""
     import gateway.status as status
-    from hermes_cli.web_routers import messaging
+    from devbuddy_cli.web_routers import messaging
     monkeypatch.setattr(messaging, "_platform_enablement", lambda *a, **k: (True, True, None))
     alpha = served_root / "profiles" / "alpha"
     # Two live gateways: this process is the default multiplexer; a second (fake, never signalled)

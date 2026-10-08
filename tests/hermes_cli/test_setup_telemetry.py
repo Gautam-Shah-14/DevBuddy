@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import argparse
 
-from hermes_cli.config import DEFAULT_CONFIG
-from hermes_cli.setup import setup_telemetry
-from hermes_cli.subcommands.setup import build_setup_parser
+from devbuddy_cli.config import DEFAULT_CONFIG
+from devbuddy_cli.setup import setup_telemetry
+from devbuddy_cli.subcommands.setup import build_setup_parser
 
 
 def test_shared_metrics_are_registered_disabled_by_default():
@@ -16,7 +16,7 @@ def test_shared_metrics_are_registered_disabled_by_default():
 def test_setup_telemetry_enables_shared_metrics(monkeypatch):
     config = {}
     monkeypatch.setattr(
-        "hermes_cli.setup.prompt_yes_no",
+        "devbuddy_cli.setup.prompt_yes_no",
         lambda _question, default: not default,
     )
 
@@ -32,23 +32,23 @@ def test_disabling_collection_closes_the_send_consent_window(monkeypatch, tmp_pa
     consent window stayed open and re-enabling later would release every
     package collected in between.
     """
-    from hermes_cli.observability.shared_metrics import SharedMetricsStore
-    from hermes_cli.observability.shared_metrics_sender import (
+    from devbuddy_cli.observability.shared_metrics import SharedMetricsStore
+    from devbuddy_cli.observability.shared_metrics_sender import (
         reconcile_send_consent,
     )
-    from hermes_cli.sqlite_util import write_txn
+    from devbuddy_cli.sqlite_util import write_txn
 
     store = SharedMetricsStore(
         database_path=tmp_path / "m.db", outbox_directory=tmp_path / "o"
     )
     monkeypatch.setattr(
-        "hermes_cli.observability.shared_metrics.SharedMetricsStore",
+        "devbuddy_cli.observability.shared_metrics.SharedMetricsStore",
         lambda *a, **k: store,
     )
 
     # The user had consented; now they turn collection off entirely.
     monkeypatch.setattr(
-        "hermes_cli.setup.prompt_yes_no", lambda _question, default: False
+        "devbuddy_cli.setup.prompt_yes_no", lambda _question, default: False
     )
     config = {"telemetry": {"shared_metrics": {"enabled": True, "send": True}}}
     # Consent was granted earlier, so a window is open — that is precisely

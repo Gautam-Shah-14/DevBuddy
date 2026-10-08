@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional, Set
 
 from fastapi import APIRouter
 
-from hermes_constants import get_hermes_home
+from devbuddy_constants import get_hermes_home
 
 router = APIRouter()
 
@@ -555,7 +555,7 @@ def scan_sessions(limit: Optional[int] = None, progress_callback: Optional[Any] 
     intermediate snapshots.
     """
     try:
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         # The scan only reads. A writable open here was a second writer connection (schema
         # init, write lock, close-time checkpoint) beside the dashboard's own store on every

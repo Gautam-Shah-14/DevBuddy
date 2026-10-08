@@ -14,7 +14,7 @@ from typing import Any, Callable, Dict, Iterator, List, NamedTuple, Optional, Ty
 
 from agent.message_sanitization import coerce_tool_name, deterministic_call_id
 from agent.prompt_builder import DEFAULT_AGENT_IDENTITY
-from hermes_cli.route_identity import normalize_route_base_url
+from devbuddy_cli.route_identity import normalize_route_base_url
 
 logger = logging.getLogger(__name__)
 
@@ -229,7 +229,7 @@ def _input_image_part(part: Dict[str, Any], role: str = "user", *, keep_empty_ur
     if not _nonempty_str(url) and not keep_empty_url:
         return None
     url = str(url or "")
-    # Lazy import: the prep module only depends on hermes_constants at import time (no cycle).
+    # Lazy import: the prep module only depends on devbuddy_constants at import time (no cycle).
     from tools.vision_tools_image_prep import rasterize_svg_data_url, unsupported_inline_image_media_type
     mime = unsupported_inline_image_media_type(url)
     if mime == "image/svg+xml":

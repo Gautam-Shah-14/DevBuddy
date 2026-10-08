@@ -48,7 +48,7 @@ def _stub(monkeypatch, *, managed: bool):
 
 
 def test_pin_still_refuses_bundled_skills(monkeypatch, capsys):
-    import hermes_cli.curator as curator_cli
+    import devbuddy_cli.curator as curator_cli
     import tools.skill_usage as skill_usage
 
     calls = _stub(monkeypatch, managed=True)

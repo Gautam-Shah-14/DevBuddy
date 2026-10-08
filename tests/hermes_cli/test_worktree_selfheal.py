@@ -53,7 +53,7 @@ class TestCleanupFailedWorktreeAdd:
         return wt
 
     def test_sweeps_dir_admin_entry_and_branch(self, repo):
-        from hermes_cli.worktree_ops import _cleanup_failed_worktree_add
+        from devbuddy_cli.worktree_ops import _cleanup_failed_worktree_add
 
         wt = self._simulate_timed_out_add(repo)
         admin = repo / ".git" / "worktrees" / "hermes-dead00"
@@ -68,7 +68,7 @@ class TestCleanupFailedWorktreeAdd:
 
     def test_retry_succeeds_after_cleanup(self, repo):
         """The whole point: the same worktree name is creatable again."""
-        from hermes_cli.worktree_ops import _cleanup_failed_worktree_add
+        from devbuddy_cli.worktree_ops import _cleanup_failed_worktree_add
 
         wt = self._simulate_timed_out_add(repo)
         _cleanup_failed_worktree_add(str(repo), wt, "hermes/hermes-dead00")
@@ -80,7 +80,7 @@ class TestCleanupFailedWorktreeAdd:
 
     def test_noop_when_nothing_exists(self, repo):
         """Fail-soft on an error path where git never created anything."""
-        from hermes_cli.worktree_ops import _cleanup_failed_worktree_add
+        from devbuddy_cli.worktree_ops import _cleanup_failed_worktree_add
 
         _cleanup_failed_worktree_add(
             str(repo), repo / ".worktrees" / "never-existed", "hermes/never-existed"
@@ -111,7 +111,7 @@ class TestMaintainPackHealth:
 
     def test_repacks_at_threshold(self, repo, monkeypatch):
         import cli
-        from hermes_cli import worktree_ops
+        from devbuddy_cli import worktree_ops
 
         made = self._make_packs(repo, 12)
         # Behavior contract, not a snapshot: the geometric repack leaves a size progression
@@ -129,7 +129,7 @@ class TestMaintainPackHealth:
 
     def test_noop_below_threshold(self, repo, monkeypatch):
         import cli
-        from hermes_cli import worktree_ops
+        from devbuddy_cli import worktree_ops
 
         made = self._make_packs(repo, 2)
         monkeypatch.setattr(worktree_ops, "_PACK_SPRAWL_THRESHOLD", 50)
@@ -149,7 +149,7 @@ class TestRepackStampede:
     own full repack, and a timed-out repack left ``pack-objects`` running for days."""
 
     def test_one_repack_per_clone_per_interval(self, repo, monkeypatch):
-        from hermes_cli import worktree_ops
+        from devbuddy_cli import worktree_ops
 
         monkeypatch.setattr(worktree_ops, "_PACK_SPRAWL_THRESHOLD", 0)
         runs: list = []
@@ -169,7 +169,7 @@ class TestRepackStampede:
         import os
         import time
 
-        from hermes_cli import worktree_ops
+        from devbuddy_cli import worktree_ops
 
         # A stand-in ``git`` that forks a long-lived grandchild, the way repack forks pack-objects.
         shim_dir = tmp_path / "bin"

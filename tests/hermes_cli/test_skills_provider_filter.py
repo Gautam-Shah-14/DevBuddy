@@ -5,8 +5,8 @@ import json
 
 import pytest
 
-from hermes_cli import skills_hub as cli_hub
-from hermes_cli.subcommands.skills import build_skills_parser
+from devbuddy_cli import skills_hub as cli_hub
+from devbuddy_cli.subcommands.skills import build_skills_parser
 from tools.skills_hub_github import GitHubAuth, GitHubSource, _tap_cache_key, github_provider_for
 from tools.skills_hub_models import SkillMeta, _cache_metas, _skill_meta_to_dict
 from tools.skills_hub_official import HermesIndexSource

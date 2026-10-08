@@ -12,9 +12,9 @@ def test_pets_cli_quoted_false_disables_and_toggle_enables(tmp_path, monkeypatch
     bool('false') is True — before the is_truthy_value fix, _has_active_pet
     reported an active pet and /pet toggle DISABLED instead of enabling.
     """
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
 
-    from hermes_cli.pets import _has_active_pet, toggle_pet_display
+    from devbuddy_cli.pets import _has_active_pet, toggle_pet_display
 
     home = tmp_path / ".hermes"
     home.mkdir()
@@ -45,7 +45,7 @@ def empty_home(tmp_path, monkeypatch):
 
 def test_set_pet_scale_writes_clamped_value(empty_home):
     from agent.pet.constants import MAX_SCALE, MIN_SCALE
-    from hermes_cli.pets import _pet_config, set_pet_scale
+    from devbuddy_cli.pets import _pet_config, set_pet_scale
 
     applied, err = set_pet_scale("0.5")
     assert err is None

@@ -19,11 +19,11 @@ def served_root(tmp_path, monkeypatch):
     (tmp_path / "locks").mkdir()
     monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
-    monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setattr("devbuddy_constants.get_default_hermes_root", lambda: root)
     monkeypatch.setattr(jobs, "CRON_DIR", home / "cron")
     monkeypatch.setattr(jobs, "JOBS_FILE", home / "cron/jobs.json")
     monkeypatch.setattr(jobs, "OUTPUT_DIR", home / "cron/output")
-    monkeypatch.setattr("hermes_cli.gateway.find_gateway_pids", lambda: [])
+    monkeypatch.setattr("devbuddy_cli.gateway.find_gateway_pids", lambda: [])
     # Model the default gateway's identity, not merely a live pytest PID. The satellite has no lock.
     monkeypatch.setattr(
         "gateway.status.is_gateway_runtime_lock_active",
@@ -38,7 +38,7 @@ def served_root(tmp_path, monkeypatch):
 @pytest.mark.parametrize("mode", ["missing", "fresh", "stale", "disabled", "excluded", "local", "external", "unrelated_pid"])
 def test_status_preserves_profile_health_contract(served_root, capsys, monkeypatch, mode):
     from cron import jobs
-    from hermes_cli import cron
+    from devbuddy_cli import cron
 
     if mode in {"fresh", "stale", "local"}:
         jobs.record_ticker_heartbeat(success=True)
@@ -49,7 +49,7 @@ def test_status_preserves_profile_health_contract(served_root, capsys, monkeypat
     if mode == "excluded":
         served_root.joinpath("gateway_state.json").write_text(json.dumps({"served_profiles": ["other"]}))
     if mode == "local":
-        monkeypatch.setattr("hermes_cli.gateway.find_gateway_pids", lambda: [os.getpid()])
+        monkeypatch.setattr("devbuddy_cli.gateway.find_gateway_pids", lambda: [os.getpid()])
     if mode == "external":
         monkeypatch.setattr(cron, "_active_cron_provider_name", lambda: "managed-test")
     if mode == "unrelated_pid":
@@ -94,7 +94,7 @@ def test_host_record_rung_names_the_roster_and_a_runnable_restart(served_root, c
     import os
 
     from gateway import host_rendezvous as hr
-    from hermes_cli import cron
+    from devbuddy_cli import cron
 
     hr.publish_record(hr.ROLE_GATEWAY, profiles=("default", "probe"))
 
@@ -111,7 +111,7 @@ def test_host_record_rung_names_the_roster_and_a_runnable_restart(served_root, c
 def test_satellite_list_and_create_require_own_heartbeat(served_root, capsys, monkeypatch, heartbeat):
     from argparse import Namespace
     from cron import jobs
-    from hermes_cli import cron
+    from devbuddy_cli import cron
 
     # A fresh host heartbeat must not hide the satellite's missing or stale heartbeat.
     host_cron = served_root / "cron"
@@ -135,7 +135,7 @@ def test_satellite_list_and_create_require_own_heartbeat(served_root, capsys, mo
 
 @pytest.mark.parametrize("home_kind", ["default", "custom", "named"])
 def test_standalone_guidance_matches_profile_membership(served_root, monkeypatch, capsys, home_kind):
-    from hermes_cli.cron import cron_status
+    from devbuddy_cli.cron import cron_status
 
     homes = {"default": served_root, "custom": served_root.parent / "custom", "named": served_root / "profiles/probe"}
     home = homes[home_kind]
@@ -155,7 +155,7 @@ def test_standalone_guidance_matches_profile_membership(served_root, monkeypatch
 @pytest.mark.parametrize("detail", ["unreachable " * 30 + "\nsecret second line", ""])
 def test_doctor_bounds_persisted_fire_errors(served_root, capsys, detail):
     from cron import jobs
-    from hermes_cli.cron import cron_doctor
+    from devbuddy_cli.cron import cron_doctor
 
     jobs.create_job(prompt="probe", schedule="every 1h")
     records = jobs.load_jobs()
@@ -177,7 +177,7 @@ def test_doctor_bounds_persisted_fire_errors(served_root, capsys, detail):
 @pytest.mark.parametrize("dispatch", ["catch_up", "late", "forward_error"])
 def test_doctor_reports_persisted_dispatch_health(served_root, capsys, dispatch):
     from cron import jobs
-    from hermes_cli.cron import cron_doctor
+    from devbuddy_cli.cron import cron_doctor
 
     job = jobs.create_job(prompt="probe", schedule="every 1h")
     if dispatch == "forward_error":

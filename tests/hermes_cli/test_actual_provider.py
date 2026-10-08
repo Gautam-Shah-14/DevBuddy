@@ -10,8 +10,8 @@ from unittest.mock import patch
 import pytest
 
 from agent.auxiliary_client import _normalize_aux_provider
-from hermes_cli import runtime_provider as rp
-from hermes_cli.auth import (
+from devbuddy_cli import runtime_provider as rp
+from devbuddy_cli.auth import (
     ACTUAL_LOCAL_NOAUTH_PLACEHOLDER,
     DEFAULT_ACTUAL_BASE_URL,
     DEFAULT_ACTUAL_LOCAL_BASE_URL,
@@ -20,10 +20,10 @@ from hermes_cli.auth import (
     resolve_api_key_provider_credentials,
     resolve_provider,
 )
-from hermes_cli.models import normalize_provider as normalize_model_provider
-from hermes_cli.models import provider_model_ids
-from hermes_cli.providers import determine_api_mode
-from hermes_cli.providers import normalize_provider as normalize_overlay_provider
+from devbuddy_cli.models import normalize_provider as normalize_model_provider
+from devbuddy_cli.models import provider_model_ids
+from devbuddy_cli.providers import determine_api_mode
+from devbuddy_cli.providers import normalize_provider as normalize_overlay_provider
 from providers import get_provider_profile
 
 def _clear_actual_env(monkeypatch):
@@ -123,7 +123,7 @@ def test_actual_runtime_uses_hosted_default(monkeypatch):
 
 def test_actual_runtime_repairs_stale_responses_mode(monkeypatch, caplog):
     _clear_actual_env(monkeypatch)
-    caplog.set_level(logging.INFO, logger="hermes_cli.auth")
+    caplog.set_level(logging.INFO, logger="devbuddy_cli.auth")
     monkeypatch.setenv("ACTUAL_API_KEY", "actual-test-key")
     monkeypatch.setattr(
         rp,
@@ -160,7 +160,7 @@ def test_actual_runtime_ignores_legacy_mode_environment(monkeypatch):
     assert resolved["api_mode"] == "chat_completions"
 
 def test_actual_hostname_detection_repairs_custom_responses_route():
-    from hermes_cli.providers import is_actual_route
+    from devbuddy_cli.providers import is_actual_route
 
     base_url = "https://api.actual.inc/v1"
 
@@ -260,7 +260,7 @@ def test_actual_profile_fetch_models_normalizes_env_base_url(monkeypatch):
         seen["timeout"] = timeout
         return _Response()
 
-    monkeypatch.setattr("hermes_cli.urllib_security.open_credentialed_url", _open)
+    monkeypatch.setattr("devbuddy_cli.urllib_security.open_credentialed_url", _open)
 
     assert profile.fetch_models(api_key=None, timeout=1.5) == ["actual/local-model"]
     assert seen["url"] == DEFAULT_ACTUAL_LOCAL_BASE_URL + "/models"
@@ -482,7 +482,7 @@ def test_actual_client_tls_default_does_not_override_explicit_config(monkeypatch
     assert explicit["http_client"] == "http-client"
 
 def test_actual_oneshot_reasoning_override_reaches_agent(monkeypatch):
-    from hermes_cli import oneshot
+    from devbuddy_cli import oneshot
 
     captured = {}
 
@@ -500,9 +500,9 @@ def test_actual_oneshot_reasoning_override_reaches_agent(monkeypatch):
         def close(self):
             return None
 
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: {})
+    monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: {})
     monkeypatch.setattr(
-        "hermes_cli.runtime_provider.resolve_runtime_provider",
+        "devbuddy_cli.runtime_provider.resolve_runtime_provider",
         lambda **_kwargs: {
             "api_key": "actual-test-key",
             "base_url": DEFAULT_ACTUAL_BASE_URL,
@@ -512,7 +512,7 @@ def test_actual_oneshot_reasoning_override_reaches_agent(monkeypatch):
         },
     )
     monkeypatch.setattr(
-        "hermes_cli.mcp_startup.ensure_mcp_discovery_before_agent_build",
+        "devbuddy_cli.mcp_startup.ensure_mcp_discovery_before_agent_build",
         lambda **_kwargs: None,
     )
     monkeypatch.setattr(oneshot, "_create_session_db_for_oneshot", lambda: None)

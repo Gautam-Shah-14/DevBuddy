@@ -150,8 +150,8 @@ class TestCronJobTrigger:
         home = tmp_path / ".hermes"
         (home / "profiles" / "sec").mkdir(parents=True)
         monkeypatch.setenv("HERMES_HOME", str(home))
-        monkeypatch.setattr("hermes_cli.profiles._get_default_hermes_home", lambda: home)
-        monkeypatch.setattr("hermes_cli.profiles._get_profiles_root", lambda: home / "profiles")
+        monkeypatch.setattr("devbuddy_cli.profiles._get_default_hermes_home", lambda: home)
+        monkeypatch.setattr("devbuddy_cli.profiles._get_profiles_root", lambda: home / "profiles")
         adapter = _make_adapter({"ev": {"secret": _INSECURE_NO_AUTH, "cron_job": "sweeper", "profile": "sec",
                                         "skills": ["some-skill"], "prompt": "hello {n}"}})
         monkeypatch.setattr(adapter, "_resolve_request_profile", lambda request: "sec")
@@ -159,7 +159,7 @@ class TestCronJobTrigger:
         seen = []
 
         def _fake_execute(job_ref, extra_prompt=None):
-            from hermes_constants import get_hermes_home
+            from devbuddy_constants import get_hermes_home
             seen.append((get_hermes_home(), extra_prompt))
             return {"claimed": True, "success": True, "error": None}
 

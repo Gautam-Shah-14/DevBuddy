@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import doctor, doctor_state
-from hermes_cli import memory_provider_migration as mig
+from devbuddy_cli import doctor, doctor_state
+from devbuddy_cli import memory_provider_migration as mig
 
 
 @pytest.mark.parametrize("sentinel", ["builtin", "Default", "none"])

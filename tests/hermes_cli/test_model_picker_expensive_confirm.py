@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from hermes_cli.model_switch import ModelSwitchResult
+from devbuddy_cli.model_switch import ModelSwitchResult
 
 
 def _bound(fn, instance):
@@ -16,7 +16,7 @@ def test_prompt_toolkit_model_picker_defers_confirmation_off_key_handler(monkeyp
         target_provider="nous",
     )
     monkeypatch.setattr(
-        "hermes_cli.model_switch.switch_model",
+        "devbuddy_cli.model_switch.switch_model",
         lambda **_kwargs: result,
     )
 
@@ -62,7 +62,7 @@ def test_prompt_toolkit_model_picker_defers_confirmation_off_key_handler(monkeyp
 
     # Picking a model opens the reasoning-effort step (no commit yet); "Keep current effort"
     # (the last effort row) commits with the historical arity.
-    from hermes_cli.cli_model_switch_mixin import _picker_reasoning_rows
+    from devbuddy_cli.cli_model_switch_mixin import _picker_reasoning_rows
     assert self_._model_picker_state["stage"] == "reasoning"
     assert "started" not in captured
     self_._model_picker_state["selected"] = len(_picker_reasoning_rows()) - 1

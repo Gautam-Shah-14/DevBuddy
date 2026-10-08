@@ -9,7 +9,7 @@ import json
 import os
 import subprocess
 
-from hermes_cli.update_cmd_git import _discard_lockfile_churn
+from devbuddy_cli.update_cmd_git import _discard_lockfile_churn
 
 _GIT_ENV = {
     **os.environ,

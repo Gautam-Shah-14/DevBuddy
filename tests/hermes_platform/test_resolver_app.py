@@ -11,8 +11,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
 
-from hermes_platform.resolver import CheckState, Effort
-from hermes_platform.resolver.app import AppDef, AppResolver, Endpoint
+from devbuddy_platform.resolver import CheckState, Effort
+from devbuddy_platform.resolver.app import AppDef, AppResolver, Endpoint
 
 TOKEN = "tok-3e1f9c-unique-fixture-value"
 

@@ -13,8 +13,8 @@ updaters).
 
 from pathlib import Path
 
-from hermes_cli import main as hermes_main
-from hermes_cli import main_web_build
+from devbuddy_cli import main as hermes_main
+from devbuddy_cli import main_web_build
 
 
 def _make_repo(tmp_path: Path, sha: str = "a" * 40) -> Path:
@@ -27,7 +27,7 @@ def _make_repo(tmp_path: Path, sha: str = "a" * 40) -> Path:
     return repo
 
 
-def _make_pycache(repo: Path, subdir: str = "hermes_cli") -> Path:
+def _make_pycache(repo: Path, subdir: str = "devbuddy_cli") -> Path:
     cache = repo / subdir / "__pycache__"
     cache.mkdir(parents=True)
     (cache / "main.cpython-311.pyc").write_bytes(b"stale")
@@ -61,7 +61,7 @@ def test_sweep_clears_pycache_when_checkout_changed(monkeypatch, tmp_path):
 # ---------------------------------------------------------------------------
 
 def test_clear_plugin_bytecode_removes_nested_caches(tmp_path):
-    from hermes_cli import plugins_cmd
+    from devbuddy_cli import plugins_cmd
 
     plugin = tmp_path / "myplugin"
     top = plugin / "__pycache__"

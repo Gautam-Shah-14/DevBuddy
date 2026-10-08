@@ -38,8 +38,8 @@ from agent.message_content import flatten_message_text
 from agent.memory_provider import MemoryProvider, spawn_context_thread
 from agent.secret_scope import get_secret
 from agent.skill_commands import extract_user_instruction_from_skill_message
-from hermes_cli.version_info import get_version_info
-from hermes_constants import get_hermes_home
+from devbuddy_cli.version_info import get_version_info
+from devbuddy_constants import get_hermes_home
 from tools.registry import tool_error
 from utils import atomic_json_write, env_var_enabled
 
@@ -743,7 +743,7 @@ def _is_local_openviking_url(value: str) -> bool:
 
 def _load_hermes_openviking_config() -> dict:
     try:
-        from hermes_cli.config import load_config_readonly
+        from devbuddy_cli.config import load_config_readonly
 
         config = load_config_readonly()
         memory_config = config.get("memory", {}) if isinstance(config, dict) else {}
@@ -1272,7 +1272,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
         if endpoint:
             normalized["endpoint"] = _normalize_openviking_url(endpoint)
 
-        from hermes_cli.config import load_config, save_config
+        from devbuddy_cli.config import load_config, save_config
 
         config = load_config()
         if not isinstance(config.get("memory"), dict):
@@ -2217,7 +2217,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
             logger.debug("Could not safely mark OpenViking session %s pending without a run lock", sid)
             return
         try:
-            from hermes_constants import mkdir_under_hermes_home
+            from devbuddy_constants import mkdir_under_hermes_home
             mkdir_under_hermes_home(path.parent)
             atomic_json_write(path, {"session_id": sid, "owner_run_id": self._run_id}, mode=0o600)
             self._pending_marked_sids.add(sid)

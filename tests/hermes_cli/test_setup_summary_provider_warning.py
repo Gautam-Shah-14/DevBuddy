@@ -8,12 +8,12 @@ working model configured (consumer-onboarding audit finding #7, Aug 2026).
 
 from unittest.mock import patch
 
-from hermes_cli.auth import AuthError
-from hermes_cli import nous_subscription
+from devbuddy_cli.auth import AuthError
+from devbuddy_cli import nous_subscription
 
 
 def _summary_output(capsys, provider_ready: bool):
-    from hermes_cli import setup as setup_mod
+    from devbuddy_cli import setup as setup_mod
 
     if provider_ready:
         resolver = lambda *a, **k: "openrouter"  # noqa: E731
@@ -25,7 +25,7 @@ def _summary_output(capsys, provider_ready: bool):
             )
 
     # Keep the summary fast/hermetic: stub the heavier feature probes.
-    with patch("hermes_cli.auth.resolve_provider", resolver), \
+    with patch("devbuddy_cli.auth.resolve_provider", resolver), \
          patch.object(nous_subscription, "get_nous_subscription_features") as feats:
         feats.side_effect = Exception("stubbed")
         try:

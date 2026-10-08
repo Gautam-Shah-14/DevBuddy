@@ -16,7 +16,7 @@ MESSAGE = "This build doesn't get updates. Ask the developer who gave it to you 
 def payload(tmp_path_factory):
     root = tmp_path_factory.mktemp("commit-payload")
     source = Path(__file__).resolve().parents[2]
-    shutil.copytree(source / "hermes_cli", root / "hermes_cli", ignore=shutil.ignore_patterns("__pycache__"))
+    shutil.copytree(source / "devbuddy_cli", root / "devbuddy_cli", ignore=shutil.ignore_patterns("__pycache__"))
     (root / "install-stamp.json").write_text(json.dumps({
         "source": "commit-build", "distribution": "desktop-app", "payload": "bundled",
         "updateMechanism": "external", "commit": "a" * 40,
@@ -49,7 +49,7 @@ def audit(event, args):
         raise RuntimeError('forbidden update side effect: ' + event)
 sys.addaudithook(audit)
 try:
-    from hermes_cli.main import main
+    from devbuddy_cli.main import main
     main()
 finally:
     print('AUDIT=' + json.dumps(attempts))

@@ -6,8 +6,8 @@ from pathlib import Path
 import subprocess
 import sys
 
-from hermes_cli.source_completion import complete_source_checkout
-from hermes_cli.source_stamp import write_source_stamp
+from devbuddy_cli.source_completion import complete_source_checkout
+from devbuddy_cli.source_stamp import write_source_stamp
 
 
 def _repo(tmp_path: Path) -> Path:
@@ -29,9 +29,9 @@ def _repo(tmp_path: Path) -> Path:
 
 
 def _completion_dependencies(monkeypatch, maintenance):
-    monkeypatch.setattr("hermes_cli.venv_sync.publish_launchers", lambda root: None)
-    monkeypatch.setattr("hermes_cli.source_build.build_update_products", lambda root, *, desktop: None)
-    monkeypatch.setattr("hermes_cli.update_cmd_maint._run_post_update_maintenance", maintenance)
+    monkeypatch.setattr("devbuddy_cli.venv_sync.publish_launchers", lambda root: None)
+    monkeypatch.setattr("devbuddy_cli.source_build.build_update_products", lambda root, *, desktop: None)
+    monkeypatch.setattr("devbuddy_cli.update_cmd_maint._run_post_update_maintenance", maintenance)
 
 
 def test_successful_source_completion_writes_checkout_identity(tmp_path, monkeypatch):
@@ -91,7 +91,7 @@ def test_publishing_checkout_identity_never_invents_an_installer_receipt(tmp_pat
 def test_shallow_checkout_publishes_its_release_after_fetching_the_commit_graph(tmp_path):
     # Pre-PM installers cloned --depth 1; the completion fetches commits (not trees) so
     # the stamp can still name the release the checkout is built on.
-    from hermes_cli.gitlock import fetch_full_commit_graph
+    from devbuddy_cli.gitlock import fetch_full_commit_graph
 
     server = _repo(tmp_path)
     subprocess.run(["git", "config", "uploadpack.allowFilter", "true"], cwd=server, check=True)
@@ -111,7 +111,7 @@ def test_shallow_checkout_publishes_its_release_after_fetching_the_commit_graph(
 
 
 def test_full_checkout_refreshes_release_tags_before_publishing_identity(tmp_path):
-    from hermes_cli.gitlock import fetch_full_commit_graph
+    from devbuddy_cli.gitlock import fetch_full_commit_graph
 
     server = _repo(tmp_path)
     env = {"HOME": str(tmp_path), "PATH": os.environ["PATH"]}

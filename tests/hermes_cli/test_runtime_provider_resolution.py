@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import runtime_provider as rp
+from devbuddy_cli import runtime_provider as rp
 
 
 def test_configured_api_key_provider_without_key_fails_closed(monkeypatch):
@@ -17,7 +17,7 @@ def test_configured_api_key_provider_without_key_fails_closed(monkeypatch):
     )
     monkeypatch.setattr(rp, "load_pool", lambda _provider: SimpleNamespace(has_credentials=lambda: False))
     monkeypatch.setattr(
-        "hermes_cli.auth.resolve_api_key_provider_credentials",
+        "devbuddy_cli.auth.resolve_api_key_provider_credentials",
         lambda _provider: {
             "provider": "deepseek",
             "api_key": "",
@@ -34,7 +34,7 @@ def test_noauth_lmstudio_still_resolves(monkeypatch):
     """The fail-closed key guard preserves LM Studio's no-auth contract."""
     monkeypatch.setattr(rp, "load_pool", lambda _provider: SimpleNamespace(has_credentials=lambda: False))
     monkeypatch.setattr(
-        "hermes_cli.auth.resolve_api_key_provider_credentials",
+        "devbuddy_cli.auth.resolve_api_key_provider_credentials",
         lambda _provider: {
             "provider": "lmstudio",
             "api_key": "lmstudio-noauth",
@@ -72,11 +72,11 @@ def test_runtime_selected_copilot_exchanges_ambient_pool_token(tmp_path, monkeyp
     monkeypatch.setenv("HERMES_HOME", str(hermes_home))
     (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "credential_pool": {}}))
     (hermes_home / "config.yaml").write_text("model:\n  provider: deepseek\n  default: deepseek-chat\n")
-    from hermes_cli import config as _cfg
+    from devbuddy_cli import config as _cfg
     _cfg._LOAD_CONFIG_CACHE.clear()
     _cfg._RAW_CONFIG_CACHE.clear()
-    monkeypatch.setattr("hermes_cli.copilot_auth.resolve_copilot_token", lambda: ("ghu_raw_gh_token", "gh auth token"))
-    monkeypatch.setattr("hermes_cli.copilot_auth.get_copilot_api_token",
+    monkeypatch.setattr("devbuddy_cli.copilot_auth.resolve_copilot_token", lambda: ("ghu_raw_gh_token", "gh auth token"))
+    monkeypatch.setattr("devbuddy_cli.copilot_auth.get_copilot_api_token",
                         lambda tok: ("tid=exchanged;exp=1", "https://api.enterprise.ghe.example"))
     monkeypatch.setattr(rp._models, "copilot_model_api_mode", lambda *a, **k: "chat_completions")
     monkeypatch.setattr(rp, "resolve_provider", lambda *a, **k: "copilot")
@@ -234,7 +234,7 @@ class TestCustomProviderPoolLoopbackNoKeyExemption:
 
 def test_qwen_oauth_auto_fallthrough_on_auth_failure(monkeypatch):
     """When requested_provider is 'auto' and Qwen creds fail, fall through."""
-    from hermes_cli.auth import AuthError
+    from devbuddy_cli.auth import AuthError
 
     monkeypatch.setattr(rp, "resolve_provider", lambda *a, **k: "qwen-oauth")
     monkeypatch.setattr(
@@ -630,7 +630,7 @@ def test_openai_key_used_when_no_openrouter_key(monkeypatch):
 ])
 def test_openai_key_bound_to_another_host_never_reaches_openrouter(monkeypatch, openai_base_url, expected_key):
     """OPENAI_API_KEY is an OpenRouter fallback only while OPENAI_BASE_URL doesn't bind it elsewhere."""
-    from hermes_cli.runtime_provider_backends import _resolve_openrouter_runtime
+    from devbuddy_cli.runtime_provider_backends import _resolve_openrouter_runtime
     monkeypatch.setattr(rp, "_get_model_config", lambda: {})
     monkeypatch.setenv("OPENAI_BASE_URL", openai_base_url)
     monkeypatch.delenv("OPENROUTER_BASE_URL", raising=False)
@@ -1284,7 +1284,7 @@ def test_opencode_go_explicit_key_matches_env_key_route(monkeypatch, model):
 
 def test_auto_detected_nous_auth_failure_falls_through_to_openrouter(monkeypatch):
     """When auto-detect picks Nous but credentials are revoked, fall through to OpenRouter."""
-    from hermes_cli.auth import AuthError
+    from devbuddy_cli.auth import AuthError
 
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-or-key")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
@@ -1563,7 +1563,7 @@ class TestProviderEntryApiKeyEnvAlias:
     use `api_key_env`) resolve correctly."""
 
     def test_snake_case_api_key_env_normalizes_to_key_env(self):
-        from hermes_cli.config import _normalize_custom_provider_entry
+        from devbuddy_cli.config import _normalize_custom_provider_entry
         entry = {
             "name": "vendor",
             "base_url": "https://api.vendor.example.com/v1",
@@ -1576,7 +1576,7 @@ class TestProviderEntryApiKeyEnvAlias:
 
 
     def test_extra_body_is_supported_schema(self):
-        from hermes_cli.config import (
+        from devbuddy_cli.config import (
             _VALID_CUSTOM_PROVIDER_FIELDS,
             _normalize_custom_provider_entry,
         )
@@ -1604,7 +1604,7 @@ class TestProviderEntryApiKeyEnvAlias:
 
 def test_minimax_oauth_runtime_returns_anthropic_messages_mode(monkeypatch):
     """resolve_runtime_provider for minimax-oauth must return api_mode='anthropic_messages'."""
-    from hermes_cli.auth import MINIMAX_OAUTH_GLOBAL_INFERENCE
+    from devbuddy_cli.auth import MINIMAX_OAUTH_GLOBAL_INFERENCE
 
     monkeypatch.setattr(rp, "resolve_provider", lambda *a, **k: "minimax-oauth")
     monkeypatch.setattr(rp, "_get_model_config", lambda: {"provider": "minimax-oauth"})
@@ -1627,7 +1627,7 @@ def test_minimax_oauth_runtime_returns_anthropic_messages_mode(monkeypatch):
         "source": "oauth",
     }
 
-    import hermes_cli.auth as auth_mod
+    import devbuddy_cli.auth as auth_mod
     monkeypatch.setattr(auth_mod, "resolve_minimax_oauth_runtime_credentials",
                         lambda **k: fake_creds)
 
@@ -2061,7 +2061,7 @@ def test_removed_keyless_free_provider_points_at_its_replacements(name):
     """The keyless OpenCode free tier is gone (the relay 403s anonymous traffic), so a persisted
     ``model.provider`` — or ``--provider`` — still naming it must fail with the removal hint
     naming both surviving OpenCode providers, not a bare "Unknown provider"."""
-    from hermes_cli.auth import AuthError, resolve_provider
+    from devbuddy_cli.auth import AuthError, resolve_provider
 
     with pytest.raises(AuthError) as excinfo:
         resolve_provider(name)
@@ -2107,7 +2107,7 @@ def test_configured_key_env_resolving_empty_is_logged(monkeypatch, caplog):
         {"name": "scw", "base_url": "https://api.example.test/v1", "key_env": "UNSET_LLM_KEY", "model": "m"},
         {"name": "local", "base_url": "http://127.0.0.1:8080/v1", "model": "m"}]})
     monkeypatch.delenv("UNSET_LLM_KEY", raising=False)
-    with caplog.at_level("WARNING", logger="hermes_cli.runtime_provider"):
+    with caplog.at_level("WARNING", logger="devbuddy_cli.runtime_provider"):
         assert rp.resolve_runtime_provider(requested="custom:scw")["api_key"] == "no-key-required"
         assert rp.resolve_runtime_provider(requested="custom:local")["api_key"] == "no-key-required"
     hits = [r for r in caplog.records if "UNSET_LLM_KEY" in r.getMessage()]

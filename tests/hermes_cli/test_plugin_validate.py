@@ -1,4 +1,4 @@
-"""Tests for ``hermes plugins validate`` (hermes_cli/plugin_validate.py).
+"""Tests for ``hermes plugins validate`` (devbuddy_cli/plugin_validate.py).
 
 Static manifest checks + subprocess-isolated capability probing against a
 recording stub context.
@@ -9,10 +9,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-from hermes_cli.plugin_validate import validate_plugin_dir
-from hermes_cli.plugin_validate_desktop import desktop_surface_hits, is_desktop_surface
+from devbuddy_cli.plugin_validate import validate_plugin_dir
+from devbuddy_cli.plugin_validate_desktop import desktop_surface_hits, is_desktop_surface
 
 
 def _make_plugin(
@@ -29,7 +29,7 @@ def _make_plugin(
 
 
 def _portable_plugin(root: Path, servers: dict, declarations: dict) -> Path:
-    from hermes_cli.agent_plugins import MCP_SCHEMA_V1, PLUGIN_SCHEMA_V1
+    from devbuddy_cli.agent_plugins import MCP_SCHEMA_V1, PLUGIN_SCHEMA_V1
 
     root.mkdir()
     (root / "plugin.json").write_text(json.dumps({
@@ -92,8 +92,8 @@ def test_config_schema_admits_every_type_the_loader_and_renderer_accept(tmp_path
     """A ``type:`` the Desktop settings renderer/loader accept (``secret`` + ``env:``, ``object``) must
     pass admission — the catalog validator rejecting a documented type blocks pins of plugins that
     declare a secret setting."""
-    from hermes_cli.plugins_manifest import _CONFIG_SCHEMA_TYPES
-    from hermes_cli.plugins_settings import _FIELD_TYPES
+    from devbuddy_cli.plugins_manifest import _CONFIG_SCHEMA_TYPES
+    from devbuddy_cli.plugins_settings import _FIELD_TYPES
 
     assert set(_FIELD_TYPES) == set(_CONFIG_SCHEMA_TYPES)
     schema = {f"k_{t}": {"type": t} for t in _FIELD_TYPES}

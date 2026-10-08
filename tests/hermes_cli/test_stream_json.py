@@ -5,7 +5,7 @@ import signal
 
 import pytest
 
-from hermes_cli.stream_json import StreamJsonEmitter
+from devbuddy_cli.stream_json import StreamJsonEmitter
 
 
 def _events(capsys):
@@ -46,8 +46,8 @@ def test_emitter_event_stream_is_valid_jsonl(capsys):
 def _run_stream_json_chat(monkeypatch, capsys, run_conversation, credentials_ok=True):
     """parser → cmd_chat → cli.main → quiet single-query path with a deterministic fake agent."""
     import cli
-    import hermes_cli.main as cli_entry
-    from hermes_cli._parser import build_top_level_parser
+    import devbuddy_cli.main as cli_entry
+    from devbuddy_cli._parser import build_top_level_parser
 
     class FakeAgent:
         model = "test-model"
@@ -92,8 +92,8 @@ def _run_stream_json_chat(monkeypatch, capsys, run_conversation, credentials_ok=
     monkeypatch.setattr(cli_entry, "_pin_kanban_board_env", lambda: None)
     monkeypatch.setattr(cli_entry, "_confirm_startup_expensive_model_override", lambda _a: None)
     monkeypatch.setattr(cli_entry, "_warn_retired_xai_models", lambda: None)
-    monkeypatch.setattr("hermes_cli.free_tier_bootstrap.run_bootstrap", lambda **_k: None)
-    monkeypatch.setattr("hermes_cli.quiet_single_query.continue_quiet_notify_completions", lambda *_a, **_k: None)
+    monkeypatch.setattr("devbuddy_cli.free_tier_bootstrap.run_bootstrap", lambda **_k: None)
+    monkeypatch.setattr("devbuddy_cli.quiet_single_query.continue_quiet_notify_completions", lambda *_a, **_k: None)
 
     parser, _, _ = build_top_level_parser()
     args = parser.parse_args(["chat", "-q", "hello", "--format", "stream-json"])
@@ -133,8 +133,8 @@ def test_chat_stream_json_implies_quiet_and_closes_with_result(monkeypatch, caps
     (["--tui", "chat", "-q", "hi", "--format", "stream-json"], "cannot be used with --tui"),
 ])
 def test_chat_stream_json_rejects_interactive_combinations(monkeypatch, capsys, argv, message):
-    import hermes_cli.main as cli_entry
-    from hermes_cli._parser import build_top_level_parser
+    import devbuddy_cli.main as cli_entry
+    from devbuddy_cli._parser import build_top_level_parser
 
     monkeypatch.setattr(cli_entry, "_launch_tui", lambda *_a, **_k: pytest.fail("TUI launched"))
     parser, _, _ = build_top_level_parser()

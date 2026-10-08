@@ -9,10 +9,10 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import web_server
+from devbuddy_cli import web_server
 import gateway.status as _gw_status
-import hermes_cli.web_server_gateway as _web_server_gateway
-from hermes_cli.web_server_gateway import _collect_profile_gateway_topology, _profile_platform_ports
+import devbuddy_cli.web_server_gateway as _web_server_gateway
+from devbuddy_cli.web_server_gateway import _collect_profile_gateway_topology, _profile_platform_ports
 
 
 # ---------------------------------------------------------------------------
@@ -56,7 +56,7 @@ def _patch_topology(monkeypatch, homes, running, runtimes):
     ``homes``: list of (name, Path); ``running``: set of profile names with a
     live gateway; ``runtimes``: {name: runtime dict}.
     """
-    import hermes_cli.profiles as profiles_mod
+    import devbuddy_cli.profiles as profiles_mod
     import gateway.status as status_mod
 
     monkeypatch.setattr(profiles_mod, "profiles_to_serve", lambda multiplex, **kw: homes)
@@ -72,7 +72,7 @@ def _patch_topology(monkeypatch, homes, running, runtimes):
 
 class TestCollectProfileGatewayTopology:
     def test_running_standalone_profile_is_in_topology(self, tmp_path, monkeypatch):
-        from hermes_cli import profiles
+        from devbuddy_cli import profiles
 
         root = tmp_path / ".hermes"
         solo = root / "profiles" / "solo"
@@ -252,7 +252,7 @@ class TestCollectProfileGatewayTopology:
 
 
     def test_enumeration_failure_degrades_gracefully(self, monkeypatch):
-        import hermes_cli.profiles as profiles_mod
+        import devbuddy_cli.profiles as profiles_mod
 
         def _boom(multiplex):
             raise RuntimeError("no profiles root")
@@ -279,12 +279,12 @@ class TestStatusEndpointTopology:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        import devbuddy_state
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         monkeypatch.setattr(
-            hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            devbuddy_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
         )
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
@@ -432,7 +432,7 @@ class TestStatusEndpointTopology:
         # (gateway_mode == "multiple"). Each profile's failures live in its
         # own gateway_state.json; the machine-level /api/status must fold
         # them in as <profile>:<platform> so NAS health monitoring sees them.
-        import hermes_cli.profiles as profiles_mod
+        import devbuddy_cli.profiles as profiles_mod
 
         monkeypatch.setattr(_gw_status, "get_running_pid_cached", lambda: 123)
         monkeypatch.setattr(
@@ -508,7 +508,7 @@ class TestStatusEndpointTopology:
     def test_profile_scoped_status_does_not_merge_other_profiles(self, monkeypatch):
         # ?profile=<name> targets one profile's view — merging every other
         # profile's failures into it would misattribute state.
-        import hermes_cli.profiles as profiles_mod
+        import devbuddy_cli.profiles as profiles_mod
 
         monkeypatch.setattr(_gw_status, "get_running_pid_cached", lambda: 123)
         monkeypatch.setattr(

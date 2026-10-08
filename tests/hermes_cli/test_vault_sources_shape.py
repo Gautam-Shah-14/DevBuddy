@@ -5,10 +5,10 @@ coerced to a dict before the opt-out is written."""
 
 from types import SimpleNamespace
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 from agent.vault_store import VaultStore
-from hermes_cli.vault import _cmd_sources, vault_command
+from devbuddy_cli.vault import _cmd_sources, vault_command
 
 
 def _corrupt_vault(home):

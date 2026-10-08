@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 
 from prompt_toolkit.buffer import Buffer
 
-from hermes_cli.cli_tui_mixin import _RAPID_INPUT_ENTER_WINDOW_S
+from devbuddy_cli.cli_tui_mixin import _RAPID_INPUT_ENTER_WINDOW_S
 
 
 def _shell():

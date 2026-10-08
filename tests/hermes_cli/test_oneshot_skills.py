@@ -8,7 +8,7 @@ partial-success semantics shared with normal CLI chat.
 
 import pytest
 
-from hermes_cli.oneshot import _build_preloaded_skills_prompt, _normalize_skills
+from devbuddy_cli.oneshot import _build_preloaded_skills_prompt, _normalize_skills
 
 class TestNormalizeSkills:
     def test_none_and_empty(self):

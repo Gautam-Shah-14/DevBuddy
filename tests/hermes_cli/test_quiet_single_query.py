@@ -82,7 +82,7 @@ def test_turn_report_is_written_before_the_exit_linger_and_the_path_is_not_inher
     """A spawner that bounds only the turn (cron Bot Chat lane, #113608) reads the outcome from
     HERMES_QUIET_TURN_REPORT_FILE: written the moment the turn ends — before the one-shot exit
     linger — stamped with this pid, and the variable is popped before the turn spawns anything."""
-    from hermes_cli import quiet_single_query as qsq
+    from devbuddy_cli import quiet_single_query as qsq
 
     monkeypatch.delenv("HERMES_KANBAN_GOAL_MODE", raising=False)
     monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
@@ -115,7 +115,7 @@ def test_a_follow_up_turn_rewrites_the_report_with_the_answer_it_displaces(monke
     """The report says what this run will print. When a teammate's reply during the linger runs a
     follow-up turn whose answer displaces the first (the quiet run's final-answer contract), the
     report is rewritten with it, so a relay booking the child at its cap relays that answer (#114980)."""
-    from hermes_cli import quiet_single_query as qsq
+    from devbuddy_cli import quiet_single_query as qsq
 
     monkeypatch.delenv("HERMES_KANBAN_GOAL_MODE", raising=False)
     monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)

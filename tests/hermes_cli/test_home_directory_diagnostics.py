@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import config
+from devbuddy_cli import config
 
 
 @pytest.mark.platforms("linux")

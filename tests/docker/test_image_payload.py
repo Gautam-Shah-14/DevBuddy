@@ -17,7 +17,7 @@ assert not list(store.glob('fetch-*')), 'completed download archives must not sh
 fact = Facts(store / 'facts.json').get('python')
 expected = get_package('python').binary(store / fact['entry'], current_target())
 assert Path(sys._base_executable).resolve() == expected.resolve()
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 print('PM interpreter and application dependencies load as hermes')
 """
     result = subprocess.run(
@@ -33,7 +33,7 @@ def test_dashboard_ships_generated_icon_without_build_environment(built_image: s
 from pathlib import Path
 from PIL import Image
 
-with Image.open('/opt/hermes/hermes_cli/web_dist/favicon.ico') as image:
+with Image.open('/opt/hermes/devbuddy_cli/web_dist/favicon.ico') as image:
     image.load()
     assert image.width > 0 and image.height > 0
 assert not Path('/opt/hermes/node_modules/vite').exists()

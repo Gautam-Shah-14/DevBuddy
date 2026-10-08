@@ -5,22 +5,22 @@ from unittest.mock import Mock
 
 import pytest
 
-from hermes_cli import banner, source_check
-from hermes_cli.source_releases import SourceTarget
-from hermes_cli.update_channel import install_id
-from hermes_cli.version_info import get_version_info
+from devbuddy_cli import banner, source_check
+from devbuddy_cli.source_releases import SourceTarget
+from devbuddy_cli.update_channel import install_id
+from devbuddy_cli.version_info import get_version_info
 
 
 @pytest.mark.parametrize("channel", ["stable", "canary", "preview-from-r2"])
 def test_release_channel_never_compares_main_or_reuses_main_cache(tmp_path, monkeypatch, channel):
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
 
     root = tmp_path / "source"
     root.mkdir()
     (root / ".git").mkdir()
     monkeypatch.setenv("HERMES_INSTALL_ROOT", str(root))
     monkeypatch.delenv("HERMES_REVISION", raising=False)
-    monkeypatch.setattr("hermes_cli.config.get_project_root", lambda: root)
+    monkeypatch.setattr("devbuddy_cli.config.get_project_root", lambda: root)
     head = "a" * 40
     target = "b" * 40
     monkeypatch.setattr(source_check, "_git_stdout", lambda args, **kw: head if args == ["rev-parse", "HEAD"] else "https://github.com/example/fork.git")

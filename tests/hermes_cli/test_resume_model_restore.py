@@ -1,7 +1,7 @@
 """Tests for CLI resume model restoration and /model session persistence.
 
 Covers _restore_session_model, _persist_model_switch_to_session (cli.py) and
-SessionDB.session_gateway_runtime (hermes_state.py) — the round trip that
+SessionDB.session_gateway_runtime (devbuddy_state.py) — the round trip that
 makes `hermes --resume` reopen a session on the model/provider it actually
 used instead of the ambient config default (#57588-class, #79536).
 """
@@ -10,7 +10,7 @@ import json
 
 
 import cli as cli_mod
-from hermes_state import SessionDB
+from devbuddy_state import SessionDB
 
 
 def _make_stub(**overrides):
@@ -91,7 +91,7 @@ def test_restore_llamacpp_session_follows_live_managed_endpoint(monkeypatch):
         "api_mode": "chat_completions",
     }
     monkeypatch.setattr(
-        "hermes_cli.runtime_provider.resolve_runtime_provider",
+        "devbuddy_cli.runtime_provider.resolve_runtime_provider",
         lambda **_kw: live)
     stub = _make_stub()
     stub._restore_session_model(_row(
@@ -113,7 +113,7 @@ def test_restore_llamacpp_session_keeps_launch_base_url_for_same_provider(monkey
     session ran on; the live-endpoint re-resolution must not re-point it at the local supervisor."""
     calls = []
     monkeypatch.setattr(
-        "hermes_cli.runtime_provider.resolve_runtime_provider",
+        "devbuddy_cli.runtime_provider.resolve_runtime_provider",
         lambda **kw: calls.append(kw) or {"base_url": "http://127.0.0.1:18434/v1"})
     user_url = "http://gpu-box:8080/v1"
     stub = _make_stub(provider="llamacpp", requested_provider="llamacpp", base_url=user_url,
@@ -272,7 +272,7 @@ def test_persist_model_switch_heals_bare_custom(monkeypatch):
         base_url = "https://my-endpoint/v1"
         api_mode = ""
 
-    import hermes_cli.runtime_provider as rp
+    import devbuddy_cli.runtime_provider as rp
     monkeypatch.setattr(rp, "canonical_custom_identity",
                         lambda base_url=None, model=None: "custom:myendpoint")
     stub = _make_stub(_session_db=_DB(), session_id="s1")
@@ -291,7 +291,7 @@ def test_persist_model_switch_heals_bare_custom(monkeypatch):
 
 def test_restore_session_model_heals_bare_custom_stored_rows(monkeypatch):
     """Rows persisted by older builds may carry bare 'custom' — heal or drop."""
-    import hermes_cli.runtime_provider as rp
+    import devbuddy_cli.runtime_provider as rp
     monkeypatch.setattr(rp, "canonical_custom_identity",
                         lambda base_url=None, model=None: None)
     stub = _make_stub()
@@ -307,7 +307,7 @@ def test_restore_session_model_rederives_per_model_wire_for_opencode_rows(monkey
     """A row persisted while an opencode-go session ran an anthropic_messages model (MiniMax) must not
     pin that wire onto a chat_completions model on resume — api_mode and the relay URL follow the
     stored model, and a fixed-wire provider's row is still honored verbatim (#96066)."""
-    import hermes_cli.runtime_provider as rp
+    import devbuddy_cli.runtime_provider as rp
     monkeypatch.setattr(rp, "resolve_runtime_provider", lambda **kw: {"api_key": "go-key"})
     stub = _make_stub(provider="opencode-go", requested_provider="opencode-go",
                       base_url="https://opencode.ai/zen/go/v1", api_mode="chat_completions")

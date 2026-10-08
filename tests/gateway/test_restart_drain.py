@@ -270,7 +270,7 @@ async def test_restart_from_served_profile_chat_restarts_the_host_gateway(monkey
     profile's home it exits 78 and nothing comes back), and stop() - which flushes pending
     messages under get_hermes_home() - runs outside the requester's profile scope."""
     from agent.secret_scope import current_secret_scope
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
 
     launch_home = get_hermes_home()
     profile_home = launch_home / "profiles" / "research"
@@ -313,7 +313,7 @@ async def test_windows_detached_restart_scrubs_gateway_marker(monkeypatch, tmp_p
     monkeypatch.setattr(gateway_run.os, "getpid", lambda: 321)
     monkeypatch.setenv("_HERMES_GATEWAY", "1")
 
-    import hermes_cli._subprocess_compat as subprocess_compat
+    import devbuddy_cli._subprocess_compat as subprocess_compat
 
     monkeypatch.setattr(
         subprocess_compat,
@@ -335,7 +335,7 @@ async def test_windows_detached_restart_scrubs_gateway_marker(monkeypatch, tmp_p
     assert kwargs["env"].get("_HERMES_GATEWAY") is None
     # The watcher is an installation-bound command: PM's bootstrap selects the
     # dependency generation at child start, no venv is captured in its env.
-    from hermes_cli._launchers import runtime_command
+    from devbuddy_cli._launchers import runtime_command
     from pathlib import Path
     assert cmd[:3] == runtime_command(Path(gateway_run.__file__).resolve().parent.parent)[:3]
     assert kwargs["stdout"] is subprocess.DEVNULL
@@ -364,7 +364,7 @@ async def test_windows_detached_restart_watcher_keeps_console_python(monkeypatch
     monkeypatch.setattr(gateway_run.os, "getpid", lambda: 321)
     monkeypatch.setenv("VIRTUAL_ENV", str(venv_dir))
 
-    import hermes_cli._subprocess_compat as subprocess_compat
+    import devbuddy_cli._subprocess_compat as subprocess_compat
 
     monkeypatch.setattr(
         subprocess_compat,

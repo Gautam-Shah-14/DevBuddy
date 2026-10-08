@@ -20,7 +20,7 @@ def _config_edit(tmp_path, monkeypatch, cfg, *, template):
 
 def _setup_agent_enter(tmp_path, monkeypatch, cfg):
     """`hermes setup agent` on a fresh home, pressing Enter (the offered default) on every prompt."""
-    import hermes_cli.setup as setup
+    import devbuddy_cli.setup as setup
 
     monkeypatch.setattr(setup, "prompt", lambda question, default=None, *a, **k: default or "")
     monkeypatch.setattr(setup, "prompt_yes_no", lambda *a, **k: False)
@@ -29,13 +29,13 @@ def _setup_agent_enter(tmp_path, monkeypatch, cfg):
 
 def _apply_default_agent_settings(tmp_path, monkeypatch, cfg):
     """Quick and full first-time setup."""
-    from hermes_cli.setup import _apply_default_agent_settings
+    from devbuddy_cli.setup import _apply_default_agent_settings
 
     _apply_default_agent_settings(cfg.load_config())
 
 
 def _blank_slate(tmp_path, monkeypatch, cfg):
-    from hermes_cli.setup_quick import _blank_slate_minimize_config
+    from devbuddy_cli.setup_quick import _blank_slate_minimize_config
 
     config = cfg.load_config()
     _blank_slate_minimize_config(config)
@@ -44,8 +44,8 @@ def _blank_slate(tmp_path, monkeypatch, cfg):
 
 def _doctor_fix(tmp_path, monkeypatch, cfg):
     """`hermes doctor --fix` on a home with no config.yaml: the real config-file check, fix enabled."""
-    import hermes_cli.doctor as doctor
-    from hermes_cli.doctor_config import _check_config_file
+    import devbuddy_cli.doctor as doctor
+    from devbuddy_cli.doctor_config import _check_config_file
 
     root = tmp_path / "checkout"  # only the template, so a stray cli-config.yaml cannot short-circuit the seed
     root.mkdir()
@@ -70,7 +70,7 @@ SEEDERS = {
 
 @pytest.mark.parametrize("seeder", list(SEEDERS))
 def test_every_seeder_keeps_every_platform_display_default(tmp_path, monkeypatch, seeder):
-    import hermes_cli.config as cfg
+    import devbuddy_cli.config as cfg
     from gateway.run import _load_gateway_config
 
     home = tmp_path / "home"

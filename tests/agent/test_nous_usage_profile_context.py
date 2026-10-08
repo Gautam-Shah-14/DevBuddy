@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from agent import account_usage, billing_usage
-from hermes_constants import (
+from devbuddy_constants import (
     get_hermes_home,
     reset_hermes_home_override,
     set_hermes_home_override,
@@ -32,7 +32,7 @@ def test_nous_account_fetch_preserves_profile_home_in_timeout_worker(
         return observed_homes[-1]
 
     monkeypatch.setattr(
-        "hermes_cli.nous_account.get_nous_portal_account_info",
+        "devbuddy_cli.nous_account.get_nous_portal_account_info",
         fake_account_fetch,
     )
 

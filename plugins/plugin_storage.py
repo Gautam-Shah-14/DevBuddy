@@ -27,7 +27,7 @@ def _validate_name(name: str) -> str:
 def plugin_data_dir(name: str) -> Path:
     """Return (and create) ``<hermes home>/plugin-data/<name>/``; resolves ``get_hermes_home()`` on
     every call so it follows the active profile — don't cache across profile switches."""
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
     root = get_hermes_home() / "plugin-data" / _validate_name(name)
     root.mkdir(parents=True, exist_ok=True)
     return root
@@ -38,7 +38,7 @@ def plugin_db(name: str, filename: str = "data.db") -> sqlite3.Connection:
     ``check_same_thread=False`` for the threaded FastAPI/tool env — caller owns transactions."""
     if Path(filename).name != filename or not filename:
         raise ValueError(f"invalid plugin db filename: {filename!r}")
-    from hermes_cli.sqlite_util import open_db
+    from devbuddy_cli.sqlite_util import open_db
 
     # WAL via the shared fallback helper: network filesystems degrade to DELETE and WAL-reset-bug
     # builds never enable it, instead of every plugin DB bypassing those rules with a raw PRAGMA.

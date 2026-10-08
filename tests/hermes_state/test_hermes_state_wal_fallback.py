@@ -18,10 +18,10 @@ from unittest.mock import patch
 
 import pytest
 
-import hermes_state
-import hermes_state_wal
-from hermes_state import SessionDB, get_last_init_error
-from hermes_state_wal import WalUnsupportedError, apply_wal_with_fallback
+import devbuddy_state
+import devbuddy_state_wal
+from devbuddy_state import SessionDB, get_last_init_error
+from devbuddy_state_wal import WalUnsupportedError, apply_wal_with_fallback
 
 
 # ``sqlite3.Connection.execute`` is a C-level slot and can't be monkeypatched
@@ -76,30 +76,30 @@ def _make_silent_noop_factory(returned_mode: str = "delete"):
 @pytest.fixture(autouse=True)
 def _reset_last_init_error():
     """Reset the module-global last-error before and after each test."""
-    hermes_state._set_last_init_error(None)
+    devbuddy_state._set_last_init_error(None)
     yield
-    hermes_state._set_last_init_error(None)
+    devbuddy_state._set_last_init_error(None)
 
 
 @pytest.fixture(autouse=True)
 def _reset_wal_fallback_warned_paths():
     """Reset the WAL-fallback warned-paths set so dedup doesn't leak between tests."""
-    hermes_state_wal._wal_fallback_warned_paths.clear()
-    hermes_state_wal._wal_delete_fallback_failed_paths.clear()
+    devbuddy_state_wal._wal_fallback_warned_paths.clear()
+    devbuddy_state_wal._wal_delete_fallback_failed_paths.clear()
     yield
-    hermes_state_wal._wal_fallback_warned_paths.clear()
-    hermes_state_wal._wal_delete_fallback_failed_paths.clear()
+    devbuddy_state_wal._wal_fallback_warned_paths.clear()
+    devbuddy_state_wal._wal_delete_fallback_failed_paths.clear()
 
 
 @pytest.fixture(autouse=True)
 def _assume_fixed_sqlite(monkeypatch):
     """NFS-fallback tests assume a SQLite build without the WAL-reset bug."""
     monkeypatch.setattr(
-        hermes_state_wal, "is_sqlite_wal_reset_vulnerable", lambda version_info=None: False
+        devbuddy_state_wal, "is_sqlite_wal_reset_vulnerable", lambda version_info=None: False
     )
-    hermes_state_wal._wal_reset_bug_warned_paths.clear()
+    devbuddy_state_wal._wal_reset_bug_warned_paths.clear()
     yield
-    hermes_state_wal._wal_reset_bug_warned_paths.clear()
+    devbuddy_state_wal._wal_reset_bug_warned_paths.clear()
 
 
 class TestApplyWalWithFallback:
@@ -115,7 +115,7 @@ class TestApplyWalWithFallback:
     def test_falls_back_to_delete_on_locking_protocol(self, tmp_path, caplog):
         """NFS-style ``locking protocol`` error → DELETE mode + one ERROR."""
         conn, _ = _open_blocking(tmp_path / "nfs.db", isolation_level=None)
-        with caplog.at_level("ERROR", logger="hermes_state"):
+        with caplog.at_level("ERROR", logger="devbuddy_state"):
             mode = apply_wal_with_fallback(conn, db_label="test.db")
 
         assert mode == "delete"
@@ -156,7 +156,7 @@ class TestApplyWalWithFallback:
         conn = sqlite3.connect(
             str(tmp_path / "macnfs.db"), factory=factory, isolation_level=None
         )
-        with caplog.at_level("ERROR", logger="hermes_state"):
+        with caplog.at_level("ERROR", logger="devbuddy_state"):
             mode = apply_wal_with_fallback(conn, db_label="kanban.db")
 
         assert mode == "delete", "must report the true mode, not a false 'wal'"
@@ -208,7 +208,7 @@ class TestApplyWalWithFallback:
         conn, attempts = _open_blocking(
             tmp_path / "zfs.db", reason="disk I/O error", isolation_level=None
         )
-        with caplog.at_level("ERROR", logger="hermes_state"):
+        with caplog.at_level("ERROR", logger="devbuddy_state"):
             mode = apply_wal_with_fallback(conn, db_label="zfs.db")
         assert mode == "delete"
         assert attempts[0] >= 3, "must retry before concluding EIO is persistent"
@@ -328,12 +328,12 @@ class TestApplyWalWithFallback:
         """Repeated calls with the same db_label log exactly ONE error.
 
         Prevents log spam when NFS users run kanban (which opens a fresh
-        connection on every operation — see hermes_cli/kanban_db.py).
+        connection on every operation — see devbuddy_cli/kanban_db.py).
         Regression guard: the fix for #22032 ran apply_wal_with_fallback()
         on every kb.connect() call; without dedup, errors.log fills with
         hundreds of identical errors per hour.
         """
-        with caplog.at_level("ERROR", logger="hermes_state"):
+        with caplog.at_level("ERROR", logger="devbuddy_state"):
             # Three separate connections to "the same DB" via the same label
             for i in range(3):
                 conn, _ = _open_blocking(tmp_path / f"dup-{i}.db", isolation_level=None)
@@ -383,7 +383,7 @@ class TestApplyWalWithFallback:
             factory=_DeletePragmaFailsConnection,
             isolation_level=None,
         )
-        with caplog.at_level("WARNING", logger="hermes_state"):
+        with caplog.at_level("WARNING", logger="devbuddy_state"):
             mode = apply_wal_with_fallback(conn, db_label="apfs-test.db")
 
         assert mode == "delete"
@@ -427,7 +427,7 @@ class TestApplyWalWithFallback:
             isolation_level=None,
         )
         conn.execute("PRAGMA journal_mode=MEMORY")
-        with caplog.at_level("WARNING", logger="hermes_state"):
+        with caplog.at_level("WARNING", logger="devbuddy_state"):
             mode = apply_wal_with_fallback(conn, db_label="readback.db")
 
         assert mode == "memory"
@@ -454,7 +454,7 @@ class TestApplyWalWithFallback:
                     raise sqlite3.OperationalError("disk I/O error")
                 return super().execute(sql, *args, **kwargs)
 
-        with caplog.at_level("WARNING", logger="hermes_state"):
+        with caplog.at_level("WARNING", logger="devbuddy_state"):
             for i in range(3):
                 conn = sqlite3.connect(
                     str(tmp_path / f"apfs-dup-{i}.db"),
@@ -476,7 +476,7 @@ class TestApplyWalWithFallback:
 
     def test_error_fires_independently_per_db_label(self, tmp_path, caplog):
         """Different db_labels each get their own one error (not globally dedup'd)."""
-        with caplog.at_level("ERROR", logger="hermes_state"):
+        with caplog.at_level("ERROR", logger="devbuddy_state"):
             conn1, _ = _open_blocking(tmp_path / "a.db", isolation_level=None)
             apply_wal_with_fallback(conn1, db_label="state.db")
             conn1.close()
@@ -575,7 +575,7 @@ class TestGetLastInitError:
             kwargs.pop("factory", None)
             return real_connect(str(target), factory=_ForeignKeysFailConnection, **kwargs)
 
-        with patch("hermes_state.sqlite3.connect", side_effect=gated_connect):
+        with patch("devbuddy_state.sqlite3.connect", side_effect=gated_connect):
             with pytest.raises(sqlite3.OperationalError):
                 SessionDB(db_path=target)
 
@@ -603,7 +603,7 @@ class TestSessionDbUsesWalFallback:
             kwargs.pop("factory", None)
             return real_connect(str(target), factory=factory, **kwargs)
 
-        with patch("hermes_state.sqlite3.connect", side_effect=gated_connect):
+        with patch("devbuddy_state.sqlite3.connect", side_effect=gated_connect):
             db = SessionDB(db_path=target)
 
         try:
@@ -635,8 +635,8 @@ class TestSessionDbUsesWalFallback:
             kwargs.pop("factory", None)
             return real_connect(str(target), factory=factory, **kwargs)
 
-        with patch("hermes_state.sqlite3.connect", side_effect=gated_connect):
-            with caplog.at_level("ERROR", logger="hermes_state"):
+        with patch("devbuddy_state.sqlite3.connect", side_effect=gated_connect):
+            with caplog.at_level("ERROR", logger="devbuddy_state"):
                 db = SessionDB(db_path=target)
 
         try:

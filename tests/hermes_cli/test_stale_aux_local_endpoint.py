@@ -3,7 +3,7 @@
 import pytest
 
 from agent.model_metadata import is_local_endpoint
-from hermes_cli.web_server_config import _stale_aux_pins
+from devbuddy_cli.web_server_config import _stale_aux_pins
 
 
 def test_local_endpoint_pins_are_excluded_from_stale_aux_report():

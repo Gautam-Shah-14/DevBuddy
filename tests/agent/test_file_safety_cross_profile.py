@@ -46,8 +46,8 @@ def fake_hermes(tmp_path, monkeypatch):
 
     # Monkeypatch the resolver functions used by file_safety so each test
     # can choose which profile is "active".
-    import hermes_constants
-    monkeypatch.setattr(hermes_constants, "get_default_hermes_root", lambda: root)
+    import devbuddy_constants
+    monkeypatch.setattr(devbuddy_constants, "get_default_hermes_root", lambda: root)
 
     import agent.file_safety as fs
     monkeypatch.setattr(fs, "_hermes_root_path", lambda: root)

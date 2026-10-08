@@ -99,8 +99,8 @@ def test_turn_scoped_dotenv_reload_does_not_pollute_process_env(tmp_path, monkey
 
     from agent.secret_scope import get_secret
     from gateway.run import _profile_runtime_scope
-    from hermes_cli.env_loader import load_hermes_dotenv
-    from hermes_constants import get_hermes_home
+    from devbuddy_cli.env_loader import load_hermes_dotenv
+    from devbuddy_constants import get_hermes_home
 
     profile_a = tmp_path / "profiles" / "a"
     profile_b = tmp_path / "profiles" / "b"
@@ -145,7 +145,7 @@ def test_cold_profile_hydrates_external_source_without_global_env(
     from agent.secret_sources.registry import AppliedVar, ApplyReport, SourceReport
     from agent.secret_sources import registry
     from agent.secret_scope import get_secret
-    from hermes_cli import env_loader
+    from devbuddy_cli import env_loader
     from gateway.run import _profile_runtime_scope
 
     profile = tmp_path / "profiles" / "secondary"

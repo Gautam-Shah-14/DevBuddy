@@ -1,7 +1,7 @@
-"""Tests for hermes_cli/fallback_config.py — fallback entry API-key resolution."""
+"""Tests for devbuddy_cli/fallback_config.py — fallback entry API-key resolution."""
 
 from agent.secret_scope import reset_secret_scope, set_secret_scope
-from hermes_cli.fallback_config import effective_runtime_provider, resolve_entry_api_key
+from devbuddy_cli.fallback_config import effective_runtime_provider, resolve_entry_api_key
 
 
 class TestResolveEntryApiKey:

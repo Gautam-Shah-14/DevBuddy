@@ -22,12 +22,12 @@ from typing import Any, Callable, NamedTuple, Optional  # noqa: F401  (Callable:
 # Several of these look unused here but are resolved BARE by split-module bodies rebound onto this
 # namespace (method_ctx.bind_module) — deleting one breaks a handler at call time, not import time.
 from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope  # noqa: F401
-from hermes_constants import (
+from devbuddy_constants import (
     get_hermes_home, get_hermes_home_override, get_process_hermes_home, profile_name_for_home,
     reset_hermes_home_override, set_hermes_home_override)
-from hermes_cli.env_loader import load_hermes_dotenv
+from devbuddy_cli.env_loader import load_hermes_dotenv
 from utils import file_signature, is_truthy_value
-from hermes_state_ids import new_session_id
+from devbuddy_state_ids import new_session_id
 from tools.environments.local import hermes_subprocess_env
 from agent.replay_cleanup import canonicalize_replay_history
 from agent.reasoning_effort import clamp_effort, route_supported_efforts
@@ -81,7 +81,7 @@ threading.excepthook = lambda args: _record_crash(
     "thread exception", args.exc_type, args.exc_value, args.exc_traceback, thread_name=args.thread.name)
 
 with contextlib.suppress(Exception):
-    from hermes_cli.banner import prefetch_update_check
+    from devbuddy_cli.banner import prefetch_update_check
 
     prefetch_update_check()
 
@@ -109,7 +109,7 @@ def _ws_orphan_setting(env_var: str, cfg_key: str, default: float) -> float:
     if raw is None or not str(raw).strip():
         raw = None
         with contextlib.suppress(Exception):
-            from hermes_cli.config import load_config
+            from devbuddy_cli.config import load_config
             raw = (load_config().get("dashboard") or {}).get(cfg_key)
     with contextlib.suppress(ValueError, TypeError):
         return max(0.0, float(raw) if raw is not None else default)
@@ -234,7 +234,7 @@ class _SlashWorker:
         self.stdout_queue: queue.Queue[dict | None] = queue.Queue()
         argv = [sys.executable, "-m", "tui_gateway.slash_worker", "--session-key", session_key] + (["--model", model] if model else [])
         self._closed = False
-        from hermes_cli._subprocess_compat import windows_hide_flags
+        from devbuddy_cli._subprocess_compat import windows_hide_flags
         # slash_worker runs the Hermes agent → needs provider credentials. Tier-1 secrets
         # (gateway/GitHub/infra) are still stripped (#29157). Global-remote / multi-profile sessions: the
         # worker must resolve config/skills/state against the session's profile home, not the gateway's
@@ -402,7 +402,7 @@ def _launch_state_db_path() -> Path:
 def _get_db():
     global _db, _db_error
     if _db is None:
-        from hermes_state_registry import acquire
+        from devbuddy_state_registry import acquire
         try:
             # Launch home, never the context-local override (#102526); resolved at first
             # use, not import time (#112692). See _launch_state_db_path.
@@ -439,7 +439,7 @@ def _open_profile_session_db(profile_home):
     """Open a DEDICATED handle on ``profile_home``'s ``state.db`` — FAIL CLOSED: a silent fallback to the
     launch ``state.db`` would bleed rows into the wrong profile's store exactly when the profile store is
     briefly unopenable (locked, mid-restore); callers let the error abort the build (→ ``agent_error``)."""
-    from hermes_state_registry import acquire
+    from devbuddy_state_registry import acquire
     db_path = Path(profile_home) / "state.db"
     try:
         return acquire(db_path)
@@ -454,7 +454,7 @@ def _profile_db(params: dict | None = None, *, writer: bool = False):
 
     Foreign-profile handles are read-only unless ``writer=True``: that store belongs to ITS
     gateway/dashboard, and a writer here would take its write lock per RPC. Mirrors
-    hermes_cli.web_routers.profiles._read_profile_db."""
+    devbuddy_cli.web_routers.profiles._read_profile_db."""
     profile = (params.get("profile") or "").strip() or None if isinstance(params, dict) else None
     # Launch/own profile → the shared _get_db() handle (left open); another profile → a dedicated
     # handle closed below (app-global remote mode). db is None when unavailable.
@@ -463,10 +463,10 @@ def _profile_db(params: dict | None = None, *, writer: bool = False):
     else:
         try:
             if writer:
-                from hermes_state_registry import acquire
+                from devbuddy_state_registry import acquire
                 db = acquire(Path(profile_home) / "state.db")
             else:
-                from hermes_cli.web_server_sessions import _open_session_db_at_path
+                from devbuddy_cli.web_server_sessions import _open_session_db_at_path
                 db = _open_session_db_at_path(Path(profile_home) / "state.db", read_only=True)
             owns = True
         except Exception as exc:
@@ -488,7 +488,7 @@ def _canonical_profile_request(name: str) -> str:
     id), in which case it wins; other unknown names keep failing closed in ``_profile_home``.
     """
     if name.casefold() in {".devbuddy", "devbuddy"}:
-        from hermes_cli import profiles as profiles_mod
+        from devbuddy_cli import profiles as profiles_mod
         # Check the profiles root directly: get_profile_dir rejects "devbuddy" as a
         # reserved name, but a pre-reserved-list install may still carry that dir.
         if not (profiles_mod._get_profiles_root() / profiles_mod.normalize_profile_name(name)).is_dir():
@@ -508,7 +508,7 @@ def _response_profile_name(profile: str | None = None) -> str:
 
 
 def _db_unavailable_error(rid, *, code: int):
-    from hermes_state_user_copy import describe_storage_failure, storage_failure_details
+    from devbuddy_state_user_copy import describe_storage_failure, storage_failure_details
     failure = describe_storage_failure(_db_error)
     return _err(
         rid, code,
@@ -529,7 +529,7 @@ def _profile_home(profile: str | None) -> Path | None:
     """Resolve a named profile's home on THIS host, or None for the launch profile."""
     if not (name := _canonical_profile_request((profile or "").strip())):
         return None
-    from hermes_cli import profiles as profiles_mod
+    from devbuddy_cli import profiles as profiles_mod
     try:
         home = Path(profiles_mod.get_profile_dir(name))
     except ValueError:
@@ -611,7 +611,7 @@ def _profile_configured_cwd(profile_home: Path | None) -> str | None:
     if profile_home is None:
         return None
     with contextlib.suppress(Exception):
-        from hermes_cli.config_effective import load_user_config_effective
+        from devbuddy_cli.config_effective import load_user_config_effective
         p = Path(profile_home) / "config.yaml"
         return _configured_cwd_from_cfg(load_user_config_effective(p)) if p.exists() else None
     return None
@@ -1230,8 +1230,8 @@ def _load_cfg_raw() -> dict:
     expansion applied here would be persisted on the next save). Behavioral reads use :func:`_load_cfg`.
     Cache keyed on the resolved path so profiles don't clobber."""
     global _cfg_cache, _cfg_sig, _cfg_path
-    from hermes_cli.config import read_user_config_raw
-    from hermes_cli.config_read_errors import FailedConfigRead
+    from devbuddy_cli.config import read_user_config_raw
+    from devbuddy_cli.config_read_errors import FailedConfigRead
     try:
         p = _active_config_path()
         sig = file_signature(p.stat()) if p.exists() else None
@@ -1252,14 +1252,14 @@ def _load_cfg() -> dict:
     ``_load_cfg() == {}`` sentinels. Fail-open to ``{}``. Never pass the result to ``_save_cfg`` (use
     ``_load_cfg_raw()``)."""
     with contextlib.suppress(Exception):
-        from hermes_cli.config_effective import load_user_config_effective
+        from devbuddy_cli.config_effective import load_user_config_effective
         return load_user_config_effective(_active_config_path())
     return {}
 
 
 def _save_cfg(cfg: dict):
     global _cfg_cache, _cfg_sig, _cfg_path
-    from hermes_cli.config import atomic_config_write
+    from devbuddy_cli.config import atomic_config_write
     path = _active_config_path()
     atomic_config_write(path, cfg)
     with _cfg_lock:
@@ -1427,7 +1427,7 @@ def _resolve_model() -> str:
         return m.strip()
     # No env seed / config preference: the cost-safe silent default (cache-only read), never an unpicked flagship.
     with contextlib.suppress(Exception):
-        from hermes_cli.models import get_preferred_silent_default_model
+        from devbuddy_cli.models import get_preferred_silent_default_model
         return get_preferred_silent_default_model()
     return "z-ai/glm-5.2"
 
@@ -1467,8 +1467,8 @@ def _resolve_startup_runtime() -> tuple[str, str | None]:
     if not (explicit_model := _env_model_seed()):
         return model, None
     with contextlib.suppress(Exception):
-        from hermes_cli.model_switch import resolve_startup_model_route
-        from hermes_cli.models import detect_static_provider_for_model
+        from devbuddy_cli.model_switch import resolve_startup_model_route
+        from devbuddy_cli.models import detect_static_provider_for_model
         full_cfg = _load_cfg()
         cfg = full_cfg.get("model") or {}
         current_provider = ((str(cfg.get("provider") or "").strip().lower() if isinstance(cfg, dict) else "")
@@ -1491,12 +1491,12 @@ def _resolve_startup_runtime() -> tuple[str, str | None]:
 # routable provider with its own API key and base_url. Sessions that used OpenRouter store
 # ``billing_provider="openrouter"``; dropping it forces resume to the current global model (e.g. a custom
 # endpoint), which is the wrong provider for the stored model. See #57588.
-from hermes_state import _BARE_BILLING_PROVIDERS
+from devbuddy_state import _BARE_BILLING_PROVIDERS
 
 
 def _is_routable_provider(provider: str) -> bool:
     with contextlib.suppress(Exception):
-        from hermes_cli.runtime_provider import is_routable_provider
+        from devbuddy_cli.runtime_provider import is_routable_provider
         return is_routable_provider(provider)
     return False
 
@@ -1564,7 +1564,7 @@ def _stored_session_runtime_overrides(row: dict | None) -> dict:
         provider = billing_provider
     base_url, api_mode, service_tier = field("base_url"), field("api_mode"), field("service_tier")
     reasoning_config = model_config.get("reasoning_config")
-    from hermes_cli.runtime_provider import is_foreign_provider_endpoint
+    from devbuddy_cli.runtime_provider import is_foreign_provider_endpoint
     if is_foreign_provider_endpoint(provider, base_url):
         # The endpoint and its wire belong to the provider this chat left; resolve the stored one's own.
         base_url = api_mode = ""
@@ -1573,7 +1573,7 @@ def _stored_session_runtime_overrides(row: dict | None) -> dict:
     if provider and not _is_routable_provider(provider):
         healed = None
         try:
-            from hermes_cli.runtime_provider import canonical_custom_identity
+            from devbuddy_cli.runtime_provider import canonical_custom_identity
             healed = canonical_custom_identity(base_url=base_url or None, model=model or None)
         except Exception:
             logger.debug("custom provider identity recovery failed", exc_info=True)
@@ -1608,7 +1608,7 @@ def _runtime_model_config(agent, existing: dict | None = None) -> dict:
         # ``agent.provider`` resolves every named custom entry to the literal "custom", losing the entry
         # identity (api_key is never persisted): recover ``custom:<name>`` from the endpoint URL.
         try:
-            from hermes_cli.runtime_provider import canonical_custom_identity
+            from devbuddy_cli.runtime_provider import canonical_custom_identity
             provider = canonical_custom_identity(base_url=base_url, model=model or None) or provider
         except Exception:
             logger.debug("custom provider identity lookup failed", exc_info=True)
@@ -1796,12 +1796,12 @@ def _display_mouse_tracking(display: dict) -> str:
 
 
 def _load_reasoning_config(model: str = "") -> dict | None:
-    """Via the shared chokepoint :func:`hermes_constants.resolve_reasoning_config` (per-model override >
+    """Via the shared chokepoint :func:`devbuddy_constants.resolve_reasoning_config` (per-model override >
     global ``agent.reasoning_effort``; YAML False = disabled).
 
     Closes #21256.
     """
-    from hermes_constants import resolve_reasoning_config
+    from devbuddy_constants import resolve_reasoning_config
     return resolve_reasoning_config(_load_cfg(), model)
 
 
@@ -1877,7 +1877,7 @@ def _resolve_explicit_toolsets(explicit: list[str], validate_toolset) -> list[st
     unresolved = [name for name in explicit if name not in built_in]
     if unresolved:
         try:
-            from hermes_cli.plugins import discover_plugins
+            from devbuddy_cli.plugins import discover_plugins
             discover_plugins()
             plugin_valid = [name for name in unresolved if validate_toolset(name)]
         except Exception:
@@ -1891,7 +1891,7 @@ def _resolve_explicit_toolsets(explicit: list[str], validate_toolset) -> list[st
     if not unresolved:
         return built_in
     try:  # (enabled, disabled) MCP server names from raw config; both empty on any failure
-        from hermes_cli.config import read_raw_config
+        from devbuddy_cli.config import read_raw_config
         from tools.mcp_tool_common import mcp_server_enabled
         raw_cfg = read_raw_config()
         mcp_servers = raw_cfg.get("mcp_servers") if isinstance(raw_cfg.get("mcp_servers"), dict) else {}
@@ -1937,8 +1937,8 @@ def _load_enabled_toolsets(platform: str | None = None) -> list[str] | None:
             return resolved if resolved is None else _with_session_toolsets(resolved, None)
         fallback_notice = "[tui] no valid HERMES_TUI_TOOLSETS entries; using configured CLI toolsets"
     try:
-        from hermes_cli.config import load_config
-        from hermes_cli.tools_config import _get_platform_tools
+        from devbuddy_cli.config import load_config
+        from devbuddy_cli.tools_config import _get_platform_tools
         cfg = load_config()
         # include_default_mcp_servers=True is the runtime variant (the agent must be able to call
         # default MCP servers); the config-editing variant would silently drop MCP tools from the TUI.
@@ -2065,7 +2065,7 @@ def _probe_config_health(cfg: dict) -> str:
         personality = str(display_cfg.get("personality", "") or "").strip().lower()
         if personality and personality not in {"default", "none", "neutral"}:
             with contextlib.suppress(Exception):
-                from hermes_cli.personality import available_personalities
+                from devbuddy_cli.personality import available_personalities
                 if personality not in available_personalities(cfg):
                     warnings.append(f"`display.personality: {personality}` does not match any built-in or "
                                     "`agent.personalities` entry; personality overlay will be skipped.")
@@ -2074,7 +2074,7 @@ def _probe_config_health(cfg: dict) -> str:
 
 def _current_profile_name() -> str:
     with contextlib.suppress(Exception):
-        from hermes_cli.profiles import get_active_profile_name
+        from devbuddy_cli.profiles import get_active_profile_name
         return get_active_profile_name() or "default"
     return "default"
 
@@ -2102,7 +2102,7 @@ def _project_info_for_cwd(cwd: str) -> dict | None:
     if not str(cwd or "").strip():
         return None
     try:
-        from hermes_cli import projects_db as pdb
+        from devbuddy_cli import projects_db as pdb
         with pdb.connect_closing() as conn:
             project = pdb.project_for_path(conn, cwd)
         return None if project is None else {
@@ -2192,8 +2192,8 @@ def _session_info(agent, session: dict | None = None) -> dict:
         "profile_name": profile_name_for_home(sess.get("profile_home")) or _current_profile_name(),
     }
     with contextlib.suppress(Exception):
-        from hermes_cli import __release_date__
-        from hermes_cli.version_info import get_version_info
+        from devbuddy_cli import __release_date__
+        from devbuddy_cli.version_info import get_version_info
 
         info.update(version=get_version_info().base_version, release_date=__release_date__)
     live_agent = agent is not None and not sess.get("_compute_host_active")
@@ -2205,7 +2205,7 @@ def _session_info(agent, session: dict | None = None) -> dict:
                 name = t["function"]["name"]
                 info["tools"].setdefault(get_toolset_for_tool(name) or "other", []).append(name)
         with contextlib.suppress(Exception):
-            from hermes_cli.banner import get_available_skills
+            from devbuddy_cli.banner import get_available_skills
             info["skills"] = get_available_skills()
     info["mcp_servers"] = []
     with contextlib.suppress(Exception):
@@ -2215,8 +2215,8 @@ def _session_info(agent, session: dict | None = None) -> dict:
         info["system_prompt"] = (
             mirror.get("system_prompt") if "system_prompt" in mirror else getattr(agent, "_cached_system_prompt", "") or "")
     with contextlib.suppress(Exception):
-        from hermes_cli.banner import get_update_result
-        from hermes_cli.config import recommended_update_command
+        from devbuddy_cli.banner import get_update_result
+        from devbuddy_cli.config import recommended_update_command
         # Two assignments (not one info.update): if recommended_update_command() raises,
         # update_behind must still be reported, as on main.
         info["update_behind"] = get_update_result(timeout=0.5)
@@ -2294,8 +2294,8 @@ class _RuntimeFallbackResolution(NamedTuple):
 def _resolve_runtime_with_fallback(resolve_kwargs: dict | None = None) -> _RuntimeFallbackResolution:
     """Resolve the primary runtime or one complete provider/model fallback. Provider-only fallback entries
     are skipped so the unavailable primary model can never leak into a different runtime."""
-    from hermes_cli.auth import AuthError
-    from hermes_cli.runtime_provider import resolve_runtime_provider
+    from devbuddy_cli.auth import AuthError
+    from devbuddy_cli.runtime_provider import resolve_runtime_provider
     try:
         return _RuntimeFallbackResolution(resolve_runtime_provider(**(resolve_kwargs or {})), None, False)
     except AuthError as primary_exc:
@@ -2305,7 +2305,7 @@ def _resolve_runtime_with_fallback(resolve_kwargs: dict | None = None) -> _Runti
             if not fb_provider or not fb_model:
                 continue
             try:
-                from hermes_cli.fallback_config import effective_runtime_provider, resolve_entry_api_key
+                from devbuddy_cli.fallback_config import effective_runtime_provider, resolve_entry_api_key
                 fb_kwargs: dict = {"requested": fb_provider, "target_model": fb_model,
                                    **({"explicit_base_url": entry["base_url"]} if entry.get("base_url") else {})}
                 if fb_api_key := resolve_entry_api_key(entry):
@@ -2314,7 +2314,7 @@ def _resolve_runtime_with_fallback(resolve_kwargs: dict | None = None) -> _Runti
                 # Named custom entries resolve to the bare "custom" billing class; keep the configured
                 # identity so the session/UI shows the provider name, matching the manual-switch path (#98739).
                 runtime["provider"] = effective_runtime_provider(entry, runtime)
-                from hermes_cli.auth import primary_failure_wording
+                from devbuddy_cli.auth import primary_failure_wording
                 logging.getLogger(__name__).warning(
                     "Primary %s (%s), falling back to %s model %s",
                     primary_failure_wording(primary_exc)[0], primary_exc, fb_provider, fb_model)
@@ -2335,7 +2335,7 @@ def _resolve_agent_model_runtime(model_override, provider_override) -> tuple[str
         override_base_url = model_override.get("base_url")
         resolve_kwargs = {}
         if str(requested_provider or "").strip().lower() == "custom":
-            from hermes_cli.runtime_provider import canonical_custom_identity
+            from devbuddy_cli.runtime_provider import canonical_custom_identity
             if recovered := canonical_custom_identity(base_url=override_base_url or None, model=model or None):
                 requested_provider = recovered
             if override_base_url:
@@ -2357,7 +2357,7 @@ def _resolve_agent_model_runtime(model_override, provider_override) -> tuple[str
             raise RuntimeError("Auth fallback resolved without a model")
         # Same pre-agent switch the messaging gateway surfaces (#74349); _make_agent pops it onto the
         # agent's one-shot notice so the TUI/Desktop user sees which provider actually answered.
-        from hermes_cli.fallback_config import pre_agent_fallback_notice
+        from devbuddy_cli.fallback_config import pre_agent_fallback_notice
         # requested_provider=None means resolve_runtime_provider read the persisted config provider;
         # ``model: <id>`` (string shorthand) names no provider.
         cfg_model = _load_cfg().get("model")
@@ -2379,8 +2379,8 @@ def _rederive_per_model_route(model: str, runtime: dict) -> None:
     that pick the wire per model (OpenCode Zen/Go, Copilot, Nous) must re-derive both from the target model,
     or a resumed opencode-go session keeps a MiniMax-era anthropic_messages route (and its /v1-stripped or
     other-family relay URL) for a chat_completions model like deepseek-v4-flash-vision-exp (#96066)."""
-    from hermes_cli.model_switch import model_derived_api_mode
-    from hermes_cli.models import normalize_opencode_base_url
+    from devbuddy_cli.model_switch import model_derived_api_mode
+    from devbuddy_cli.models import normalize_opencode_base_url
     provider = str(runtime.get("requested_provider") or runtime.get("provider") or "")
     api_mode = model_derived_api_mode(provider, model)
     if api_mode is None:
@@ -2392,7 +2392,7 @@ def _rederive_per_model_route(model: str, runtime: dict) -> None:
 def _startup_system_prompt(cfg: dict, task_id: str) -> str:
     """Config ephemeral system prompt + HERMES_TUI_SKILLS preload block. Hard-fails only when EVERY requested
     skill is missing (cli.py parity): a typo'd name must not auto-block the Kanban task."""
-    from hermes_cli.config import resolve_ephemeral_system_prompt_from_config
+    from devbuddy_cli.config import resolve_ephemeral_system_prompt_from_config
     system_prompt = resolve_ephemeral_system_prompt_from_config(cfg)
     startup_skills = _parse_tui_skills_env()
     if not startup_skills:
@@ -2444,7 +2444,7 @@ def _make_agent(
     from run_agent import AIAgent
     # MCP discovery runs in a daemon thread (a dead server can't freeze the shell); the agent snapshots its tool
     # list once, so briefly wait for in-flight discovery. Dashboard /api/ws uses mcp_startup; TUI stdio uses entry.
-    for _mod in ("hermes_cli.mcp_startup", "tui_gateway.entry"):
+    for _mod in ("devbuddy_cli.mcp_startup", "tui_gateway.entry"):
         with contextlib.suppress(Exception):
             importlib.import_module(_mod).wait_for_mcp_discovery()
     cfg = _load_cfg()
@@ -2690,7 +2690,7 @@ def _schedule_agent_build(sid: str, delay: float = 0.05) -> None:
 def _load_resume_transcript(db, stored_id: str, *, model_history_only: bool = False) -> tuple[list, list, list]:
     """(raw_history, display_history, ancestor_prefix) for a cold resume. The full lineage is materialized
     only while it fits sessions.max_resume_messages (the transcript is REST-paginated), else the tip alone."""
-    from hermes_state import SessionResumeTooLargeError
+    from devbuddy_state import SessionResumeTooLargeError
     if model_history_only:
         raw_history = db.get_messages_as_conversation(
             stored_id, repair_alternation=True, include_row_ids=True)
@@ -2988,7 +2988,7 @@ def _pet_row_frame_counts(spritesheet) -> dict:
 def _pet_cfg() -> dict:
     """``display.pet`` from the canonical config ({} on any failure)."""
     with contextlib.suppress(Exception):
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
         display = load_config().get("display")
         pet = display.get("pet") if isinstance(display, dict) else None
         return pet if isinstance(pet, dict) else {}
@@ -3355,7 +3355,7 @@ def _cli_exec_blocked(argv: list[str]) -> str | None:
 
 def _resolve_name(name: str) -> str:
     with contextlib.suppress(Exception):
-        from hermes_cli.commands import resolve_command
+        from devbuddy_cli.commands import resolve_command
         return r.name if (r := resolve_command(name)) else name
     return name
 

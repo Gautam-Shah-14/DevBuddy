@@ -33,7 +33,7 @@ def hermes_root(tmp_path, monkeypatch):
     (root / "profiles" / "other").mkdir(parents=True)
     monkeypatch.setenv("HERMES_HOME", str(root))
     # Make sure no stale process-wide home override leaks in from another test.
-    from hermes_constants import get_hermes_home_override
+    from devbuddy_constants import get_hermes_home_override
 
     assert get_hermes_home_override() is None
     return root
@@ -51,7 +51,7 @@ def _result(resp):
 
 def _read_yaml(path: Path) -> dict:
     """Read a config.yaml directly for assertions (test-side, not the guarded loader)."""
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
 
     if not path.is_file():
         return {}
@@ -179,7 +179,7 @@ def test_status_does_not_mix_launch_runtime_into_another_profile(hermes_root):
 
 def test_status_includes_named_profile_runtime_in_multiplex(hermes_root):
     from agent.secret_scope import is_multiplex_active, set_multiplex_active
-    from hermes_constants import (
+    from devbuddy_constants import (
         hermes_home_key,
         reset_hermes_home_override,
         set_hermes_home_override,
@@ -349,7 +349,7 @@ def test_add_requires_transport(hermes_root):
 
 def _catalog_http_entry(*, auth: str | None = None):
     """A real HTTP catalog entry. Assertions compare the saved block to this manifest."""
-    from hermes_cli.mcp_catalog import list_catalog
+    from devbuddy_cli.mcp_catalog import list_catalog
 
     for entry in list_catalog():
         if entry.transport.type != "http" or not entry.transport.url:
@@ -388,7 +388,7 @@ def test_oauth_catalog_add_follows_routed_profile_not_payload(hermes_root):
     """OAuth add sends {name, preset} only. requestGatewayForAgent carries the
     profile as routing metadata, so the write follows the bound scope."""
     from agent.secret_scope import is_multiplex_active, set_multiplex_active
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 
     entry = _catalog_http_entry(auth="oauth")
     routed = hermes_root / "profiles" / "work"
@@ -459,8 +459,8 @@ def test_unknown_preset_returns_4063_and_writes_nothing(hermes_root):
 
 
 def test_cli_preset_still_fills_transport_when_not_in_catalog(hermes_root):
-    import hermes_cli.mcp_config as mcp_config
-    from hermes_cli.mcp_catalog import get_entry
+    import devbuddy_cli.mcp_config as mcp_config
+    from devbuddy_cli.mcp_catalog import get_entry
 
     preset_name = next(
         name for name in mcp_config._MCP_PRESETS if get_entry(name) is None
@@ -501,7 +501,7 @@ def test_test_resolves_env_refs_from_requested_profile_secret_scope(hermes_root,
     secret scope, not the launch process's ``os.environ`` (the default profile's value) — the
     Desktop MCP setup "Test connection" otherwise reports green against the wrong credential.
     ``os.environ`` is never mutated by the scope."""
-    import hermes_cli.mcp_config as mcp_config
+    import devbuddy_cli.mcp_config as mcp_config
 
     work = hermes_root / "profiles" / "work"
     (work / ".env").write_text("ALPHA_ONLY_TOKEN=work-token\n", encoding="utf-8")

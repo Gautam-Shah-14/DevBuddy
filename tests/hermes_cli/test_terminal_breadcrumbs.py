@@ -1,4 +1,4 @@
-"""Tests for hermes_cli/terminal_breadcrumbs.py — per-terminal ``hermes -c``.
+"""Tests for devbuddy_cli/terminal_breadcrumbs.py — per-terminal ``hermes -c``.
 
 Covers terminal id derivation (tty vs env vars vs none), breadcrumb
 write/read roundtrip under a temp HERMES_HOME, stale-session fallback
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import terminal_breadcrumbs as tb
+from devbuddy_cli import terminal_breadcrumbs as tb
 
 pytestmark = pytest.mark.platforms("linux")  # os.ttyname is POSIX-only
 
@@ -125,7 +125,7 @@ def test_corrupt_breadcrumb_returns_none(hermes_home, monkeypatch, no_terminal_e
 # ------------------------------------------------------------- resolution
 
 def _make_session(home: Path, session_id: str):
-    from hermes_state import SessionDB
+    from devbuddy_state import SessionDB
 
     db = SessionDB()
     db.create_session(session_id, "cli")
@@ -149,7 +149,7 @@ def test_resolve_projects_through_compression_chain(hermes_home, monkeypatch, no
     _make_session(hermes_home, "20260815_100000_parent")
     tb.write_breadcrumb("20260815_100000_parent")
 
-    from hermes_state import SessionDB
+    from devbuddy_state import SessionDB
 
     monkeypatch.setattr(
         SessionDB,
@@ -164,7 +164,7 @@ def test_config_gate_off_disables_writes_and_resolution(
     hermes_home, monkeypatch, no_terminal_env
 ):
     _fake_tty(monkeypatch, "/dev/pts/9")
-    import hermes_cli.config as config_mod
+    import devbuddy_cli.config as config_mod
 
     monkeypatch.setattr(
         config_mod, "load_config", lambda: {"session": {"terminal_continue": False}}

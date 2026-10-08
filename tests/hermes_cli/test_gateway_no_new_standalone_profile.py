@@ -22,8 +22,8 @@ import pytest
 @pytest.fixture
 def quiet_host(tmp_path, monkeypatch):
     """Two named profiles under one root, no gateway running anywhere, systemd units under tmp."""
-    import hermes_cli.gateway as gw
-    import hermes_constants
+    import devbuddy_cli.gateway as gw
+    import devbuddy_constants
 
     root = tmp_path / "hermes"
     (root / "config.yaml").parent.mkdir(parents=True)
@@ -32,7 +32,7 @@ def quiet_host(tmp_path, monkeypatch):
         (root / "profiles" / name).mkdir(parents=True)
         (root / "profiles" / name / "config.yaml").write_text("{}\n")
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(devbuddy_constants, "_default_hermes_root_memo", None)
     monkeypatch.setattr(gw, "supports_systemd_services", lambda: True)
     monkeypatch.setattr(gw, "_service_backend", lambda: "systemd")
     monkeypatch.setattr(gw, "refuses_container_user_scope_install", lambda system: False)
@@ -46,7 +46,7 @@ def quiet_host(tmp_path, monkeypatch):
     def use(profile: str | None) -> None:
         home = root if profile is None else root / "profiles" / profile
         monkeypatch.setenv("HERMES_HOME", str(home))
-        hermes_constants._default_hermes_root_memo = None
+        devbuddy_constants._default_hermes_root_memo = None
 
     return root, calls, use
 
@@ -59,8 +59,8 @@ def _run(fn, **ns):
 
 
 def test_named_profile_install_and_start_refuse_without_force_when_no_multiplexer_runs(quiet_host):
-    import hermes_cli.gateway as gw
-    from hermes_cli.web_server_gateway import multiplexed_profile_refusal
+    import devbuddy_cli.gateway as gw
+    from devbuddy_cli.web_server_gateway import multiplexed_profile_refusal
     root, calls, use = quiet_host
 
     # A -> B -> A: the refusal names the right profile from each home and installs nothing.
@@ -95,7 +95,7 @@ def test_named_profile_install_and_start_refuse_without_force_when_no_multiplexe
     import gateway.status as status
     real_cmdline = status._read_process_cmdline
     status._read_process_cmdline = lambda pid: (
-        "python -m hermes_cli.main gateway run" if pid == os.getpid() else real_cmdline(pid))
+        "python -m devbuddy_cli.main gateway run" if pid == os.getpid() else real_cmdline(pid))
     try:
         code, out = _run(gw._cmd_install, force=False)
     finally:
@@ -105,8 +105,8 @@ def test_named_profile_install_and_start_refuse_without_force_when_no_multiplexe
 
 
 def test_force_installs_a_separate_profile_gateway_and_its_service_stays_startable(quiet_host):
-    import hermes_cli.gateway as gw
-    from hermes_cli.web_server_gateway import multiplexed_profile_refusal
+    import devbuddy_cli.gateway as gw
+    from devbuddy_cli.web_server_gateway import multiplexed_profile_refusal
     root, calls, use = quiet_host
     use("coder")
 

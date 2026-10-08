@@ -1,6 +1,6 @@
 """The launch home is pinned once the process serves several profiles (#119242).
 
-``hermes_constants.pin_process_hermes_home`` (salvaged from #119129) gives the four routed-profile
+``devbuddy_constants.pin_process_hermes_home`` (salvaged from #119129) gives the four routed-profile
 decisions one stable launch-home identity; ``set_multiplex_active(True)`` pins it automatically for
 a multiplexing gateway/dashboard, since neither calls the pin itself. Two contracts around that:
 
@@ -14,9 +14,9 @@ from __future__ import annotations
 
 import pytest
 
-import hermes_constants
+import devbuddy_constants
 from agent.secret_scope import serves_routed_profile, set_multiplex_active
-from hermes_constants import (
+from devbuddy_constants import (
     get_hermes_home,
     get_process_hermes_home,
     get_routing_process_hermes_home,
@@ -32,7 +32,7 @@ def homes(tmp_path, monkeypatch):
     launch.mkdir()
     served.mkdir(parents=True)
     monkeypatch.setenv("HERMES_HOME", str(launch))
-    monkeypatch.setattr(hermes_constants, "_PINNED_PROCESS_HERMES_HOME", None, raising=False)
+    monkeypatch.setattr(devbuddy_constants, "_PINNED_PROCESS_HERMES_HOME", None, raising=False)
     return launch, served
 
 
@@ -58,7 +58,7 @@ def test_an_explicit_host_pin_survives_a_transient_multiplex_toggle(homes, monke
     """#119242 contract: the embedding host pins once; ``_multiplex_read_mode`` / a cron worker
     flipping the mode True→False in the same process must not drop it."""
     launch, served = homes
-    hermes_constants.pin_process_hermes_home(launch)
+    devbuddy_constants.pin_process_hermes_home(launch)
     monkeypatch.setenv("HERMES_HOME", str(served))
     token = set_hermes_home_override(served)
     try:

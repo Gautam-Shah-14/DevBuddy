@@ -69,7 +69,7 @@ from gateway.session_transcript import TranscriptReadError
 logger = logging.getLogger(__name__)
 
 # AUTH_BIND / sign-token header values
-from hermes_cli.version_info import get_version_info
+from devbuddy_cli.version_info import get_version_info
 
 _APP_VERSION = _BOT_VERSION = get_version_info().base_version
 _YUANBAO_INSTANCE_ID = str(HERMES_INSTANCE_ID)
@@ -2595,7 +2595,7 @@ class YuanbaoAdapter(BasePlatformAdapter):
 
     @classmethod
     def get_active(cls) -> Optional["YuanbaoAdapter"]:
-        from hermes_constants import get_hermes_home_override, hermes_home_key
+        from devbuddy_constants import get_hermes_home_override, hermes_home_key
 
         if get_hermes_home_override() is None:
             return cls._active_instance
@@ -2603,7 +2603,7 @@ class YuanbaoAdapter(BasePlatformAdapter):
 
     @classmethod
     def set_active(cls, adapter: Optional["YuanbaoAdapter"]) -> None:
-        from hermes_constants import get_hermes_home_override, hermes_home_key
+        from devbuddy_constants import get_hermes_home_override, hermes_home_key
 
         if get_hermes_home_override() is None:
             cls._active_instance = adapter

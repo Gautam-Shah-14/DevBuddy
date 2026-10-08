@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 
 _PLUGIN = textwrap.dedent(
     """
@@ -61,7 +61,7 @@ def _bound(home: Path, fn):
 
 def test_secondary_profile_plugin_resolves_for_its_home_only(homes):
     import providers
-    from hermes_cli.auth import resolve_provider
+    from devbuddy_cli.auth import resolve_provider
 
     launch, secondary = homes
     _install(secondary, "scaleup-only")

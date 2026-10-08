@@ -15,13 +15,13 @@ The wrapper replaces everything the old rust shim + its sidecar did
     placeholder resolves the interpreter the same way),
   * put the payload repo snapshot FIRST and the venv site-packages second
     on sys.path (same order, same reason as the old shim: the repo's
-    hermes_cli wins over anything stale in site-packages — the sealed
+    devbuddy_cli wins over anything stale in site-packages — the sealed
     payload's venv has no working editable install, its pointer names the
     BUILD machine). The site entry goes through ``site.addsitedir()`` —
     the only mechanism that runs ``.pth`` files — because pywin32.pth is
     what puts win32\\lib on sys.path and therefore what makes
     ``import pywintypes`` resolve on Windows bundles (portalocker's
-    Win32Locker → concurrent-log-handler → hermes_logging.py's files),
+    Win32Locker → concurrent-log-handler → devbuddy_logging.py's files),
   * drop inherited PYTHONPATH / PYTHONHOME so foreign installs can never
     shadow the bundle,
   * default sys.pycache_prefix to the user-level cache (%LOCALAPPDATA%
@@ -84,7 +84,7 @@ def configure(here, environ=None):
     environ.pop("PYTHONPATH", None)
     environ.pop("PYTHONHOME", None)
     repo_entry, site_entry = payload_sys_paths(here)
-    # Repo snapshot first — its hermes_cli wins over anything stale in
+    # Repo snapshot first — its devbuddy_cli wins over anything stale in
     # site-packages (the sealed payload has no working editable install).
     sys.path.insert(0, repo_entry)
     # addsitedir(), not a raw append: only it processes the venv's .pth
@@ -120,7 +120,7 @@ def main(argv=None):
     argv = list(sys.argv if argv is None else argv)
     here = launcher_dir(argv[0] if argv else sys.argv[0])
     configure(here)
-    importlib.import_module("hermes_bootstrap")
+    importlib.import_module("devbuddy_bootstrap")
     module = importlib.import_module(HERMES_ENTRY_MODULE)
     target = getattr(module, HERMES_ENTRY_FUNC)
     # main() reads sys.argv; hand it the real argv (argv[0] stays the

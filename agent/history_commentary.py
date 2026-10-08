@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from typing import Any
 
 from agent.redact import redact_sensitive_text
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 from utils import is_truthy_value
 
 
@@ -157,7 +157,7 @@ def project_history_commentary(messages: list[dict], *, home: Any = None) -> lis
     ):
         return messages
     with _owning_home(home):
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
 
         try:
             display = load_config().get("display") or {}

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 import pytest
 
 import pm.plugins_state as pstate
@@ -34,7 +34,7 @@ def _make_dep_plugin(plugins_dir: Path, name: str) -> Path:
 
 @pytest.mark.parametrize("layout", ["default", "custom", "profile"])
 def test_home_layout_joins_sibling_union(tmp_path, monkeypatch, layout):
-    import hermes_constants
+    import devbuddy_constants
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     root = tmp_path / (".hermes" if layout == "default" else "data-root")
@@ -48,6 +48,6 @@ def test_home_layout_joins_sibling_union(tmp_path, monkeypatch, layout):
     _write_enabled(sibling, ["dep-plug"])
     member = _make_dep_plugin(sibling / "plugins", "dep-plug")
     (root / "profiles/README.txt").write_text("not a profile")
-    assert hermes_constants.get_default_hermes_root() == root
+    assert devbuddy_constants.get_default_hermes_root() == root
     assert ws.enabled_member_dirs() == [member]
     assert pstate.enabled_plugins_ordered() == {sibling / "plugins": ["dep-plug"]}

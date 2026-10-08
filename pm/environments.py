@@ -1,7 +1,7 @@
 """Dependency-environment layout: where a project's venv generations live, which one
 is selected, and the interpreter inside any venv. Shared by PM and pre-import launchers.
 
-Only stdlib and hermes_constants: environment selection must work before
+Only stdlib and devbuddy_constants: environment selection must work before
 any dependency from that environment has been imported.
 """
 from __future__ import annotations
@@ -11,7 +11,7 @@ import json
 import os
 from pathlib import Path
 
-from hermes_constants import get_default_hermes_root, project_venv_dir
+from devbuddy_constants import get_default_hermes_root, project_venv_dir
 
 
 def install_key(project_root: Path) -> str:
@@ -21,7 +21,7 @@ def install_key(project_root: Path) -> str:
 
 def dependency_home_root() -> Path:
     """Scope dependency state like a process launched in the active home."""
-    from hermes_constants import get_default_hermes_root, get_hermes_home_override
+    from devbuddy_constants import get_default_hermes_root, get_hermes_home_override
 
     override = get_hermes_home_override()
     return get_default_hermes_root(home=override) if override else get_default_hermes_root()
@@ -301,7 +301,7 @@ def activate_dependencies(project_root: Path) -> None:
 
     state = install_state_dir(project_root)
     if state.is_dir():
-        from hermes_cli.runtime_state import runtime_lock, recover_publication, lease_generation
+        from devbuddy_cli.runtime_state import runtime_lock, recover_publication, lease_generation
         # The lock's holder may be another profile's backend running a full dependency rebuild;
         # this process only reads the committed selection, so it proceeds without waiting rather
         # than leaving the backend unbound (see runtime_lock).
@@ -356,7 +356,7 @@ def activation_environment(project_root: Path) -> dict[str, str]:
     environment = committed_venv(project_root)
     env.pop("PYTHONHOME", None)
     env.pop("VIRTUAL_ENV", None)
-    # Nothing committed: the child's own hermes_bootstrap decides (a bare store Python refuses),
+    # Nothing committed: the child's own devbuddy_bootstrap decides (a bare store Python refuses),
     # rather than inheriting the pre-PM in-tree venv from here.
     env["PYTHONPATH"] = os.pathsep.join([str(project_root.resolve()),
                                          *([str(site_packages(environment))] if environment else [])])

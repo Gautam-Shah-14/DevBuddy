@@ -198,7 +198,7 @@ def _validate_langfuse_key(env_name: str, value: str) -> Optional[str]:
 def _settled_client() -> Any:
     """The active profile's settled client slot value (client, ``_INIT_FAILED`` or ``None`` = never
     built). Never initializes."""
-    from hermes_constants import get_hermes_home_override, hermes_home_key
+    from devbuddy_constants import get_hermes_home_override, hermes_home_key
 
     if get_hermes_home_override() is None:
         return _LANGFUSE_CLIENT
@@ -208,7 +208,7 @@ def _settled_client() -> Any:
 def _settle_client() -> Any:
     """Build once and store for the active profile. Caller holds ``_LANGFUSE_CLIENT_LOCK``."""
     global _LANGFUSE_CLIENT
-    from hermes_constants import get_hermes_home_override, hermes_home_key
+    from devbuddy_constants import get_hermes_home_override, hermes_home_key
 
     client = _build_client()
     settled = _INIT_FAILED if client is None else client

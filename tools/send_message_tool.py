@@ -26,7 +26,7 @@ from tools.registry import tool_error
 
 def prepare_send_message_platforms() -> None:
     """Load enabled standalone plugins before tool schemas/cache keys are built."""
-    from hermes_cli.plugins import discover_plugins
+    from devbuddy_cli.plugins import discover_plugins
     discover_plugins()
 
 
@@ -328,7 +328,7 @@ def _not_configured_error(platform_name, platform, entry):
     from agent.secret_scope import load_env_file
     from gateway.config import _getenv
     from gateway.config_env import _ENV_ENABLE_CREDENTIALS
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
     home = get_hermes_home()
     env_names = list(_ENV_ENABLE_CREDENTIALS.get(platform) or (entry.required_env if entry else ()))
     names = "/".join(env_names) or "credentials"
@@ -337,7 +337,7 @@ def _not_configured_error(platform_name, platform, entry):
     dotenv_state = (f"{names} present" if any(n in dotenv_keys for n in env_names) else f"no {names}") \
         if env_path.exists() else "missing"
     try:
-        from hermes_cli.config_effective import load_user_config_effective
+        from devbuddy_cli.config_effective import load_user_config_effective
         user_config = load_user_config_effective(config_path) or {}
         block = user_config.get("platforms", {}).get(platform_name)
     except Exception:
@@ -359,7 +359,7 @@ def _not_configured_error(platform_name, platform, entry):
     # never reads this profile's .env at all.
     try:
         from gateway.status import read_runtime_status, runtime_status_pid_is_live
-        from hermes_constants import get_default_hermes_root, hermes_home_key
+        from devbuddy_constants import get_default_hermes_root, hermes_home_key
         root = get_default_hermes_root()
         gateways = [(home, read_runtime_status())]
         if hermes_home_key(root) != hermes_home_key(home):
@@ -802,7 +802,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

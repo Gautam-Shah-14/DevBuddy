@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import update_cmd
-from hermes_constants import venv_bin_dir, venv_python_path
+from devbuddy_cli import update_cmd
+from devbuddy_constants import venv_bin_dir, venv_python_path
 
 # ---------------------------------------------------------------------------
 # Two-phase replace
@@ -134,7 +134,7 @@ def test_venv_helpers_accept_str_and_path():
 
 def test_top_level_files_are_swapped_atomically(tmp_path):
     """The repo root holds 20 first-party modules (run_agent.py, cli.py,
-    hermes_constants.py, ...). Covering only directories would leave exactly
+    devbuddy_constants.py, ...). Covering only directories would leave exactly
     the bug class this PR closes."""
     live, new = tmp_path / "live", tmp_path / "new"
     live.mkdir()

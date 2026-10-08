@@ -19,7 +19,7 @@ def native_manifest_file(plugin_dir: Path) -> Path | None:
 
 
 def read_native_manifest(path: Path) -> dict:
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
 
     try:
         data = yaml.safe_load(path.read_text(encoding="utf-8-sig"))
@@ -33,7 +33,7 @@ def read_native_manifest(path: Path) -> dict:
 
 
 def manifest_version_error(manifest: dict, name: str) -> str | None:
-    from hermes_cli.plugins_manifest import SUPPORTED_MANIFEST_VERSION, requires_hermes_error
+    from devbuddy_cli.plugins_manifest import SUPPORTED_MANIFEST_VERSION, requires_hermes_error
 
     reason = requires_hermes_error(manifest)
     if reason:
@@ -125,7 +125,7 @@ def read_python_declaration(plugin_dir: Path) -> PythonDeclaration:
         except FileNotFoundError:
             pass
         else:
-            from hermes_cli.agent_plugins import read_agent_plugin_manifest
+            from devbuddy_cli.agent_plugins import read_agent_plugin_manifest
 
             manifest, _diagnostics = read_agent_plugin_manifest(plugin_dir)
             files.append(portable)

@@ -13,7 +13,7 @@ import pytest
 from agent.secret_scope import (
     build_profile_secret_scope, reset_secret_scope, set_multiplex_active, set_secret_scope,
 )
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ def test_cron_env_settings_resolve_from_the_served_profile(two_homes):
         captured.update(kw)
         return {}
 
-    import hermes_cli.runtime_provider as rp
+    import devbuddy_cli.runtime_provider as rp
     original = rp.resolve_runtime_provider
     rp.resolve_runtime_provider = fake_resolve
     try:

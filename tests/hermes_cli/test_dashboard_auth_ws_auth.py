@@ -19,16 +19,16 @@ import pytest
 
 from fastapi.testclient import TestClient
 
-from hermes_cli import web_server
-import hermes_cli.web_server_chat as _web_server_chat
-from hermes_cli.dashboard_auth import clear_providers, register_provider
-from hermes_cli.dashboard_auth.ws_tickets import (
+from devbuddy_cli import web_server
+import devbuddy_cli.web_server_chat as _web_server_chat
+from devbuddy_cli.dashboard_auth import clear_providers, register_provider
+from devbuddy_cli.dashboard_auth.ws_tickets import (
     _reset_for_tests,
     consume_internal_credential,
     internal_ws_credential,
     mint_ticket,
 )
-from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
+from tests.devbuddy_cli.conftest_dashboard_auth import StubAuthProvider
 
 
 # ---------------------------------------------------------------------------
@@ -271,7 +271,7 @@ class TestWsAuthOkGated:
     def test_rejection_audit_logs(self, gated_app, tmp_path, monkeypatch):
         # Point the audit log at a tmp dir so we can read what got written.
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-        from hermes_cli.dashboard_auth import audit as audit_mod
+        from devbuddy_cli.dashboard_auth import audit as audit_mod
 
         # The log path is resolved lazily on the first audit_log() call;
         # bust any cached handler so it re-resolves.

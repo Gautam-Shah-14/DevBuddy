@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from rich.console import Console
 
-import hermes_cli.banner as banner
+import devbuddy_cli.banner as banner
 import model_tools
 import tools.mcp_tool_discovery
 
@@ -41,7 +41,7 @@ def test_empty_model_shows_the_free_tier_route_when_it_carries_inference(tmp_pat
     When nothing resolves the red "no model configured" line stays."""
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
     (tmp_path / ".hermes").mkdir()
-    import hermes_cli.anon_auth as anon_auth
+    import devbuddy_cli.anon_auth as anon_auth
 
     def render(carries: bool) -> str:
         with (
@@ -86,7 +86,7 @@ def test_build_welcome_banner_does_not_center_pad_hero_art():
 
 
 def test_baked_banner_uses_live_identity(monkeypatch):
-    from hermes_cli import banner, version_info
+    from devbuddy_cli import banner, version_info
 
     monkeypatch.setattr(version_info, "get_code_identity", lambda: {"short_sha": "a1b2c3d4"})
     assert banner._baked_banner_state() == {"upstream": "a1b2c3d4", "local": "a1b2c3d4", "ahead": 0}

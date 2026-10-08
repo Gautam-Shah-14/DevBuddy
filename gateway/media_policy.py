@@ -27,11 +27,11 @@ def _routed_gateway_cfg() -> Optional[Dict[str, Any]]:
     """``gateway`` section of the ROUTED profile's config when a HERMES_HOME override is active
     (multiplexed turn), else None. The env bridge is one process-wide copy of the launch profile's
     policy, so a secondary's deliveries must read their own config instead of ``os.environ``."""
-    from hermes_constants import get_hermes_home_override
+    from devbuddy_constants import get_hermes_home_override
     if not get_hermes_home_override():
         return None
     try:
-        from hermes_cli.config import load_config_readonly
+        from devbuddy_cli.config import load_config_readonly
         gateway_cfg = load_config_readonly().get("gateway")
     except Exception:
         return {}
@@ -73,7 +73,7 @@ def media_delivery_trust_recent_seconds() -> str:
 def _load_gateway_cfg(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     if config is None:
         try:
-            from hermes_cli.config import load_config
+            from devbuddy_cli.config import load_config
 
             config = load_config() or {}
         except Exception:

@@ -15,7 +15,7 @@ import subprocess
 from unittest.mock import patch
 
 
-from hermes_cli import doctor_tools
+from devbuddy_cli import doctor_tools
 
 
 def _audit_json(critical=0, high=0, moderate=0):

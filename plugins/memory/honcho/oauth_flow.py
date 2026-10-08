@@ -372,7 +372,7 @@ _flows_by_target: dict[tuple[str, str], tuple[FlowStatus, threading.Thread | Non
 
 def _flow_target() -> tuple[str, str] | None:
     """(config_path, host) of the active profile override, or None when unscoped."""
-    from hermes_constants import get_hermes_home_override
+    from devbuddy_constants import get_hermes_home_override
 
     if get_hermes_home_override() is None:
         return None

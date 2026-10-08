@@ -15,8 +15,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_constants
-from hermes_cli import gateway_migrate as gm
+import devbuddy_constants
+from devbuddy_cli import gateway_migrate as gm
 
 
 def _write_live_gateway(home: Path, served: list[str] | None = None) -> None:
@@ -43,8 +43,8 @@ def stranded(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "GATEWAY_MULTIPLEX_PROFILES"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
-    assert str(hermes_constants.get_default_hermes_root()).startswith(str(tmp_path))
+    monkeypatch.setattr(devbuddy_constants, "_default_hermes_root_memo", None)
+    assert str(devbuddy_constants.get_default_hermes_root()).startswith(str(tmp_path))
 
     (root / gm.MANIFEST_NAME).write_text(json.dumps({
         "version": 1, "flag_was": False,
@@ -61,7 +61,7 @@ def stranded(tmp_path, monkeypatch):
     state = SimpleNamespace(root=root, ops=ops, start_succeeds=True)
 
     def _service_op(kind, system, verb, home, *, run_as_user=None):
-        name = hermes_constants.profile_name_for_home(home) or "default"
+        name = devbuddy_constants.profile_name_for_home(home) or "default"
         ops.append((name, verb))
         if verb in ("start", "restart") and name == "default" and state.start_succeeds:
             _write_live_gateway(root, ["default", "coder", "ops"])

@@ -25,10 +25,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import main as hermes_main
-import hermes_cli.main_web_build as main_web_build
-import hermes_cli.main_install_repair as main_install_repair
-from hermes_cli import update_cmd
+from devbuddy_cli import main as hermes_main
+import devbuddy_cli.main_web_build as main_web_build
+import devbuddy_cli.main_install_repair as main_install_repair
+from devbuddy_cli import update_cmd
 
 
 GIT = ["git"]
@@ -82,7 +82,7 @@ def repo_pair(tmp_path):
 @pytest.fixture(autouse=True)
 def _no_config(monkeypatch):
     """Isolate the guard from the machine's real config.yaml."""
-    import hermes_cli.config as hermes_config
+    import devbuddy_cli.config as hermes_config
 
     monkeypatch.setattr(hermes_config, "load_config", lambda: {})
 
@@ -152,7 +152,7 @@ def test_equivalent_cherry_picked_commit_is_still_safe(repo_pair):
 def test_config_opt_out_blocks_auto_switch(repo_pair, monkeypatch):
     """updates.auto_switch_parked_branch: false disables auto-switch even
     when the branch is clean and merged."""
-    import hermes_cli.config as hermes_config
+    import devbuddy_cli.config as hermes_config
 
     monkeypatch.setattr(
         hermes_config,
@@ -311,7 +311,7 @@ def test_update_updates_unmerged_branch_in_place_when_configured(
     origin/<target> instead of switched away from. The running code must
     advance (origin/main's files arrive) AND the local commits must survive,
     with the checkout never moving."""
-    import hermes_cli.config as hermes_config
+    import devbuddy_cli.config as hermes_config
 
     monkeypatch.setattr(
         hermes_config,
@@ -363,7 +363,7 @@ def test_switch_branch_flag_overrides_in_place_strategy(
     in its history (#89507 review). The branch tip must be byte-identical
     afterwards, while the checkout ends up on the updated target.
     """
-    import hermes_cli.config as hermes_config
+    import devbuddy_cli.config as hermes_config
 
     monkeypatch.setattr(
         hermes_config,

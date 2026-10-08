@@ -9,7 +9,7 @@ import importlib
 import sys
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 
 @pytest.fixture()
@@ -32,7 +32,7 @@ def voice_home(tmp_path, monkeypatch):
         # sees ITS config, not the previous test's.
         for name in list(sys.modules):
             if name in {
-                "hermes_cli.config",
+                "devbuddy_cli.config",
                 "tools.transcription_tools",
                 "tools.tts_tool",
                 "tools.voice_client_config",

@@ -15,10 +15,10 @@ import subprocess
 import sys
 import zipfile
 
-import hermes_yaml
+import devbuddy_yaml
 import pytest
 
-from hermes_cli.release_channels import ChannelReader
+from devbuddy_cli.release_channels import ChannelReader
 from scripts.releases import channel_releases, handoff
 from tests.ci.desktop_release_roles import canary_publisher, native_builds, stage_step
 from tests.ci.test_desktop_release_tag_admission import _git, _seed_repo
@@ -29,7 +29,7 @@ pytestmark = pytest.mark.platforms("posix")
 
 
 def workflow_jobs():
-    return hermes_yaml.safe_load((ROOT / ".github/workflows/desktop-bundled-release.yml").read_text())["jobs"]
+    return devbuddy_yaml.safe_load((ROOT / ".github/workflows/desktop-bundled-release.yml").read_text())["jobs"]
 
 
 def canary_job():
@@ -252,7 +252,7 @@ def test_published_canary_workflow_advances_only_after_every_gate(canary, r2_ser
     # rather than asking canary for a stable-only candidate manifest.
     from scripts.bundles.release_artifacts import write_appinstaller
     from scripts.releases import stable
-    from hermes_cli.release_channels import canonical_json
+    from devbuddy_cli.release_channels import canonical_json
     mac = resolved.manifest["packages"][0]
     mac_feed = json.loads(r2_server.store[mac["feed"]["key"]][0])
     for entry in mac_feed["files"]:

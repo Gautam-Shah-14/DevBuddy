@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlsplit
 
-from hermes_constants import get_hermes_home
+from devbuddy_constants import get_hermes_home
 from utils import atomic_write_bytes
 
 VAULT_KINDS = ("login", "payment", "address")
@@ -209,7 +209,7 @@ class VaultStore:
         # bespoke chmod — same requirement as the browser-profile snapshot
         # dir (f1d05c review).
         try:
-            from hermes_cli.config import _secure_dir
+            from devbuddy_cli.config import _secure_dir
 
             _secure_dir(self._base)
         except Exception:

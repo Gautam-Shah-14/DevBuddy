@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.linux_desktop_entry import install_desktop_entry
+from devbuddy_cli.linux_desktop_entry import install_desktop_entry
 
 
 @pytest.mark.platforms("linux")

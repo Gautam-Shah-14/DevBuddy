@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 import pytest
 

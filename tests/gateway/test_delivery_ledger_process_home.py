@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import hermes_constants
+import devbuddy_constants
 from gateway import delivery_ledger as dl
 from gateway.config import Platform, PlatformConfig
 from gateway.platforms.base import BasePlatformAdapter, SendResult
@@ -60,7 +60,7 @@ def launch_home(request, tmp_path, monkeypatch):
     else:
         # A default gateway run in the foreground has no HERMES_HOME at all.
         monkeypatch.delenv("HERMES_HOME", raising=False)
-        monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: root)
+        monkeypatch.setattr(devbuddy_constants, "_get_platform_default_hermes_home", lambda: root)
     return root
 
 

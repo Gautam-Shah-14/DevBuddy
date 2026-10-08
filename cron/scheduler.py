@@ -32,16 +32,16 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Protocol, Union
 
 # Must precede repo-level imports: standalone invocations (e.g. module reload after
-# `hermes update`) otherwise fail with ModuleNotFoundError for hermes_time et al.
+# `hermes update`) otherwise fail with ModuleNotFoundError for devbuddy_time et al.
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from hermes_constants import get_hermes_home, hermes_home_key
+from devbuddy_constants import get_hermes_home, hermes_home_key
 from cron.env_settings import cron_env_setting
-from hermes_cli._subprocess_compat import windows_hide_flags
-from hermes_cli.config import (
+from devbuddy_cli._subprocess_compat import windows_hide_flags
+from devbuddy_cli.config import (
     load_config, load_config_readonly)
-from hermes_cli.fallback_config import get_fallback_chain, scoped_fallback_chain
-from hermes_time import now as _hermes_now, safe_strftime
+from devbuddy_cli.fallback_config import get_fallback_chain, scoped_fallback_chain
+from devbuddy_time import now as _hermes_now, safe_strftime
 from agent.interrupt_compat import request_hard_interrupt
 from agent.delegation_context import (
     enter_non_dispatcher_owned_context, exit_non_dispatcher_owned_context)
@@ -62,7 +62,7 @@ def _close_late_session_db_result(future: "concurrent.futures.Future") -> None:
     with contextlib.suppress(Exception):
         db = future.result()
         if db is not None:
-            from hermes_state_registry import release_or_close
+            from devbuddy_state_registry import release_or_close
             release_or_close(db)
 
 
@@ -473,8 +473,8 @@ def _merge_mcp_into_per_job_toolsets(per_job: list[str], cfg: dict) -> list[str]
     result = [t for t in per_job if t != "no_mcp"]
     if "no_mcp" in per_job:
         return result
-    # lazy: avoid heavy hermes_cli import at module load; shares MCP-membership with gateway/CLI
-    from hermes_cli.tools_config import enabled_mcp_server_names
+    # lazy: avoid heavy devbuddy_cli import at module load; shares MCP-membership with gateway/CLI
+    from devbuddy_cli.tools_config import enabled_mcp_server_names
     enabled_mcp = enabled_mcp_server_names(cfg)
     if set(result) & enabled_mcp:
         return result
@@ -502,7 +502,7 @@ def _resolve_cron_enabled_toolsets(job: dict, cfg: dict) -> list[str]:
     if per_job:
         return _merge_mcp_into_per_job_toolsets(list(per_job), cfg or {})
     try:
-        from hermes_cli.tools_config import _get_platform_tools  # lazy: avoid heavy import at cron module load
+        from devbuddy_cli.tools_config import _get_platform_tools  # lazy: avoid heavy import at cron module load
         return sorted(_get_platform_tools(cfg or {}, "cron"))
     except Exception as exc:
         raise RuntimeError(
@@ -515,7 +515,7 @@ def _resolve_job_reasoning_config(job: dict, cfg: dict, model: str) -> dict | No
     """Effective reasoning config for a cron run. A per-job ``reasoning_effort`` pin beats global
     and per-model config and is model-independent by design (also governs an auth-fallback swap);
     clamping stays with provider transports. An unparseable pin warns and falls back to config."""
-    from hermes_constants import parse_reasoning_effort, resolve_reasoning_config
+    from devbuddy_constants import parse_reasoning_effort, resolve_reasoning_config
 
     pinned = job.get("reasoning_effort")
     if pinned is not None:
@@ -774,7 +774,7 @@ def try_register_running_job(job_id: str) -> bool:
     and ``mark_running_jobs_interrupted``. Dedupe is per PROFILE: the key carries the active cron
     scope's home, so one multiplexing process never treats two profiles' same-named jobs as one.
     """
-    from hermes_cli.backend_retirement import retirement
+    from devbuddy_cli.backend_retirement import retirement
 
     key = _inflight_key(job_id, _remember_inflight_home(_get_hermes_home()))
     with retirement.work() as admitted, _running_lock:
@@ -1324,7 +1324,7 @@ def _reclaim_fds_best_effort() -> None:
 
         gc.collect()
     with contextlib.suppress(Exception):
-        from hermes_cli.resource_limits import apply_nofile_soft_limit
+        from devbuddy_cli.resource_limits import apply_nofile_soft_limit
 
         apply_nofile_soft_limit(None)
 
@@ -1362,7 +1362,7 @@ def _cron_cleanup_timeout_seconds() -> float:
     """Return the wall-clock bound for cron post-run cleanup."""
     default = 10.0
     try:
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
 
         cfg = load_config() or {}
         cron_cfg = cfg.get("cron", {}) if isinstance(cfg, dict) else {}
@@ -1489,7 +1489,7 @@ def _run_no_agent_job(
     # Load .env first so auto-delivery can resolve *_HOME_CHANNEL: the agent path's per-run dotenv
     # reload never runs for no_agent jobs. Does not override existing values.
     try:
-        from hermes_cli.env_loader import load_hermes_dotenv
+        from devbuddy_cli.env_loader import load_hermes_dotenv
 
         load_hermes_dotenv(hermes_home=_get_hermes_home())
     except Exception:
@@ -1592,7 +1592,7 @@ def _load_cron_job_config(job: dict, job_id: str, job_name: str) -> _CronJobConf
     _cfg: dict = {}
     _model_cfg: Any = {}
     try:
-        from hermes_cli.config_effective import load_user_config_effective
+        from devbuddy_cli.config_effective import load_user_config_effective
         _cfg_path = str(_get_hermes_home() / "config.yaml")
         if os.path.exists(_cfg_path):
             _cfg = load_user_config_effective(Path(_cfg_path))
@@ -1629,7 +1629,7 @@ def _load_cron_job_config(job: dict, job_id: str, job_name: str) -> _CronJobConf
         )
 
     with contextlib.suppress(Exception):
-        from hermes_constants import apply_ipv4_preference
+        from devbuddy_constants import apply_ipv4_preference
         _net_cfg = _cfg.get("network", {})
         if isinstance(_net_cfg, dict) and _net_cfg.get("force_ipv4"):
             apply_ipv4_preference(force=True)
@@ -1724,9 +1724,9 @@ def _resolve_job_runtime(job: dict, job_id: str, jc: _CronJobConfig) -> tuple[di
     a paid primary model). Provider precedence: per-job pin > cron.model_provider > persisted
     global config (None lets resolve_runtime_provider read it). A pinned job has no chain here
     (``_job_fallback_chain``): its resolve failure is the job's failure."""
-    from hermes_cli.runtime_provider import (
+    from devbuddy_cli.runtime_provider import (
         resolve_runtime_provider, format_runtime_provider_error)
-    from hermes_cli.auth import AuthError
+    from devbuddy_cli.auth import AuthError
 
     model = jc.model
     requested = job.get("provider") or jc.cron_default_provider or None
@@ -1763,7 +1763,7 @@ def _resolve_job_runtime(job: dict, job_id: str, jc: _CronJobConfig) -> tuple[di
             if not fb_provider or not fb_model:
                 continue
             try:
-                from hermes_cli.fallback_config import effective_runtime_provider, resolve_entry_api_key
+                from devbuddy_cli.fallback_config import effective_runtime_provider, resolve_entry_api_key
 
                 fb_kwargs = {"requested": fb_provider, "target_model": fb_model}
                 if entry.get("base_url"):
@@ -1780,7 +1780,7 @@ def _resolve_job_runtime(job: dict, job_id: str, jc: _CronJobConfig) -> tuple[di
                     job_id, runtime.get("provider"), fb_model)
                 # Delivered with the job output (#74349): a cron agent has no status rail, so the
                 # switch would otherwise stay in the scheduler log only. run_job pops it.
-                from hermes_cli.fallback_config import pre_agent_fallback_notice
+                from devbuddy_cli.fallback_config import pre_agent_fallback_notice
                 runtime["_fallback_notice"] = pre_agent_fallback_notice(
                     requested or (jc.model_cfg.get("provider") if isinstance(jc.model_cfg, dict) else ""),
                     model, runtime.get("provider"), fb_model)
@@ -1838,7 +1838,7 @@ def _open_cron_session_db(job: dict):
     # timeout proceeds without a session store instead of blocking the run forever.
     _session_db_timeout = _get_session_db_timeout()
     try:
-        from hermes_state_registry import acquire
+        from devbuddy_state_registry import acquire
 
         if _session_db_timeout <= 0:
             return acquire()
@@ -2036,7 +2036,7 @@ def _final_response_from_result(result: dict, job_id: str, job_name: str, AIAgen
         # Render every persistence-cause variant or cause-refined text slips through.
         _explainer_variants = []
         try:
-            from hermes_state_errors import PERSISTENCE_ERROR_CAUSES as _causes
+            from devbuddy_state_errors import PERSISTENCE_ERROR_CAUSES as _causes
         except Exception:
             _causes = ("locked", "disk", "unknown")
         # The finalizer fills the model name into the explainer; render with the same name (and
@@ -2117,7 +2117,7 @@ def _finalize_cron_session(session_db, agent, job_id: str, job_name: str, cron_s
     # mid-API-wait, or without any assistant text leaves the last row as a tool result / pending call / user
     # prompt and must not surface as a healthy run. session_lifecycle_statuses is the existing cost-bounded
     # classifier for exactly this shape. Only a POSITIVELY recognized pathological status (see the status
-    # vocabulary in hermes_state's session_lifecycle_statuses docstring — keep the tuple below in sync when
+    # vocabulary in devbuddy_state's session_lifecycle_statuses docstring — keep the tuple below in sync when
     # it grows) downgrades the booking: an unknown value (newer classifier shape, test doubles) keeps the
     # historical reason, and so does a failed probe — the booking itself is FAIL-OPEN on probe errors,
     # because classification is best-effort metadata and must not mislabel a healthy run.
@@ -2146,7 +2146,7 @@ def _finalize_cron_session(session_db, agent, job_id: str, job_name: str, cron_s
     except (Exception, KeyboardInterrupt) as e:
         logger.debug("Job '%s': failed to end session: %s", job_id, e)
     try:
-        from hermes_state_registry import release_or_close
+        from devbuddy_state_registry import release_or_close
         release_or_close(_session_db)
     except (Exception, KeyboardInterrupt) as e:
         logger.debug("Job '%s': failed to close SQLite session store: %s", job_id, e)
@@ -2175,7 +2175,7 @@ def _prepare_job_prompt(
     # Fail closed on a corrupt config.yaml: defaults would let auto-detection bill a provider the
     # user never chose. no_agent jobs are exempt. Escape hatch: HERMES_IGNORE_USER_CONFIG=1.
     if not job.get("no_agent"):
-        from hermes_cli.config import InvalidUserConfigError, require_parseable_user_config
+        from devbuddy_cli.config import InvalidUserConfigError, require_parseable_user_config
 
         try:
             require_parseable_user_config()
@@ -2334,7 +2334,7 @@ def _reload_dotenv_and_publish_delivery_target(job: dict) -> None:
     """Re-read .env for this run and publish the auto-deliver target into the session ContextVars."""
     # Reset the secret-source cache FIRST or a Bitwarden/BSM-backed secret is never re-resolved
     # (only the placeholder reloads -> 401s).
-    from hermes_cli.env_loader import load_hermes_dotenv, reset_secret_source_cache
+    from devbuddy_cli.env_loader import load_hermes_dotenv, reset_secret_source_cache
     from gateway.session_context import _VAR_MAP
 
     reset_secret_source_cache(_get_hermes_home())
@@ -2371,7 +2371,7 @@ def _resolve_cron_agent_setup(job: dict, job_id: str, job_name: str, jc) -> _Cro
     setup.prefill_messages = _load_prefill_messages(_cfg, job_id)
 
     # resolve_turn_limit() honors none/unlimited (sys.maxsize) and explicit 0 / null.
-    from hermes_cli.config import resolve_turn_limit as _resolve_turn_limit
+    from devbuddy_cli.config import resolve_turn_limit as _resolve_turn_limit
     _mt = _cfg.get("agent", {}).get("max_turns")
     if _mt is None:
         _mt = _cfg.get("max_turns")
@@ -3464,7 +3464,7 @@ def _launch_external_cron_worker(job: dict) -> bool:
         reset_secret_scope,
         set_secret_scope,
     )
-    from hermes_cli.env_loader import hydrate_profile_secret_sources
+    from devbuddy_cli.env_loader import hydrate_profile_secret_sources
     from tools.environments.local import build_subprocess_env, strip_launch_profile_env
     from tools.process_registry import (
         restart_safe_gateway_child_argv,
@@ -3536,7 +3536,7 @@ def _launch_external_cron_worker(job: dict) -> bool:
         "HERMES_EXEC_ASK",
     ):
         worker_env.pop(_presence_var, None)
-    # `-m cron.scheduler` has no hermes_cli.main bootstrap; pin this checkout explicitly
+    # `-m cron.scheduler` has no devbuddy_cli.main bootstrap; pin this checkout explicitly
     # (PYTHONSAFEPATH / stale editable mapping, #112729). See cron/scheduler_worker_env.py.
     from cron.scheduler_worker_env import pin_hermes_tree_on_pythonpath
     repo_root = Path(__file__).resolve().parent.parent
@@ -3687,8 +3687,8 @@ def _run_external_worker_payload(payload_path: Path, ack_path: Path) -> bool:
         set_secret_scope,
     )
     from cron.executions import adopt_claimed_execution
-    from hermes_cli.env_loader import hydrate_profile_secret_sources
-    from hermes_constants import (
+    from devbuddy_cli.env_loader import hydrate_profile_secret_sources
+    from devbuddy_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )
@@ -3880,7 +3880,7 @@ def _maybe_run_worktree_maintenance() -> None:
             repos = _worktree_maintenance_repos()
             if not repos:
                 return
-            from hermes_cli.worktree_ops import _prune_stale_worktrees
+            from devbuddy_cli.worktree_ops import _prune_stale_worktrees
 
             for repo in repos:
                 try:
@@ -4185,7 +4185,7 @@ if __name__ == "__main__":
         # log handler every adoption/ack failure below would otherwise be
         # invisible to the persistent log.
         try:
-            from hermes_logging import setup_logging
+            from devbuddy_logging import setup_logging
 
             setup_logging(hermes_home=_get_hermes_home(), mode="cron")
         except Exception:
@@ -4218,7 +4218,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

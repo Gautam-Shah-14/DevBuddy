@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import web_server
-from hermes_cli.web_routers import git as git_router
+from devbuddy_cli import web_server
+from devbuddy_cli.web_routers import git as git_router
 
 pytest.importorskip("starlette.testclient")
 from starlette.testclient import TestClient

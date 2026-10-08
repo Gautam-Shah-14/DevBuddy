@@ -9,7 +9,7 @@ dispatcher's declared ``terminal.env_passthrough`` names.
 """
 import pytest
 
-from hermes_cli import kanban_db_dispatch
+from devbuddy_cli import kanban_db_dispatch
 from tools.terminal_scope import get_terminal_scope
 
 
@@ -43,7 +43,7 @@ def test_worker_profile_scope_installs_the_assigned_profiles_terminal_policy(pro
 
 def _spawn_env_for_profile_b(monkeypatch, tmp_path):
     """Run ``_default_spawn`` far enough to capture the worker env, never spawning anything."""
-    from hermes_cli.kanban_db import Task
+    from devbuddy_cli.kanban_db import Task
     from tools import process_registry
 
     captured: list[dict] = []
@@ -82,7 +82,7 @@ def test_launch_profiles_own_worker_keeps_its_credentials(tmp_path, monkeypatch)
     monkeypatch.setenv("HERMES_HOME", str(launch))
     monkeypatch.setenv("OPENAI_API_KEY", "dispatcher-launch-key")
 
-    from hermes_cli.kanban_db import Task
+    from devbuddy_cli.kanban_db import Task
     from tools import process_registry
 
     captured: list[dict] = []

@@ -6,7 +6,7 @@ blocking I/O:
 
   * ``NousPortalAdapter.get_credential`` takes ``_auth_store_lock()``, a
     *cross-process* advisory lock with ``AUTH_LOCK_TIMEOUT_SECONDS = 15.0``
-    (``hermes_cli/auth.py:110``), reads ``auth.json`` from disk, and may issue a
+    (``devbuddy_cli/auth.py:110``), reads ``auth.json`` from disk, and may issue a
     token-refresh POST. Its terminal-error path takes that lock a second time to
     persist the quarantined state.
   * ``NousPortalAdapter.get_retry_credential`` routes to that same
@@ -26,7 +26,7 @@ client's own timer cannot advance until the block ends, so it reports a fast
 response on code that was provably frozen. Thread identity has no such failure
 mode and no timing sensitivity.
 
-The harness mirrors ``tests/hermes_cli/test_proxy.py``: the proxy and a fake
+The harness mirrors ``tests/devbuddy_cli/test_proxy.py``: the proxy and a fake
 upstream run as real aiohttp servers on ephemeral ports, driven by
 ``asyncio.run``. That keeps everything on exactly one event loop, which is what
 makes the loop-starvation observations meaningful, and it avoids taking a
@@ -42,12 +42,12 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from hermes_cli.proxy.adapters.base import UpstreamAdapter, UpstreamCredential
+from devbuddy_cli.proxy.adapters.base import UpstreamAdapter, UpstreamCredential
 
 aiohttp = pytest.importorskip("aiohttp")
 from aiohttp import web  # noqa: E402
 
-from hermes_cli.proxy.server import create_app  # noqa: E402
+from devbuddy_cli.proxy.server import create_app  # noqa: E402
 
 
 # How long the fake adapter blocks. Long enough that a starved loop records

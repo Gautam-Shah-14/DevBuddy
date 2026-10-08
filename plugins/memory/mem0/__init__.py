@@ -77,7 +77,7 @@ def _load_config() -> dict:
     """Env vars provide defaults; $HERMES_HOME/mem0.json overrides individual keys.
     Layering avoids a silent failure when the JSON file exists but lacks fields
     like ``api_key`` that the user set in ``.env``."""
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
     # Identity (user/agent id), host and mode are .env values like the key: read them through the
     # profile scope too, or a secondary profile's memories land in the default profile's account.
     # A scope-less multiplex caller raises here on purpose — that is a spawn-site bug, and

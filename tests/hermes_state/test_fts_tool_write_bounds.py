@@ -2,8 +2,8 @@ import sqlite3
 
 import pytest
 
-from hermes_state import SessionDB
-from hermes_state_common import (
+from devbuddy_state import SessionDB
+from devbuddy_state_common import (
     FTS_TOOL_CONTENT_PREFIX_CHARS,
     LEGACY_FTS_SQL,
     _FTS_TRIGGERS,

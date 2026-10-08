@@ -6,8 +6,8 @@ A quota-exhausted / expired primary raises ``AuthError`` from ``resolve_runtime_
 
 import pytest
 
-from hermes_cli.auth import AuthError
-from hermes_cli.runtime_provider import resolve_runtime_with_fallback
+from devbuddy_cli.auth import AuthError
+from devbuddy_cli.runtime_provider import resolve_runtime_with_fallback
 
 _CFG = {"fallback_providers": [
     {"provider": "anthropic", "model": "claude-x", "api_key": "fb-key"},
@@ -27,7 +27,7 @@ class TestResolveRuntimeWithFallback:
                 raise AuthError("anthropic key missing")
             return {"provider": kw["requested"], "api_key": "k"}
 
-        monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", fake_resolve)
+        monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", fake_resolve)
         runtime, entry = resolve_runtime_with_fallback(_CFG, requested="openai-codex", target_model="gpt-5.4")
         assert (runtime["provider"], entry["model"]) == ("openai", "gpt-x")
         # Chain walked in config order; the first entry got its inline api_key and its own model.
@@ -37,7 +37,7 @@ class TestResolveRuntimeWithFallback:
         def all_fail(**kw):
             raise AuthError("primary down" if kw.get("requested") == "openai-codex" else "fallback down")
 
-        monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", all_fail)
+        monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", all_fail)
         with pytest.raises(AuthError, match="primary down"):  # primary-error precedence
             resolve_runtime_with_fallback(_CFG, requested="openai-codex")
 
@@ -45,10 +45,10 @@ class TestResolveRuntimeWithFallback:
         def typo(**kw):
             raise ValueError("Unknown provider 'antropic'")
 
-        monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", typo)
+        monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", typo)
         with pytest.raises(ValueError):
             resolve_runtime_with_fallback(_CFG, requested="antropic")
-        monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", lambda **kw: {"provider": "p"})
+        monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", lambda **kw: {"provider": "p"})
         assert resolve_runtime_with_fallback({}) == ({"provider": "p"}, None)
 
         # A misconfigured *fallback* entry is skipped, but loudly: a typo must not vanish at debug level.
@@ -59,8 +59,8 @@ class TestResolveRuntimeWithFallback:
                 raise ValueError("Unknown provider")
             return {"provider": kw["requested"]}
 
-        monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", primary_down_first_entry_typo)
-        with caplog.at_level("WARNING", logger="hermes_cli.runtime_provider"):
+        monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", primary_down_first_entry_typo)
+        with caplog.at_level("WARNING", logger="devbuddy_cli.runtime_provider"):
             _, entry = resolve_runtime_with_fallback(_CFG, requested="openai-codex")
         assert entry["provider"] == "openai"
         assert any(r.levelname == "WARNING" and "anthropic" in r.getMessage() for r in caplog.records)
@@ -68,7 +68,7 @@ class TestResolveRuntimeWithFallback:
 
 def test_run_agent_falls_back_when_primary_resolution_raises_auth_error(monkeypatch):
     """End-to-end: ``_run_agent`` builds AIAgent against the fallback entry's provider/model (#81209)."""
-    import hermes_cli.oneshot as oneshot_mod
+    import devbuddy_cli.oneshot as oneshot_mod
 
     captured = {}
 
@@ -93,10 +93,10 @@ def test_run_agent_falls_back_when_primary_resolution_raises_auth_error(monkeypa
 
     cfg = {"model": {"default": "gpt-5.4", "provider": "openai-codex"}, **_CFG}
     monkeypatch.setattr(oneshot_mod, "_create_session_db_for_oneshot", lambda: None)
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: cfg)
-    monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", fake_resolve)
-    monkeypatch.setattr("hermes_cli.tools_config._get_platform_tools", lambda _cfg, _p: [])
-    monkeypatch.setattr("hermes_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
+    monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: cfg)
+    monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", fake_resolve)
+    monkeypatch.setattr("devbuddy_cli.tools_config._get_platform_tools", lambda _cfg, _p: [])
+    monkeypatch.setattr("devbuddy_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
     monkeypatch.setattr("run_agent.AIAgent", _FakeAgent)
 
     text, _ = oneshot_mod._run_agent("Health check: reply pong.")

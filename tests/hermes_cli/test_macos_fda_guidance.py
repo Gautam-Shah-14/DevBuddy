@@ -15,8 +15,8 @@ import pathlib
 
 import pytest
 
-from hermes_cli import doctor_platform
-from hermes_cli.setup_quick import _print_macos_fda_tip
+from devbuddy_cli import doctor_platform
+from devbuddy_cli.setup_quick import _print_macos_fda_tip
 
 
 def _capture(fn):

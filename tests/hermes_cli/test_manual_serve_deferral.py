@@ -5,12 +5,12 @@ from dataclasses import asdict
 
 import pytest
 
-from hermes_cli import process_identity
-from hermes_cli import update_cmd_fleet as fleet
-from hermes_cli import update_receipt
-from hermes_cli.update_inventory import RuntimeRecord, UpdatePlan
-from hermes_cli.update_serve_obligations import defer_manual_serve, retain_receipt_manual_serves
-from hermes_constants import get_hermes_home
+from devbuddy_cli import process_identity
+from devbuddy_cli import update_cmd_fleet as fleet
+from devbuddy_cli import update_receipt
+from devbuddy_cli.update_inventory import RuntimeRecord, UpdatePlan
+from devbuddy_cli.update_serve_obligations import defer_manual_serve, retain_receipt_manual_serves
+from devbuddy_constants import get_hermes_home
 
 
 @pytest.mark.parametrize("kind", ["serve", "dashboard"])
@@ -21,8 +21,8 @@ def test_manual_deferral_survives_receipt_rotation(monkeypatch, capsys, kind, co
     monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: True)
     monkeypatch.setattr(process_identity, "ledger_entries", lambda: [{"pid": 900, "purpose": kind, "create_time": 1000.0}])
     monkeypatch.setattr(fleet, "_print_legacy_units_warning", lambda: None)
-    monkeypatch.setattr("hermes_cli.update_cmd._finish_dashboard_update_cleanup", lambda *a, **k: None)
-    monkeypatch.setattr("hermes_cli.gateway_migrate.maybe_auto_migrate_after_update", lambda: None)
+    monkeypatch.setattr("devbuddy_cli.update_cmd._finish_dashboard_update_cleanup", lambda *a, **k: None)
+    monkeypatch.setattr("devbuddy_cli.gateway_migrate.maybe_auto_migrate_after_update", lambda: None)
     monkeypatch.setattr(update_receipt, "collect_fleet_versions", lambda **k: [])
     restart = fleet._GatewayRestartOutcome(False, [], [], [], [], [], [], set())
     update_receipt.begin_update_receipt()
@@ -81,10 +81,10 @@ def test_historical_manual_obligation_does_not_block_healthy_gateway(monkeypatch
     root.mkdir(parents=True, exist_ok=True)
     (root / "latest.json").write_text(json.dumps(receipt))
     monkeypatch.setattr(fleet, "_current_checkout_sha", lambda: "new")
-    monkeypatch.setattr("hermes_cli.update_cmd._current_checkout_sha", lambda: "new")
+    monkeypatch.setattr("devbuddy_cli.update_cmd._current_checkout_sha", lambda: "new")
     monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: alive)
     monkeypatch.setattr(update_receipt, "collect_fleet_versions", lambda **k: [{"profile": "default", "state": "current", "code_sha": "new"}] if gateway_present else [])
-    monkeypatch.setattr("hermes_cli.update_inventory.collect_runtime_inventory", lambda: UpdatePlan(runtimes=[runtime] if alive is not False else []))
+    monkeypatch.setattr("devbuddy_cli.update_inventory.collect_runtime_inventory", lambda: UpdatePlan(runtimes=[runtime] if alive is not False else []))
     if marker:
         fleet._write_fleet_restart_pending_marker(expected_sha="new")
     # An inventory-less marker never inherits inventory from a historical receipt. It discharges
@@ -106,10 +106,10 @@ def test_stamped_manual_only_history_has_no_gateway_obligation(monkeypatch, caps
     root.mkdir(parents=True, exist_ok=True)
     (root / "latest.json").write_text(json.dumps(receipt))
     monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: True)
-    monkeypatch.setattr("hermes_cli.update_cmd._current_checkout_sha", lambda: "new")
+    monkeypatch.setattr("devbuddy_cli.update_cmd._current_checkout_sha", lambda: "new")
     monkeypatch.setattr(fleet, "_current_checkout_sha", lambda: "new")
     monkeypatch.setattr(update_receipt, "collect_fleet_versions", lambda **k: [])
-    monkeypatch.setattr("hermes_cli.update_inventory.collect_runtime_inventory", lambda: UpdatePlan(runtimes=[RuntimeRecord(**runtime)]))
+    monkeypatch.setattr("devbuddy_cli.update_inventory.collect_runtime_inventory", lambda: UpdatePlan(runtimes=[RuntimeRecord(**runtime)]))
     if marker:
         fleet._write_fleet_restart_pending_marker(expected_sha="new")
     # With no gateway on the host, the live manual serve carries its own reminder and an
@@ -131,8 +131,8 @@ def test_historical_retention_is_independent_of_plan_order(monkeypatch, capsys, 
     root.mkdir(parents=True, exist_ok=True)
     (root / "latest.json").write_text(json.dumps(receipt))
     monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: True)
-    monkeypatch.setattr("hermes_cli.update_cmd._current_checkout_sha", lambda: "new")
-    from hermes_cli.update_serve_obligations import retain_receipt_manual_serves
+    monkeypatch.setattr("devbuddy_cli.update_cmd._current_checkout_sha", lambda: "new")
+    from devbuddy_cli.update_serve_obligations import retain_receipt_manual_serves
     pending_manual = retain_receipt_manual_serves(receipt)
     assert fleet._receipt_owed_gateways(receipt, pending_manual) is None
     assert list((get_hermes_home() / "serve_restart_pending").glob("*.json"))
@@ -146,7 +146,7 @@ def test_historical_retention_is_independent_of_plan_order(monkeypatch, capsys, 
 @pytest.mark.parametrize("gateway_state", ["current", "stale"])
 def test_historical_retention_failure_warns_and_survives_rotation(monkeypatch, capsys, failure, gateway_state):
     from pathlib import Path
-    from hermes_cli import update_serve_obligations as obligations
+    from devbuddy_cli import update_serve_obligations as obligations
 
     manual = asdict(RuntimeRecord(kind="serve", profile="work", pid=900, supervisor="manual-serve", restart_via="respawn-argv", detail={"create_time": 1000.0}))
     receipt = {"outcome": "partial", "plan": {"runtimes": [manual]}, "fleet": [{"profile": "default", "state": gateway_state, "code_sha": "new"}]}
@@ -154,7 +154,7 @@ def test_historical_retention_failure_warns_and_survives_rotation(monkeypatch, c
     root.mkdir(parents=True, exist_ok=True)
     (root / "latest.json").write_text(json.dumps(receipt))
     monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: True)
-    monkeypatch.setattr("hermes_cli.update_cmd._current_checkout_sha", lambda: "new")
+    monkeypatch.setattr("devbuddy_cli.update_cmd._current_checkout_sha", lambda: "new")
     monkeypatch.setattr(update_receipt, "collect_fleet_versions", lambda **k: [{"profile": "default", "state": "current", "code_sha": "new"}])
     directory = get_hermes_home() / "serve_restart_pending"
 

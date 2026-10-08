@@ -10,9 +10,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import resource_limits
-from hermes_cli import dashboard_procs
-from hermes_cli import main_dashboard
+from devbuddy_cli import resource_limits
+from devbuddy_cli import dashboard_procs
+from devbuddy_cli import main_dashboard
 
 
 class _FakeResource:
@@ -110,7 +110,7 @@ def test_fresh_process_import_without_posix_resource_is_a_safe_noop():
         sys.modules["resource"] = None
         module_path = pathlib.Path(sys.argv[1])
         spec = importlib.util.spec_from_file_location(
-            "hermes_cli._resource_limits_without_posix_resource",
+            "devbuddy_cli._resource_limits_without_posix_resource",
             module_path,
         )
         module = importlib.util.module_from_spec(spec)
@@ -204,10 +204,10 @@ async def test_gateway_startup_applies_limit_before_gateway_initialization(monke
 
 
 def test_serve_startup_applies_limit_before_web_server(monkeypatch):
-    from hermes_cli import main as cli_main
-    import hermes_cli.main_web_build as main_web_build
-    import hermes_cli.plugins
-    import hermes_cli.web_server
+    from devbuddy_cli import main as cli_main
+    import devbuddy_cli.main_web_build as main_web_build
+    import devbuddy_cli.plugins
+    import devbuddy_cli.web_server
 
     # cmd_dashboard(headless_backend=True) exports HERMES_SERVE_HEADLESS=1 into
     # this process's environment (main.py serve path). Touch the key through
@@ -226,9 +226,9 @@ def test_serve_startup_applies_limit_before_web_server(monkeypatch):
     monkeypatch.setattr(cli_main, "_build_web_ui", lambda *args, **kwargs: True)
     monkeypatch.setattr(main_web_build, "_build_web_ui", lambda *args, **kwargs: True)
     monkeypatch.setattr(cli_main, "_maybe_setup_dashboard_auth_interactively", lambda args: None)
-    monkeypatch.setattr(hermes_cli.plugins, "discover_plugins", lambda: None)
+    monkeypatch.setattr(devbuddy_cli.plugins, "discover_plugins", lambda: None)
     monkeypatch.setattr(
-        hermes_cli.web_server,
+        devbuddy_cli.web_server,
         "start_server",
         lambda **kwargs: calls.append("server"),
     )
@@ -256,9 +256,9 @@ def test_serve_startup_applies_limit_before_web_server(monkeypatch):
 @pytest.mark.platforms("linux")
 def test_named_profile_reroute_defers_limit_to_final_process(monkeypatch, tmp_path):
     """The launcher profile must not leak its limit across machine re-exec."""
-    from hermes_cli import main as cli_main
-    import hermes_cli.profiles
-    import hermes_constants
+    from devbuddy_cli import main as cli_main
+    import devbuddy_cli.profiles
+    import devbuddy_constants
     from tools.environments import local as local_environment
 
     calls: list[str] = []
@@ -271,7 +271,7 @@ def test_named_profile_reroute_defers_limit_to_final_process(monkeypatch, tmp_pa
         lambda: calls.append("limit"),
     )
     monkeypatch.setattr(
-        hermes_cli.profiles,
+        devbuddy_cli.profiles,
         "get_active_profile_name",
         lambda: "worker",
     )
@@ -282,7 +282,7 @@ def test_named_profile_reroute_defers_limit_to_final_process(monkeypatch, tmp_pa
         lambda **kwargs: {},
     )
     monkeypatch.setattr(
-        hermes_constants,
+        devbuddy_constants,
         "get_default_hermes_root",
         lambda: tmp_path,
     )
@@ -315,15 +315,15 @@ def test_named_profile_reroute_defers_limit_to_final_process(monkeypatch, tmp_pa
         cli_main.cmd_dashboard(args)
 
     assert calls == []
-    assert exec_call["argv"][1:5] == ["-m", "hermes_cli.main", "-p", "default"]
+    assert exec_call["argv"][1:5] == ["-m", "devbuddy_cli.main", "-p", "default"]
     assert exec_call["env"]["HERMES_HOME"] == str(tmp_path)
 
 
 @pytest.mark.parametrize("lifecycle_flag", ["status", "stop"])
 def test_dashboard_lifecycle_flags_skip_limit_adjustment(monkeypatch, lifecycle_flag):
     """Informational/stop-only commands must not mutate process limits."""
-    from hermes_cli import main as cli_main
-    import hermes_cli.main_dashboard as hermes_cli_main_dashboard
+    from devbuddy_cli import main as cli_main
+    import devbuddy_cli.main_dashboard as hermes_cli_main_dashboard
 
     calls: list[str] = []
     monkeypatch.setattr(

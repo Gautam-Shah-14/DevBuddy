@@ -1,4 +1,4 @@
-"""Tests for the hermes_cli.nous_billing HTTP client's response handling.
+"""Tests for the devbuddy_cli.nous_billing HTTP client's response handling.
 
 Focus: a 2xx response with a NON-JSON body (e.g. a reverse-proxy / SPA fallback
 HTML page when a route isn't actually serving the billing API) must surface as a
@@ -13,7 +13,7 @@ import json
 
 import pytest
 
-from hermes_cli import nous_billing as nb
+from devbuddy_cli import nous_billing as nb
 
 
 class _FakeResp(io.BytesIO):
@@ -168,21 +168,21 @@ def test_404_get_charge_status_maps_to_generic_billing_error(monkeypatch):
 def test_billing_token_cache_is_scoped_per_profile_home(monkeypatch, tmp_path):
     """The 30s (token, base) memo must not hand profile A's Portal bearer to profile B under a
     multiplex gateway, where the per-turn HERMES_HOME override selects the auth.json."""
-    import hermes_constants
-    import hermes_cli.auth as auth
+    import devbuddy_constants
+    import devbuddy_cli.auth as auth
 
     monkeypatch.setattr(nb, "_token_cache", {}, raising=False)
     monkeypatch.setattr(auth, "get_provider_auth_state", lambda provider: {})
     monkeypatch.setattr(
         auth, "resolve_nous_access_token",
-        lambda **kw: f"tok-{hermes_constants.get_hermes_home().name}")
+        lambda **kw: f"tok-{devbuddy_constants.get_hermes_home().name}")
     a, b = tmp_path / "a", tmp_path / "b"
     a.mkdir(); b.mkdir()
     seen = []
     for home in (a, b):
-        tok = hermes_constants.set_hermes_home_override(str(home))
+        tok = devbuddy_constants.set_hermes_home_override(str(home))
         try:
             seen.append(nb._resolve_token_and_base()[0])
         finally:
-            hermes_constants.reset_hermes_home_override(tok)
+            devbuddy_constants.reset_hermes_home_override(tok)
     assert seen == ["tok-a", "tok-b"]

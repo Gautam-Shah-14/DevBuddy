@@ -9,7 +9,7 @@ import pytest
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from hermes_cli import web_server
+from devbuddy_cli import web_server
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def test_console_ws_rejects_missing_or_bad_token(console_client):
 
 
 def test_console_ws_cancel_returns_to_prompt(console_client, monkeypatch):
-    from hermes_cli.console_engine import ConsoleResult, HermesConsoleEngine
+    from devbuddy_cli.console_engine import ConsoleResult, HermesConsoleEngine
 
     def slow_execute(self, line: str, *, confirmed: bool = False):
         time.sleep(0.2)
@@ -144,8 +144,8 @@ def test_console_cancel_stops_forked_agent_request_before_reporting(console_clie
     import threading
 
     from agent import curator
-    from hermes_cli.web_routers import chat_ws
-    from hermes_constants import get_hermes_home
+    from devbuddy_cli.web_routers import chat_ws
+    from devbuddy_constants import get_hermes_home
     from tools import skill_usage
 
     # The LLM pass only forks when an agent-created skill is a candidate: bundled

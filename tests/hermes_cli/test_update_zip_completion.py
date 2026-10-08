@@ -10,11 +10,11 @@ import zipfile
 
 import pytest
 
-from hermes_cli import main, update_cmd, update_cmd_fleet as fleet, update_cmd_maint as maint
-from hermes_cli import update_cmd_zip, update_receipt
-from hermes_cli.config_defaults import DEFAULT_CONFIG
-from hermes_cli.update_inventory import RuntimeRecord, UpdatePlan
-import hermes_yaml
+from devbuddy_cli import main, update_cmd, update_cmd_fleet as fleet, update_cmd_maint as maint
+from devbuddy_cli import update_cmd_zip, update_receipt
+from devbuddy_cli.config_defaults import DEFAULT_CONFIG
+from devbuddy_cli.update_inventory import RuntimeRecord, UpdatePlan
+import devbuddy_yaml
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ def zip_update(tmp_path, monkeypatch, isolated_source_completion):
     plan = UpdatePlan(install_method="git", expected_version="1.0", profiles=["default", "other"],
                       runtimes=[RuntimeRecord(kind="serve", profile="default", pid=99999999,
                                               supervisor="manual-serve")])
-    monkeypatch.setattr("hermes_cli.update_inventory.collect_runtime_inventory", lambda: plan)
+    monkeypatch.setattr("devbuddy_cli.update_inventory.collect_runtime_inventory", lambda: plan)
     monkeypatch.setattr(main, "_pause_windows_gateways_for_update", lambda: token)
     monkeypatch.setattr("atexit.register", lambda *args: None)
     monkeypatch.setattr(main, "_desktop_packaged_executable", lambda root: None)
@@ -75,13 +75,13 @@ def zip_update(tmp_path, monkeypatch, isolated_source_completion):
         events.append("prepare")
         # The pre-update snapshot must reach the real cron-loss safety net.
         jobs.write_text('{"jobs": []}', encoding="utf-8")
-    monkeypatch.setattr("hermes_cli.source_build.build_update_products", prepare)
+    monkeypatch.setattr("devbuddy_cli.source_build.build_update_products", prepare)
     # PM/builds and machine-level repair are independently covered. Keep real
     # config migration, profile env backfill, snapshot recovery and receipts.
-    monkeypatch.setattr("hermes_cli.macos_tcc_anchor.ensure_tcc_anchor", lambda: None)
+    monkeypatch.setattr("devbuddy_cli.macos_tcc_anchor.ensure_tcc_anchor", lambda: None)
     monkeypatch.setattr(maint, "_print_post_update_notices_and_self_heals", lambda: None)
     monkeypatch.setattr(maint, "_print_bundled_skills_sync_report", lambda: None)
-    monkeypatch.setattr("hermes_cli.profiles.seed_profile_skills", lambda *a, **kw: {})
+    monkeypatch.setattr("devbuddy_cli.profiles.seed_profile_skills", lambda *a, **kw: {})
     monkeypatch.setattr("plugins.memory.honcho.cli.sync_honcho_profiles_quiet", lambda: [])
     monkeypatch.setattr(update_cmd, "_reload_config_modules", lambda: None)
     monkeypatch.setattr(update_cmd, "_post_update_sqlite_runtime_status", lambda: (True, None))
@@ -89,7 +89,7 @@ def zip_update(tmp_path, monkeypatch, isolated_source_completion):
     monkeypatch.setattr(maint, "_refresh_dashboard_after_update", lambda **kwargs: None)
     monkeypatch.setattr(update_cmd, "_surviving_pre_update_serve_runtimes", lambda plan: [])
     monkeypatch.setattr(fleet, "_collect_fleet_snapshot", lambda *args: [])
-    monkeypatch.setattr("hermes_cli.gateway_migrate.maybe_auto_migrate_after_update", lambda: None)
+    monkeypatch.setattr("devbuddy_cli.gateway_migrate.maybe_auto_migrate_after_update", lambda: None)
 
     def resume(received):
         assert received is token
@@ -135,7 +135,7 @@ def test_zip_command_migrates_profiles_recovers_snapshot_and_verifies_fleet(
     update_cmd._cmd_update_impl(SimpleNamespace(branch="main", yes=True), gateway_mode)
 
     for profile in (state.active, state.sibling):
-        config = hermes_yaml.safe_load((profile / "config.yaml").read_text())
+        config = devbuddy_yaml.safe_load((profile / "config.yaml").read_text())
         assert config["_config_version"] == DEFAULT_CONFIG["_config_version"]
         assert config["model"]["default"] == "retained-model"
     assert (state.sibling / ".env").read_bytes() == (state.active / ".env").read_bytes()
@@ -230,7 +230,7 @@ def test_zip_failure_recovers_pause_without_completion_mutations(zip_update, mon
         def fail_preparation(*args, **kwargs):
             assert (state.root / "payload.txt").read_text() == "new"
             raise pm.InstallError("venv", "preparation stopped")
-        monkeypatch.setattr("hermes_cli.source_build.build_update_products", fail_preparation)
+        monkeypatch.setattr("devbuddy_cli.source_build.build_update_products", fail_preparation)
         expected = pm.InstallError
     with pytest.raises(expected) as raised:
         update_cmd._cmd_update_impl(SimpleNamespace(branch="main", yes=True), gateway_mode=True)

@@ -8,7 +8,7 @@ import threading
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from hermes_constants import display_hermes_home
+from devbuddy_constants import display_hermes_home
 from agent.prompt_cache_boundary import register_stable_prefix
 from agent.skill_preprocessing import load_skills_config as _load_skills_config, preprocess_skill_content
 
@@ -23,7 +23,7 @@ _skill_commands_project: Optional[str] = None
 _publish_lock = threading.Lock()
 # ``\w`` keeps Unicode letters (CJK, Cyrillic) so a ``name: 小说拆条`` skill registers ``/小说拆条``
 # instead of slugging to "" and being dropped (#12351); Telegram's ``[a-z0-9_]`` menu limit is
-# applied by hermes_cli/commands_platforms.py, not here.
+# applied by devbuddy_cli/commands_platforms.py, not here.
 _SKILL_INVALID_CHARS = re.compile(r"[^\w-]")
 _SKILL_MULTI_HYPHEN = re.compile(r"-{2,}")
 
@@ -149,7 +149,7 @@ def _resolve_skill_commands_home() -> str:
     profile's skill list cached, so ``get_skill_commands()`` reported a cache miss for skills that only
     exist under the new profile (#88023).
     """
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
     return str(get_hermes_home())
 
 
@@ -346,7 +346,7 @@ def skill_command_collision_note(name: str) -> Optional[str]:
     built-in handlers), and the ``/skills`` listing plus the command palette render the note so
     the skipped skill is explained where the user looks, not only in the log.
     """
-    from hermes_cli.commands import resolve_command
+    from devbuddy_cli.commands import resolve_command
     cmd_name = slugify_skill_name(name)
     if not cmd_name or resolve_command(cmd_name) is None:
         return None
@@ -640,7 +640,7 @@ def resolve_auto_load_skills(user_config: dict | None = None) -> list[str]:
     empty when unset, malformed, or the config is unreadable."""
     if user_config is None:
         try:
-            from hermes_cli.config import load_config_readonly
+            from devbuddy_cli.config import load_config_readonly
             user_config = load_config_readonly()
         except Exception:
             return []
@@ -663,7 +663,7 @@ def build_auto_load_prompt(
     the disabled list and the ``<home>/skills`` lookup all resolve under that home, so a gateway build thread
     that lost the HERMES_HOME ContextVar cannot pin the launch profile's skills into another profile's prompt.
     """
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
     home_token = set_hermes_home_override(str(home_override)) if home_override is not None else None
     try:
         auto_skills = resolve_auto_load_skills(user_config)

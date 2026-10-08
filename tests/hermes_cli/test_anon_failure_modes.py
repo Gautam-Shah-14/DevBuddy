@@ -2,7 +2,7 @@
 Hermes does with each (the failure-mode contract behind the desktop's onboarding copy).
 
 Driven through a fake NAS whose responses are the ones the real service sends (see the code table
-in ``hermes_cli.anon_auth``), never through mocked-away client code.
+in ``devbuddy_cli.anon_auth``), never through mocked-away client code.
 """
 
 from __future__ import annotations
@@ -12,10 +12,10 @@ import json
 import httpx
 import pytest
 
-from hermes_cli import anon_auth, anon_sign_in, free_tier_bootstrap
-from hermes_cli.auth import _load_auth_store
+from devbuddy_cli import anon_auth, anon_sign_in, free_tier_bootstrap
+from devbuddy_cli.auth import _load_auth_store
 
-from tests.hermes_cli.anon_portal import PORTAL, WELCOME, install_portal  # noqa: F401
+from tests.devbuddy_cli.anon_portal import PORTAL, WELCOME, install_portal  # noqa: F401
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def _mint_error(nas) -> anon_auth.AuthError:
 
 def _exchange_error(nas) -> anon_auth.AuthError:
     """Mint (the credential is persisted before any exchange), then exchange it at first use."""
-    from hermes_cli.auth_nous import resolve_nous_runtime_credentials
+    from devbuddy_cli.auth_nous import resolve_nous_runtime_credentials
     assert anon_auth.is_guest_state(anon_auth.ensure_portal_identity(explicit=True))
     with pytest.raises(anon_auth.AuthError) as exc:
         resolve_nous_runtime_credentials()
@@ -90,8 +90,8 @@ class TestNasRefusalCodes:
         assert nas.creates() == 1
 
     def test_a_locked_account_is_never_replaced_through_connectors_either(self, nas):
-        from hermes_cli.auth import _auth_store_lock, _save_auth_store
-        from tests.hermes_cli.anon_portal import make_jwt
+        from devbuddy_cli.auth import _auth_store_lock, _save_auth_store
+        from tests.devbuddy_cli.anon_portal import make_jwt
         from tools import managed_tool_gateway as mtg
         anon_auth.ensure_portal_identity(explicit=True)
         with _auth_store_lock():
@@ -105,7 +105,7 @@ class TestNasRefusalCodes:
         assert nas.creates() == 1
 
     def test_unknown_token_is_replaced_once_at_first_use(self, nas):
-        from hermes_cli.auth_nous import resolve_nous_runtime_credentials
+        from devbuddy_cli.auth_nous import resolve_nous_runtime_credentials
         first = anon_auth.ensure_portal_identity(explicit=True)
         original = nas.handler
 

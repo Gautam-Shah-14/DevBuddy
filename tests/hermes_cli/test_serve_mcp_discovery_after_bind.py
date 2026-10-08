@@ -13,10 +13,10 @@ import sys
 import threading
 import types
 
-import hermes_cli.mcp_startup as mcp_startup
-import hermes_cli.web_server as web_server
-import hermes_cli.web_server_lifecycle as web_server_lifecycle
-from tests.hermes_cli.test_dashboard_auth_gate import _stub_uvicorn_run
+import devbuddy_cli.mcp_startup as mcp_startup
+import devbuddy_cli.web_server as web_server
+import devbuddy_cli.web_server_lifecycle as web_server_lifecycle
+from tests.devbuddy_cli.test_dashboard_auth_gate import _stub_uvicorn_run
 
 
 def _reset_discovery_state(monkeypatch):
@@ -76,14 +76,14 @@ def test_deferred_discovery_fires_once_and_is_idempotent(monkeypatch):
 
 
 def _stub_dashboard_runtime(monkeypatch):
-    import hermes_cli.main as main_mod
+    import devbuddy_cli.main as main_mod
 
     monkeypatch.setattr(main_mod, "_resolve_dashboard_web_dist", lambda *a, **k: None)
     monkeypatch.setattr(main_mod, "_sync_bundled_skills_quietly", lambda: None)
     monkeypatch.setitem(sys.modules, "fastapi", types.SimpleNamespace())
     monkeypatch.setitem(sys.modules, "uvicorn", types.SimpleNamespace())
-    monkeypatch.setitem(sys.modules, "hermes_logging", types.SimpleNamespace(setup_logging=lambda **_k: None))
-    monkeypatch.setitem(sys.modules, "hermes_cli.plugins", types.SimpleNamespace(discover_plugins=lambda: None))
+    monkeypatch.setitem(sys.modules, "devbuddy_logging", types.SimpleNamespace(setup_logging=lambda **_k: None))
+    monkeypatch.setitem(sys.modules, "devbuddy_cli.plugins", types.SimpleNamespace(discover_plugins=lambda: None))
     return main_mod
 
 
@@ -108,7 +108,7 @@ def test_standalone_dashboard_boot_arms_discovery_without_starting_it(monkeypatc
 def test_first_gateway_ws_client_starts_the_armed_discovery_once(monkeypatch):
     import asyncio
 
-    import hermes_cli.web_routers.chat_ws as chat_ws
+    import devbuddy_cli.web_routers.chat_ws as chat_ws
 
     _reset_discovery_state(monkeypatch)
     calls: list[str] = []

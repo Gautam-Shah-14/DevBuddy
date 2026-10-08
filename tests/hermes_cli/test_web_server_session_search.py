@@ -1,7 +1,7 @@
 import asyncio
 
-from hermes_cli import web_server
-import hermes_cli.web_routers.sessions as _rt_sessions
+from devbuddy_cli import web_server
+import devbuddy_cli.web_routers.sessions as _rt_sessions
 
 
 class _FakeSessionDB:
@@ -110,7 +110,7 @@ class _FakeSessionDB:
 def test_desktop_session_search_merges_id_matches_before_content_matches(monkeypatch):
     _FakeSessionDB.opened_read_only = None
     _FakeSessionDB.requested_fields = None
-    monkeypatch.setattr("hermes_state.SessionDB", _FakeSessionDB)
+    monkeypatch.setattr("devbuddy_state.SessionDB", _FakeSessionDB)
 
     response = asyncio.run(_rt_sessions.search_sessions(q="20260603", limit=2))
 

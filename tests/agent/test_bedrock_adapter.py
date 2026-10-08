@@ -133,7 +133,7 @@ class TestScopedAwsSessionKwargs:
         Control: a standalone run keeps the ambient chain (``{}`` + process-env bearer)."""
         from agent import bedrock_adapter, secret_scope
         from agent.bedrock_adapter import _cached_client, resolve_bedrock_bearer_token, scoped_aws_session_kwargs
-        from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+        from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 
         home_a, home_b = tmp_path / "home-A", tmp_path / "home-B"
         for home in (home_a, home_b):
@@ -1507,7 +1507,7 @@ class TestBearerTokenRoutesToConverse:
     def _resolve(self, monkeypatch, *, bearer: bool):
         import os
 
-        from hermes_cli import runtime_provider as rp
+        from devbuddy_cli import runtime_provider as rp
 
         if bearer:
             monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "test-bearer-token-123")

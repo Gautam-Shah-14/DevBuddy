@@ -25,7 +25,7 @@ def install_stamp_path(project_root: Path) -> Path:
     bakes the stamp outside the store's package dir and its wrapper carries
     ``HERMES_INSTALL_ROOT`` for the executing tree only — so the executing
     tree resolves through install_root, any other tree is taken literally.
-    PM reads it in sealed stages (the Docker runtime base) before hermes_cli
+    PM reads it in sealed stages (the Docker runtime base) before devbuddy_cli
     ships, so it lives here rather than beside the stewards.
     """
     root = Path(project_root)
@@ -54,7 +54,7 @@ def partials_root() -> Path:
     on every install kind: ``%LOCALAPPDATA%\\hermes\\cache\\partials`` on
     Windows, ``~/.hermes/cache/partials`` on POSIX.
     """
-    from hermes_constants import get_default_hermes_root
+    from devbuddy_constants import get_default_hermes_root
 
     return get_default_hermes_root() / "cache" / "partials"
 
@@ -66,7 +66,7 @@ def facts_path() -> Path:
 def writable_store_root() -> Path:
     if not (store_root().parent / "manifest.json").is_file():
         return store_root()
-    from hermes_constants import get_default_hermes_root
+    from devbuddy_constants import get_default_hermes_root
 
     return get_default_hermes_root() / "tools"
 

@@ -10,7 +10,7 @@ integrity_check` on the file reported the torn-b-tree signature:
     Tree 5 page 60788 cell 4: Rowid 34637 out of order
     Page 50549..52587: never used
 
-The defect: hermes_state already knows macOS `fsync()` does not guarantee
+The defect: devbuddy_state already knows macOS `fsync()` does not guarantee
 write ordering, and mitigates it with `synchronous=FULL` +
 `checkpoint_fullfsync=1` (see `_enforce_macos_synchronous_full`, whose
 docstring names this exact failure: "a WAL checkpoint race with process
@@ -34,8 +34,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_state import repair_state_db_schema
-from hermes_state_repair import _connect_repair_durable
+from devbuddy_state import repair_state_db_schema
+from devbuddy_state_repair import _connect_repair_durable
 
 
 def _make_db(tmp_path: Path) -> Path:

@@ -19,19 +19,19 @@ def profile_home(tmp_path, monkeypatch):
     profile = root / "profiles" / "coder"
     profile.mkdir(parents=True)
     monkeypatch.setenv("HERMES_HOME", str(profile))
-    # hermes_constants memoizes root resolution per (native, env) pair;
+    # devbuddy_constants memoizes root resolution per (native, env) pair;
     # reload to make the new env authoritative for this test.
-    import hermes_constants
+    import devbuddy_constants
 
-    importlib.reload(hermes_constants)
+    importlib.reload(devbuddy_constants)
     yield root, profile
-    importlib.reload(hermes_constants)
+    importlib.reload(devbuddy_constants)
 
 
 def test_models_and_runtimes_resolve_to_the_shared_root(profile_home):
     root, profile = profile_home
-    import hermes_cli.local_runtime.binaries as binaries
-    import hermes_cli.local_runtime.bootstrap as bootstrap
+    import devbuddy_cli.local_runtime.binaries as binaries
+    import devbuddy_cli.local_runtime.bootstrap as bootstrap
 
     models = bootstrap.models_dir()
     runtimes = binaries.runtimes_root()
@@ -49,9 +49,9 @@ def test_all_runtime_state_follows_runtimes_root(profile_home):
     under runtimes_root() — one resolver, so profile-scoping bugs cannot
     come back one file at a time."""
     root, profile = profile_home
-    from hermes_cli.local_runtime.growth import window_overrides_path
-    from hermes_cli.local_runtime.presets import read_preset_decisions
-    import hermes_cli.local_runtime.binaries as binaries
+    from devbuddy_cli.local_runtime.growth import window_overrides_path
+    from devbuddy_cli.local_runtime.presets import read_preset_decisions
+    import devbuddy_cli.local_runtime.binaries as binaries
 
     shared = root / "runtimes" / "llamacpp"
     assert window_overrides_path() == shared / "window_overrides.json"
@@ -69,14 +69,14 @@ def test_default_profile_paths_unchanged(tmp_path, monkeypatch):
     root = tmp_path / ".hermes"
     root.mkdir()
     monkeypatch.setenv("HERMES_HOME", str(root))
-    import hermes_constants
+    import devbuddy_constants
 
-    importlib.reload(hermes_constants)
+    importlib.reload(devbuddy_constants)
     try:
-        import hermes_cli.local_runtime.binaries as binaries
-        import hermes_cli.local_runtime.bootstrap as bootstrap
+        import devbuddy_cli.local_runtime.binaries as binaries
+        import devbuddy_cli.local_runtime.bootstrap as bootstrap
 
         assert bootstrap.models_dir() == root / "models"
         assert binaries.runtimes_root() == root / "runtimes" / "llamacpp"
     finally:
-        importlib.reload(hermes_constants)
+        importlib.reload(devbuddy_constants)

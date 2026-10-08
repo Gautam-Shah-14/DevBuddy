@@ -19,7 +19,7 @@ from agent.context_compressor import (
     _is_summary_access_or_quota_error,
     _truncate_tool_call_args_json,
 )
-from hermes_state import SessionDB
+from devbuddy_state import SessionDB
 
 
 class StubProviderError(Exception):
@@ -223,7 +223,7 @@ class TestSummarizeToolResultClarify:
             # gateway/run.py timeout + delivery-failure paths
             "[user did not respond within 15m]",
             "[clarify prompt could not be delivered]",
-            # hermes_cli/oneshot.py no-user callback
+            # devbuddy_cli/oneshot.py no-user callback
             "[oneshot mode: no user available. Pick the best option from "
             "['a', 'b'] using your own judgment and continue.]",
         ],
@@ -253,7 +253,7 @@ class TestSummarizeToolResultClarify:
         """Producer→recognizer drift guard: run the REAL oneshot no-user
         callback and assert its output is filtered. If the producer's wording
         drifts away from _CLARIFY_NON_RESPONSE_PREFIXES, this fails."""
-        from hermes_cli.oneshot import _oneshot_clarify_callback
+        from devbuddy_cli.oneshot import _oneshot_clarify_callback
 
         sentinels = (
             _oneshot_clarify_callback("Deploy when?", choices=["a", "b"]),
@@ -2079,7 +2079,7 @@ class TestThresholdTokensCap:
     def test_default_config_uses_lower_effective_trigger(self, context_length):
         """Shipped defaults: the trigger is the LOWER of the ratio trigger and the absolute cap, so a
         1M window compacts at the cap while windows whose ratio trigger sits below it are untouched."""
-        from hermes_cli.config import DEFAULT_CONFIG
+        from devbuddy_cli.config import DEFAULT_CONFIG
 
         default_pct = DEFAULT_CONFIG["compression"]["threshold"]
         default_cap = DEFAULT_CONFIG["compression"]["threshold_tokens"]
@@ -2139,7 +2139,7 @@ class TestThresholdTokensCap:
 
     def test_default_config_cap_survives_model_switch(self):
         """The shipped cap remains effective when the active model changes."""
-        from hermes_cli.config import DEFAULT_CONFIG
+        from devbuddy_cli.config import DEFAULT_CONFIG
 
         with patch("agent.context_compressor.get_model_context_length", return_value=1_000_000):
             comp = ContextCompressor(

@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import uninstall
+from devbuddy_cli import uninstall
 
 
 @pytest.fixture

@@ -36,7 +36,7 @@ def _run_gateway_import(
         import os, sys
         sys.path.insert(0, {str(PROJECT_ROOT)!r})
         if {str(routed_home or "")!r}:
-            from hermes_constants import set_hermes_home_override
+            from devbuddy_constants import set_hermes_home_override
             set_hermes_home_override({str(routed_home or "")!r})
 
         try:
@@ -106,7 +106,7 @@ def _run_gateway_import(
 
 def _write_config(home: Path, agent_cfg: dict | None = None, display_cfg: dict | None = None,
                   timezone: str | None = None, gateway_cfg: dict | None = None) -> None:
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
     cfg: dict = {}
     if agent_cfg:
         cfg["agent"] = agent_cfg
@@ -178,7 +178,7 @@ def test_default_turn_lease_timeout_overrides_stale_env_when_key_is_omitted(
 
     env = _run_gateway_import(hermes_home, initial_env={})
 
-    from hermes_cli.config import DEFAULT_CONFIG
+    from devbuddy_cli.config import DEFAULT_CONFIG
 
     assert float(env.get("HERMES_TURN_LEASE_TIMEOUT")) == float(
         DEFAULT_CONFIG["agent"]["gateway_turn_lease_timeout"]
@@ -192,7 +192,7 @@ def test_default_turn_lease_timeout_matches_the_runtime_fallback() -> None:
     lease registry's DEFAULT_LEASE_WAIT must move together.
     """
     from gateway.turn_lease import DEFAULT_LEASE_WAIT
-    from hermes_cli.config import DEFAULT_CONFIG
+    from devbuddy_cli.config import DEFAULT_CONFIG
 
     assert (
         float(DEFAULT_CONFIG["agent"]["gateway_turn_lease_timeout"])

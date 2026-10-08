@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import active_sessions
+from devbuddy_cli import active_sessions
 
 
 
@@ -68,7 +68,7 @@ def test_cross_process_acquire_claims_only_one_last_slot(tmp_path, monkeypatch):
     script = (
         "import os, time\n"
         "from pathlib import Path\n"
-        "from hermes_cli.active_sessions import try_acquire_active_session\n"
+        "from devbuddy_cli.active_sessions import try_acquire_active_session\n"
         "idx = os.environ['WORKER_INDEX']\n"
         "worker_count = int(os.environ['WORKER_COUNT'])\n"
         "delayed_worker = os.environ.get('DELAYED_WORKER_INDEX')\n"
@@ -227,7 +227,7 @@ def test_release_under_profile_home_override_targets_acquisition_registry(
     profile home override (native multiplex runs agent cleanup under
     ``_profile_runtime_scope``). Before the fix the root entry survived and
     the session cap filled with phantom leases."""
-    from hermes_constants import (
+    from devbuddy_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )
@@ -265,7 +265,7 @@ def test_transfer_under_profile_home_override_targets_acquisition_registry(
 ):
     """Sibling site of #85431: transfer must also update the registry the
     lease was acquired against, not one resolved from the current override."""
-    from hermes_constants import (
+    from devbuddy_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )

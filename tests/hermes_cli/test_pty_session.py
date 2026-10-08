@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from hermes_cli.pty_session import RingBuffer
+from devbuddy_cli.pty_session import RingBuffer
 
 
 def test_ringbuffer_keeps_everything_under_capacity():
@@ -83,7 +83,7 @@ class FailingWS(FakeWS):
 
 @pytest.mark.asyncio
 async def test_attach_replays_buffer_then_streams_live():
-    from hermes_cli.pty_session import PtySession
+    from devbuddy_cli.pty_session import PtySession
     bridge = FakeBridge([b"hello ", b"world", None])
     s = PtySession("k", bridge, buffer_cap=1024, read_timeout=0.01)
     await s.start()
@@ -98,7 +98,7 @@ async def test_attach_replays_buffer_then_streams_live():
 @pytest.mark.asyncio
 async def test_failed_replay_detaches_session_so_reaper_reclaims_it():
     """A client dropping mid-replay must not pin the PTY as attached forever (#110849)."""
-    from hermes_cli.pty_session import PtySessionRegistry
+    from devbuddy_cli.pty_session import PtySessionRegistry
 
     reg = PtySessionRegistry(ttl=0.0, max_sessions=2, buffer_cap=1024, read_timeout=0.01)
     bridge = FakeBridge([b""])
@@ -116,7 +116,7 @@ async def test_failed_replay_detaches_session_so_reaper_reclaims_it():
 
 @pytest.mark.asyncio
 async def test_drain_send_failure_detaches_current_socket_but_not_a_replacement():
-    from hermes_cli.pty_session import PtySession
+    from devbuddy_cli.pty_session import PtySession
 
     s = PtySession("k", FakeBridge([b"live"]), buffer_cap=1024, read_timeout=0.01)
     await s.start()
@@ -147,7 +147,7 @@ async def test_drain_send_failure_detaches_current_socket_but_not_a_replacement(
 @pytest.mark.asyncio
 async def test_reattach_can_force_complete_tui_redraw_after_replay():
     """A fresh terminal cannot reconstruct a differential ANSI tail alone."""
-    from hermes_cli.pty_session import PtySession
+    from devbuddy_cli.pty_session import PtySession
 
     bridge = FakeBridge([b"partial differential frame", b""])
     s = PtySession("k", bridge, buffer_cap=1024, read_timeout=0.01)
@@ -165,7 +165,7 @@ async def test_reattach_can_force_complete_tui_redraw_after_replay():
 
 @pytest.mark.asyncio
 async def test_failed_redraw_marks_session_dead_for_replacement():
-    from hermes_cli.pty_session import PtySession
+    from devbuddy_cli.pty_session import PtySession
 
     bridge = FakeBridge([b""], write_result=False)
     s = PtySession("k", bridge, buffer_cap=1024, read_timeout=0.01)
@@ -179,7 +179,7 @@ async def test_failed_redraw_marks_session_dead_for_replacement():
 
 @pytest.mark.asyncio
 async def test_session_serializes_input_across_socket_tasks():
-    from hermes_cli.pty_session import PtySession
+    from devbuddy_cli.pty_session import PtySession
 
     class OrderedBridge(FakeBridge):
         def __init__(self):
@@ -215,7 +215,7 @@ async def test_session_serializes_input_across_socket_tasks():
 
 @pytest.mark.asyncio
 async def test_superseded_failed_write_does_not_kill_replacement_session():
-    from hermes_cli.pty_session import PtySession
+    from devbuddy_cli.pty_session import PtySession
 
     class SupersededBridge(FakeBridge):
         def __init__(self):
@@ -260,7 +260,7 @@ async def test_superseded_failed_write_does_not_kill_replacement_session():
 
 @pytest.mark.asyncio
 async def test_detach_keeps_draining_into_buffer():
-    from hermes_cli.pty_session import PtySession
+    from devbuddy_cli.pty_session import PtySession
     bridge = FakeBridge([b"one", b"", b"two"])
     s = PtySession("k", bridge, buffer_cap=1024, read_timeout=0.01)
     await s.start()
@@ -279,7 +279,7 @@ async def test_detach_keeps_draining_into_buffer():
 
 @pytest.mark.asyncio
 async def test_eof_marks_dead_and_closes_socket_4410():
-    from hermes_cli.pty_session import PtySession
+    from devbuddy_cli.pty_session import PtySession
     bridge = FakeBridge([b"bye", None])
     s = PtySession("k", bridge, buffer_cap=1024, read_timeout=0.01)
     await s.start()
@@ -291,7 +291,7 @@ async def test_eof_marks_dead_and_closes_socket_4410():
     await s.close()
 
 
-from hermes_cli.pty_session import PtySessionRegistry, RegistryFull
+from devbuddy_cli.pty_session import PtySessionRegistry, RegistryFull
 
 
 def make_registry(ttl=1800.0, max_sessions=16):
@@ -334,7 +334,7 @@ async def test_concurrent_attach_on_one_token_forks_one_pty():
     out of the registry (never reaped) and a reattach landed on the wrong
     terminal (#115304).
     """
-    from hermes_cli.pty_session import WS_CLOSE_SUPERSEDED
+    from devbuddy_cli.pty_session import WS_CLOSE_SUPERSEDED
 
     reg = make_registry()
     spawned = []
@@ -370,7 +370,7 @@ async def test_concurrent_attach_on_one_token_forks_one_pty():
 
 async def _two_idle_sessions_first_close_gated(reg):
     """Two detached (idle) sessions; k0's close() parks until ``release`` is set."""
-    from hermes_cli.pty_session import PtySession
+    from devbuddy_cli.pty_session import PtySession
     bridges = []
     for i in range(2):
         bridge = FakeBridge([b""])

@@ -34,7 +34,7 @@ from agent.memory_provider import PRE_COMPRESS_CHECKPOINT_API_VERSION
 from agent.model_metadata import estimate_messages_tokens_rough, estimate_request_tokens_rough
 from agent.session_activity import ActivityProvenance, normalize_activity_provenance
 from agent.usage_anchor import set_usage_anchor
-from hermes_state_ids import new_session_id as mint_session_id
+from devbuddy_state_ids import new_session_id as mint_session_id
 
 logger = logging.getLogger(__name__)
 
@@ -660,7 +660,7 @@ class CompressionCommitFence:
             release()
 
 
-# Defaults for the in-agent progress-aware wrap; mirror hermes_cli.config.DEFAULT_CONFIG["compression"] keys.
+# Defaults for the in-agent progress-aware wrap; mirror devbuddy_cli.config.DEFAULT_CONFIG["compression"] keys.
 DEFAULT_CONTEXT_TIMEOUT_SECONDS = 120.0
 DEFAULT_CONTEXT_TOTAL_CEILING_SECONDS = 600.0
 
@@ -768,7 +768,7 @@ def resolve_context_compression_timeouts(compression_cfg: Optional[dict] = None)
     if cfg is None:
         cfg = {}
         with contextlib.suppress(Exception):
-            from hermes_cli.config import load_config
+            from devbuddy_cli.config import load_config
             raw = load_config()
             maybe = raw.get("compression", {}) if isinstance(raw, dict) else {}
             cfg = maybe if isinstance(maybe, dict) else {}
@@ -1428,10 +1428,10 @@ def _warn_checkpoint_required_without_capable_provider(agent: Any) -> None:
 
 def _lock_api_is_absent_on_session_db(lock_db: Any) -> bool:
     """Whether the live in-memory SessionDB class structurally predates locks.
-    Only the exact old ``hermes_state.SessionDB`` class (hot-reload skew) may fail open; proxies, lookalikes,
+    Only the exact old ``devbuddy_state.SessionDB`` class (hot-reload skew) may fail open; proxies, lookalikes,
     non-callables and descriptor failures fail closed."""
     try:
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
         missing = object()
         return (
             type(lock_db) is SessionDB
@@ -1652,7 +1652,7 @@ def _rebind_session_context(session_id: str) -> None:
     except Exception:
         os.environ["HERMES_SESSION_ID"] = session_id
     with contextlib.suppress(Exception):
-        from hermes_logging import set_session_context
+        from devbuddy_logging import set_session_context
         set_session_context(session_id)
 
 
@@ -2065,7 +2065,7 @@ def _lower_threshold_to_aux_context(
 
 def _aux_inherits_main_route(agent: Any, aux_model: str, aux_base_url: str) -> bool:
     """True when the auxiliary compression client is the main model on the main endpoint."""
-    from hermes_cli.route_identity import normalize_route_base_url
+    from devbuddy_cli.route_identity import normalize_route_base_url
     if str(aux_model or "").strip().lower() != str(getattr(agent, "model", "") or "").strip().lower():
         return False
     main_base = normalize_route_base_url(str(getattr(agent, "base_url", "") or ""))
@@ -3250,7 +3250,7 @@ def _parent_deliberately_ended(session_db: Any, session_id: str) -> bool:
     if not callable(reader):
         return False
     try:
-        from hermes_state_common import is_automatic_end_reason
+        from devbuddy_state_common import is_automatic_end_reason
         row = reader(session_id) or {}
         return row.get("ended_at") is not None and not is_automatic_end_reason(row.get("end_reason"))
     except Exception:
@@ -3267,13 +3267,13 @@ def _carry_session_state_to_child(agent: Any, old_session_id: str, old_title: An
         # Carry a persistent /goal onto the continuation session. Compression mints a fresh child id;
         # load_goal does a flat per-session lookup with no parent walk, so without this an active goal
         # silently dies at the boundary (#33618).
-        from hermes_cli.goals import migrate_goal_to_session
+        from devbuddy_cli.goals import migrate_goal_to_session
         migrate_goal_to_session(old_session_id, agent.session_id, reason="compression")
     with _swallow('Could not migrate heartbeat on compression: %s'):
-        from hermes_cli.heartbeat import migrate_heartbeat_to_session
+        from devbuddy_cli.heartbeat import migrate_heartbeat_to_session
         migrate_heartbeat_to_session(old_session_id, agent.session_id)
     with _swallow('Could not migrate loop on compression: %s'):
-        from hermes_cli.loops import migrate_loop_to_session
+        from devbuddy_cli.loops import migrate_loop_to_session
         migrate_loop_to_session(old_session_id, agent.session_id, reason="compression")
     if not old_title:
         return
@@ -3332,7 +3332,7 @@ def _publish_rotated_compaction(
     # publish also COALESCEs from the parent row for threads lacking HERMES_HOME.
     _profile_for_child = None
     with contextlib.suppress(Exception):
-        from hermes_cli.profiles import get_active_profile_name
+        from devbuddy_cli.profiles import get_active_profile_name
         _profile_for_child = get_active_profile_name()
     if _profile_for_child == "default":
         _profile_for_child = None
@@ -3730,7 +3730,7 @@ def _commit_compaction(
                     # The kept exchanges are durable rows under the watermark, so the archive below covers
                     # them too. Store them after the head in the same transaction, with the seam the caller
                     # would build, and count their originals as carried duplicates like compress()'s tail.
-                    from hermes_cli.partial_compress import rejoin_compressed_head_and_tail
+                    from devbuddy_cli.partial_compress import rejoin_compressed_head_and_tail
                     persisted = rejoin_compressed_head_and_tail(compressed, verbatim_tail)
                     tail_count += len(verbatim_tail)
                 from agent.conversation_compression_archive import coverage_for_commit

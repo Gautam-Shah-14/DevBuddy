@@ -14,7 +14,7 @@ def transfer_home(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HERMES_HOME", str(home))
 
-    from hermes_cli import backup, gateway, profiles
+    from devbuddy_cli import backup, gateway, profiles
 
     # Restoring data must not install host services or modify the test user's shell.
     monkeypatch.setattr(gateway, "ensure_gateway_service", lambda **kwargs: False)
@@ -35,11 +35,11 @@ def _write_files(root, files):
 def test_transfers_preserve_user_files_without_porting_pm_state(
     transfer_home, tmp_path, monkeypatch, route
 ):
-    from hermes_cli.backup import run_backup, run_import
-    from hermes_cli.profile_distribution import (
+    from devbuddy_cli.backup import run_backup, run_import
+    from devbuddy_cli.profile_distribution import (
         DistributionManifest, install_distribution, write_manifest,
     )
-    from hermes_cli.profiles import export_profile, get_profile_dir, import_profile
+    from devbuddy_cli.profiles import export_profile, get_profile_dir, import_profile
 
     portable = {
         "config.yaml": "model:\n  model: portable\n",
@@ -100,11 +100,11 @@ def test_transfers_preserve_user_files_without_porting_pm_state(
 def test_incoming_runtime_state_never_replaces_target_runtime(
     transfer_home, tmp_path, monkeypatch, route
 ):
-    from hermes_cli.backup import run_import
-    from hermes_cli.profile_distribution import (
+    from devbuddy_cli.backup import run_import
+    from devbuddy_cli.profile_distribution import (
         DistributionManifest, install_distribution, write_manifest,
     )
-    from hermes_cli.profiles import get_profile_dir, import_profile
+    from devbuddy_cli.profiles import get_profile_dir, import_profile
 
     incoming = {
         "config.yaml": "model:\n  model: restored\n",
@@ -137,7 +137,7 @@ def test_incoming_runtime_state_never_replaces_target_runtime(
         with tarfile.open(archive, "w:gz") as writer:
             writer.add(staged, arcname="legacy")
         if route == "profile-denied":
-            from hermes_cli import profiles
+            from devbuddy_cli import profiles
 
             real_rmtree = profiles.shutil.rmtree
 

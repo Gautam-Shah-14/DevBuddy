@@ -62,7 +62,7 @@ Rules for tool code:
 - **`_last_resolved_tool_names`** is a process-global in `model_tools.py`; `_run_single_child()` in
   `delegate_tool.py` saves/restores it around child runs — readers may see it stale mid-delegation.
 - New tools integrate with existing setup UX (`hermes tools`, `hermes setup`, auto-install) rather
-  than a raw env var; secrets go in `OPTIONAL_ENV_VARS` (`hermes_cli/AGENTS.md`).
+  than a raw env var; secrets go in `OPTIONAL_ENV_VARS` (`devbuddy_cli/AGENTS.md`).
 
 ## Toolsets (`toolsets.py`)
 
@@ -93,7 +93,7 @@ and its default cap applies only inside `agent.delegation_context.is_delegated_c
 Put new embed-cost rules there, never a second counter in a tool.
 
 **Every spawn goes through one env builder.** `environments/local.py::build_subprocess_env` (+
-`hermes_constants.apply_subprocess_home_env`, `env_passthrough.py::resolve_passthrough_value`) is
+`devbuddy_constants.apply_subprocess_home_env`, `env_passthrough.py::resolve_passthrough_value`) is
 how a terminal, `execute_code`, background process, delegation child, ACP or MCP stdio child gets
 its environment; a child that acts FOR the served profile (`hermes -p X` workers, `key_cmd`
 helpers, browser drivers, Bot Chat relay turns) uses `environments/local.py::

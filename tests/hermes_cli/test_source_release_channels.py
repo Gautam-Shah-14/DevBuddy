@@ -9,9 +9,9 @@ from urllib.parse import urlsplit
 
 import pytest
 
-from hermes_cli import main, update_cmd
-from hermes_cli.source_releases import resolve_source_release
-from hermes_cli.update_channel import set_install_channel
+from devbuddy_cli import main, update_cmd
+from devbuddy_cli.source_releases import resolve_source_release
+from devbuddy_cli.update_channel import set_install_channel
 
 
 def git(root, *args):
@@ -92,7 +92,7 @@ def releases(tmp_path, monkeypatch, request):
     monkeypatch.setattr(urllib.request, "urlopen", local_urlopen)
     # Legacy pointer tests below retain their HTTP/tag boundary. New CLI callers
     # consume the protocol reader, whose complete schema is tested independently.
-    from hermes_cli import source_releases
+    from devbuddy_cli import source_releases
     def resolve_channel(name, repository):
         record = {"name": name, "repository": repository, "state": "active",
                   "policy": "source-branch" if name == "main" else "preview"}
@@ -188,7 +188,7 @@ def test_fork_origin_uses_its_own_published_release_not_the_official_pointer(rel
 
 
 def test_zip_fallback_keeps_selected_repository_and_commit(releases, monkeypatch):
-    from hermes_cli import update_cmd_zip
+    from devbuddy_cli import update_cmd_zip
 
     seen = []
     monkeypatch.setattr(update_cmd_zip, "_abort_zip_update_if_dirty_tree", lambda: None)

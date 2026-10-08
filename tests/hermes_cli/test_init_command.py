@@ -1,12 +1,12 @@
 """Tests for /init — generate or update AGENTS.md from a project scan.
 
-Covers the shared prompt builder (hermes_cli.init_command.build_init_prompt)
+Covers the shared prompt builder (devbuddy_cli.init_command.build_init_prompt)
 and the slash-command registry wiring. /init has no engine and no model tool:
 it builds a guidance-laden prompt that the live agent runs as a normal turn
 (the /learn pattern), so these are the load-bearing behavior contracts.
 """
 
-from hermes_cli.init_command import (
+from devbuddy_cli.init_command import (
     build_init_prompt,
     build_init_prompt_for_cwd,
 )

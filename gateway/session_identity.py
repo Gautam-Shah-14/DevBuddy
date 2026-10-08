@@ -168,8 +168,8 @@ def restore_identity(
     existing = identity_of(source)
     if existing is not None:
         return existing
-    from hermes_cli.profiles import get_profile_dir
-    from hermes_constants import get_process_hermes_home
+    from devbuddy_cli.profiles import get_profile_dir
+    from devbuddy_constants import get_process_hermes_home
 
     primary_profile = _name(getattr(runner, "_primary_profile_name", None)) or "default"
     runtime_name = _name(getattr(source, "profile", None)) or primary_profile
@@ -207,7 +207,7 @@ def resolve_identity(
     Raises :class:`IdentityUnresolved` under multiplexing when the route is rejected.
     """
     from gateway.profile_routing import ProfileRouteRejected
-    from hermes_constants import get_hermes_home, get_process_hermes_home
+    from devbuddy_constants import get_hermes_home, get_process_hermes_home
 
     multiplexed = bool(getattr(getattr(runner, "config", None), "multiplex_profiles", False))
     primary_profile = _name(getattr(runner, "_primary_profile_name", None))
@@ -240,7 +240,7 @@ def resolve_identity(
     if transport_name == primary_profile:
         authorization_home = Path(primary_home) if primary_home is not None else Path(get_process_hermes_home())
     else:
-        from hermes_cli.profiles import get_profile_dir
+        from devbuddy_cli.profiles import get_profile_dir
         authorization_home = get_profile_dir(transport_name)
     source._authorization_profile_home = authorization_home
 

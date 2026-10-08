@@ -35,7 +35,7 @@ _registry.export(globals())
 def _read_config_key(*path: str) -> Optional[str]:
     """Resolve a dotted config key from ``config.yaml``. Returns None on miss."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from devbuddy_cli.config import load_config_readonly
 
         cur = load_config_readonly()
         for segment in path:
@@ -141,7 +141,7 @@ def _resolve(configured: Optional[str], *, capability: str) -> Optional[WebSearc
 def _keyless_tier_enabled() -> bool:
     """Read ``web.keyless_fallback`` from config.yaml (default: enabled)."""
     try:
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
 
         web_cfg = load_config().get("web") or {}
         return bool(web_cfg.get("keyless_fallback", True))
@@ -176,7 +176,7 @@ def _disabled_web_plugin_for(configured: Optional[str] = None, *, capability: Op
 
     want = _norm(configured)
     try:
-        from hermes_cli.plugins import get_plugin_manager
+        from devbuddy_cli.plugins import get_plugin_manager
 
         pm = get_plugin_manager()
         for key, loaded in pm._plugins.items():
@@ -210,7 +210,7 @@ import threading  # noqa: F401,E402
 
 
 _PLUGIN_COMPAT_LAZY = {
-    'hermes_home_key': ('hermes_constants', 'hermes_home_key'),
+    'hermes_home_key': ('devbuddy_constants', 'hermes_home_key'),
 }
 
 
@@ -219,7 +219,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

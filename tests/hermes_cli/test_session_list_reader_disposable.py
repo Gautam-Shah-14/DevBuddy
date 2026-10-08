@@ -26,10 +26,10 @@ from __future__ import annotations
 
 import shutil
 
-from hermes_cli.sqlite_safe_read import LiveConnectionError, offline_file_access
-from hermes_cli.web_server_sessions import _open_session_db_at_path
-from hermes_state import SessionDB
-from hermes_state_repair import _db_fingerprint
+from devbuddy_cli.sqlite_safe_read import LiveConnectionError, offline_file_access
+from devbuddy_cli.web_server_sessions import _open_session_db_at_path
+from devbuddy_state import SessionDB
+from devbuddy_state_repair import _db_fingerprint
 
 
 def _ids(db) -> list:

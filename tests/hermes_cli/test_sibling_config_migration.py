@@ -10,11 +10,11 @@ These tests use REAL config files on disk and the REAL migration pipeline —
 only the profile-root location is pointed at tmp_path.
 """
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 from pathlib import Path
 
-import hermes_cli.update_cmd as update_cmd
-import hermes_cli.update_cmd_config as update_cmd_config
+import devbuddy_cli.update_cmd as update_cmd
+import devbuddy_cli.update_cmd_config as update_cmd_config
 
 
 def _write_profile(root: Path, name: str, version: int) -> Path:
@@ -28,19 +28,19 @@ def _write_profile(root: Path, name: str, version: int) -> Path:
 
 
 def _latest_version() -> int:
-    from hermes_cli.config import DEFAULT_CONFIG
+    from devbuddy_cli.config import DEFAULT_CONFIG
 
     return int(DEFAULT_CONFIG["_config_version"])
 
 
 def _setup(monkeypatch, tmp_path, active_home: Path):
-    import hermes_cli.profiles as profiles_mod
+    import devbuddy_cli.profiles as profiles_mod
 
     monkeypatch.setattr(profiles_mod, "_get_profiles_root", lambda: tmp_path / "profiles")
-    import hermes_constants
+    import devbuddy_constants
 
     monkeypatch.setattr(
-        hermes_constants, "get_process_hermes_home", lambda: active_home
+        devbuddy_constants, "get_process_hermes_home", lambda: active_home
     )
 
 
@@ -111,7 +111,7 @@ def test_one_broken_profile_does_not_block_others(monkeypatch, tmp_path):
 
 def test_override_is_reset_after_run(monkeypatch, tmp_path):
     """The ContextVar override must not leak past the sweep."""
-    from hermes_constants import get_hermes_home_override
+    from devbuddy_constants import get_hermes_home_override
 
     active = _write_profile(tmp_path / "profiles", "active", _latest_version())
     _write_profile(tmp_path / "profiles", "research", 12)

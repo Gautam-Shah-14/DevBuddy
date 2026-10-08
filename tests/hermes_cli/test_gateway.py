@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.gateway."""
+"""Tests for devbuddy_cli.gateway."""
 
 import json
 import os
@@ -9,7 +9,7 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 
-import hermes_cli.gateway as gateway
+import devbuddy_cli.gateway as gateway
 
 
 _BREAKAWAY_MARKER = "_HERMES_GATEWAY_BREAKAWAY"
@@ -42,7 +42,7 @@ def _run_native_windows_gateway_start_diag(
         import sys
         import types
 
-        import hermes_cli.gateway as gateway_cli
+        import devbuddy_cli.gateway as gateway_cli
 
         async def start_gateway(**kwargs):
             assert "_HERMES_GATEWAY_BREAKAWAY" not in os.environ
@@ -86,7 +86,7 @@ def _run_native_windows_gateway_start_diag(
     else:
         env[_BREAKAWAY_MARKER] = breakaway_marker
 
-    from hermes_cli._subprocess_compat import windows_detach_flags_without_breakaway
+    from devbuddy_cli._subprocess_compat import windows_detach_flags_without_breakaway
 
     completed = subprocess.run(
         [sys.executable, "-c", script],
@@ -155,7 +155,7 @@ def test_gateway_run_subprocess_preserves_daemon_exit_codes(
         import sys
         import types
 
-        import hermes_cli.gateway as gateway_cli
+        import devbuddy_cli.gateway as gateway_cli
 
         outcome = os.environ["HERMES_TEST_GATEWAY_OUTCOME"]
 
@@ -237,9 +237,9 @@ def test_s6_runtime_snapshot_reports_supervised_service(monkeypatch, tmp_path):
             return True
 
     monkeypatch.setattr(gateway, "is_linux", lambda: True)
-    monkeypatch.setattr("hermes_constants.is_container", lambda: True)
-    monkeypatch.setattr("hermes_cli.service_manager.detect_service_manager", lambda: "s6")
-    monkeypatch.setattr("hermes_cli.service_manager.get_service_manager", lambda: FakeS6Manager())
+    monkeypatch.setattr("devbuddy_constants.is_container", lambda: True)
+    monkeypatch.setattr("devbuddy_cli.service_manager.detect_service_manager", lambda: "s6")
+    monkeypatch.setattr("devbuddy_cli.service_manager.get_service_manager", lambda: FakeS6Manager())
     monkeypatch.setattr(gateway, "find_gateway_pids", lambda: [123])
     monkeypatch.setattr(gateway, "_profile_suffix", lambda: "")
 
@@ -286,7 +286,7 @@ def test_spawn_detached_gateway_timestamps_stderr(monkeypatch, tmp_path):
     child_cmd = [
         "/usr/bin/python3",
         "-m",
-        "hermes_cli.main",
+        "devbuddy_cli.main",
         "gateway",
         "run",
         "--replace",
@@ -446,7 +446,7 @@ class TestWaitForGatewayExit:
         # Kill-time re-verification: force-kills only proceed when the LIVE
         # cmdline still looks like a gateway.
         monkeypatch.setattr(
-            gateway, "_capture_gateway_argv", lambda pid: ["python", "-m", "hermes_cli.main", "gateway", "run"]
+            gateway, "_capture_gateway_argv", lambda pid: ["python", "-m", "devbuddy_cli.main", "gateway", "run"]
         )
         monkeypatch.setattr(
             gateway,
@@ -467,7 +467,7 @@ class TestWaitForGatewayExit:
         monkeypatch.setattr(
             gateway,
             "_capture_gateway_argv",
-            lambda pid: None if pid == 11 else ["python", "-m", "hermes_cli.main", "gateway", "run"],
+            lambda pid: None if pid == 11 else ["python", "-m", "devbuddy_cli.main", "gateway", "run"],
         )
         monkeypatch.setattr(
             gateway,
@@ -523,7 +523,7 @@ class TestStopProfileGateway:
     @pytest.mark.platforms("windows")
     def test_windows_stop_drains_marker_before_force_termination(self, monkeypatch):
         """Windows must let the marker watcher run before escalating (#112750)."""
-        import hermes_cli.gateway_windows as gateway_windows
+        import devbuddy_cli.gateway_windows as gateway_windows
 
         pid = 12345
         calls = []
@@ -550,7 +550,7 @@ class TestStopProfileGateway:
     @pytest.mark.platforms("windows")
     def test_windows_stop_force_terminates_only_after_drain_timeout(self, monkeypatch):
         """A wedged Windows gateway still has a bounded force-stop fallback (#112750)."""
-        import hermes_cli.gateway_windows as gateway_windows
+        import devbuddy_cli.gateway_windows as gateway_windows
 
         pid = 12345
         calls = []
@@ -582,7 +582,7 @@ class TestStopProfileGateway:
         refusal fires instead of killing an unrelated process. Reading it at kill time is a vacuous
         self-comparison."""
         import gateway.status as status
-        import hermes_cli.gateway_windows as gateway_windows
+        import devbuddy_cli.gateway_windows as gateway_windows
 
         pid = 4242
         calls = []
@@ -921,7 +921,7 @@ def test_find_windows_gateway_services_ignores_task_scheduler_ancestor(monkeypat
     gateway's supervisor, so a task-launched gateway is a plain process (#97208); the same tree under a
     Hermes-owned service (by binary path) stays SCM-supervised."""
     import psutil
-    import hermes_cli.gateway_windows as gateway_windows
+    import devbuddy_cli.gateway_windows as gateway_windows
 
     monkeypatch.setattr(gateway_windows, "hermes_service_roots", lambda: (r"C:\hermes\hermes-agent",))
     profile = SimpleNamespace(profile="default", pid=18480, create_time=18480.0)
@@ -985,7 +985,7 @@ def test_find_windows_gateway_services_ignores_task_scheduler_ancestor(monkeypat
 def test_find_profile_gateway_processes_strict_propagates_profile_listing_failure(
     monkeypatch,
 ):
-    import hermes_cli.profiles as profiles_mod
+    import devbuddy_cli.profiles as profiles_mod
 
     monkeypatch.setattr(
         profiles_mod,

@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_cli.uninstall as uninstall
+import devbuddy_cli.uninstall as uninstall
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def layout(tmp_path, monkeypatch):
     source = home / "workspace" / "custom-source"
     store = home / "machine" / "tool-store"
     userdata = user / "desktop-data"
-    witnesses = [source / "hermes_cli" / "__init__.py", store / "python" / "python.exe",
+    witnesses = [source / "devbuddy_cli" / "__init__.py", store / "python" / "python.exe",
                  home / "installs" / "other-install" / "facts.json", home / "bin" / "hermes.cmd",
                  home / "profiles" / "sibling" / "config.yaml",
                  home / "cache" / "partials" / ".locks" / "other-profile-transfer"]
@@ -34,7 +34,7 @@ def layout(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_RUNTIME_DIR", str(store))
     monkeypatch.setattr(uninstall, "get_project_root", lambda: source)
     monkeypatch.setattr(uninstall, "get_hermes_home", lambda: home)
-    monkeypatch.setattr("hermes_cli.gui_uninstall.desktop_userdata_dir", lambda: userdata)
+    monkeypatch.setattr("devbuddy_cli.gui_uninstall.desktop_userdata_dir", lambda: userdata)
     return home, witnesses, data
 
 
@@ -95,7 +95,7 @@ def test_named_home_does_not_erase_siblings_or_desktop_data(layout, monkeypatch)
 
 
 def test_directory_replaced_with_a_link_does_not_expand_removal(layout, tmp_path):
-    from hermes_cli.data_cleanup import plan_data_removal, remove_data
+    from devbuddy_cli.data_cleanup import plan_data_removal, remove_data
 
     home, _, _ = layout
     original = home / "workspace"
@@ -119,7 +119,7 @@ def test_directory_replaced_with_a_link_does_not_expand_removal(layout, tmp_path
 
 def test_data_only_preserves_the_containing_bundled_application(layout, monkeypatch):
     import json
-    from hermes_cli.bundled_app import PAYLOAD_DIR_NAME
+    from devbuddy_cli.bundled_app import PAYLOAD_DIR_NAME
 
     home, _, data = layout
     app = home / "installed-app"
@@ -147,8 +147,8 @@ def test_data_only_works_from_a_self_contained_runtime_without_an_app(layout, mo
     home, _, data = layout
     package = home.parent / "usr" / "lib" / "hermes-agent"
     project = package / "app"
-    (project / "hermes_cli").mkdir(parents=True)
-    (project / "hermes_cli" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "devbuddy_cli").mkdir(parents=True)
+    (project / "devbuddy_cli" / "__init__.py").write_text("", encoding="utf-8")
     (project / "install-stamp.json").write_text(json.dumps(
         {"payload": "runtime", "distribution": "apt-termux", "updateMechanism": "external"}), encoding="utf-8")
     (package / "venv").mkdir()

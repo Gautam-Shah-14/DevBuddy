@@ -9,15 +9,15 @@ here too, so the installer's PATH launcher behaves the same way.
 
 from __future__ import annotations
 
-# hermes_bootstrap first (UTF-8 stdio on Windows; no-op on POSIX), like every other entry point.
+# devbuddy_bootstrap first (UTF-8 stdio on Windows; no-op on POSIX), like every other entry point.
 try:
-    import hermes_bootstrap  # noqa: F401
+    import devbuddy_bootstrap  # noqa: F401
 except ModuleNotFoundError:
     pass  # partial `hermes update` — only skips the Windows UTF-8 stdio setup
 
-# The `hermes-agent` console script lands here without hermes_cli.main: repair a `hermes update` killed
+# The `hermes-agent` console script lands here without devbuddy_cli.main: repair a `hermes update` killed
 # while git wrote the new tree before importing anything else from the checkout.
-from hermes_cli import _early_recovery
+from devbuddy_cli import _early_recovery
 
 if _early_recovery.restore_interrupted_pull():
     _early_recovery.relaunch_after_restore()
@@ -27,7 +27,7 @@ from typing import Callable, List, Optional  # noqa: E402
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    from hermes_cli import __release_date__, __version__
+    from devbuddy_cli import __release_date__, __version__
 
     parser = argparse.ArgumentParser(
         prog="hermes-agent",

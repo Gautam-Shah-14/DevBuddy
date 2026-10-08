@@ -797,9 +797,9 @@ _SETUP_INTRO = (  # "" → blank line
 
 
 def interactive_setup() -> None:
-    from hermes_cli.config import get_env_value, save_env_value
-    from hermes_cli.cli_output import prompt, prompt_yes_no, print_info, print_success, print_warning
-    from hermes_cli.setup_platforms import declines_reconfigure
+    from devbuddy_cli.config import get_env_value, save_env_value
+    from devbuddy_cli.cli_output import prompt, prompt_yes_no, print_info, print_success, print_warning
+    from devbuddy_cli.setup_platforms import declines_reconfigure
     if declines_reconfigure("Teams", "Reconfigure Teams?", "TEAMS_CLIENT_ID"):
         return
     for line in _SETUP_INTRO:
@@ -872,7 +872,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

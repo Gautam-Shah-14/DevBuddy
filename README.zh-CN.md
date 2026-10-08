@@ -1,103 +1,103 @@
 <p align="center">
-  <img src="assets/banner.png" alt="Hermes Agent" width="100%">
+  <img src="assets/devbuddy-banner-dark.svg" alt="DevBuddy Agent" width="100%">
 </p>
 
-# Hermes Agent ☤
+# DevBuddy Agent 🔥
 
 <p align="center">
-  <a href="https://hermes-agent.nousresearch.com/docs/"><img src="https://img.shields.io/badge/Docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Documentation"></a>
-  <a href="https://discord.gg/NousResearch"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://github.com/NousResearch/hermes-agent/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
-  <a href="https://nousresearch.com"><img src="https://img.shields.io/badge/Built%20by-Nous%20Research-blueviolet?style=for-the-badge" alt="Built by Nous Research"></a>
+  <a href="https://github.com/Gautam-Shah-14/DevBuddy/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
+  <a href="https://github.com/Gautam-Shah-14/DevBuddy"><img src="https://img.shields.io/badge/Built%20by-TokenBurners-blueviolet?style=for-the-badge" alt="Built by TokenBurners"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-lightgrey?style=for-the-badge" alt="English"></a>
   <a href="README.ur-pk.md"><img src="https://img.shields.io/badge/Lang-اردو-green?style=for-the-badge" alt="اردو"></a>
 </p>
 
-**由 [Nous Research](https://nousresearch.com) 构建的自进化 AI 代理。** 它是唯一内置学习闭环的智能代理——从经验中创建技能，在使用中改进技能，主动持久化知识，搜索过往对话，并在跨会话中逐步构建对你的深度理解。可以在 $5 的 VPS 上运行，也可以在 GPU 集群上运行，或者使用几乎零成本的 Serverless 基础设施。它不绑定你的笔记本——你可以在 Telegram 上与它对话，而它在云端 VM 上工作。
+**由 TokenBurners 构建的本地优先（local-first）自进化 AI 代理**，基于
+[Hermes Agent](https://github.com/NousResearch/hermes-agent)（Nous Research，MIT 许可）
+构建。它从经验中创建技能，在使用中改进技能，主动持久化知识，搜索过往对话，并在跨会话中逐步
+构建对你的深度理解。完全在你自己的机器上运行，连接你自己的本地 Ollama——无需 API Key、无需
+云端调用——如果你愿意，也可以连接 OpenAI/Anthropic/任何兼容 OpenAI 的端点。
 
-支持任意模型——[Nous Portal](https://portal.nousresearch.com)、[OpenRouter](https://openrouter.ai)（200+ 模型）、[NVIDIA NIM](https://build.nvidia.com)（Nemotron）、[小米 MiMo](https://platform.xiaomimimo.com)、[z.ai/GLM](https://z.ai)、[Kimi/Moonshot](https://platform.moonshot.ai)、[MiniMax](https://www.minimax.io)、[Hugging Face](https://huggingface.co)、OpenAI，或自定义端点。使用 `hermes model` 即可切换——无需改代码，无锁定。
+使用 `devbuddy model` 即可切换服务商/模型——无需改代码，无锁定。
 
 <table>
 <tr><td><b>真正的终端界面</b></td><td>完整的 TUI，支持多行编辑、斜杠命令自动补全、对话历史、中断重定向和流式工具输出。</td></tr>
 <tr><td><b>随你所在</b></td><td>Telegram、Discord、Slack、WhatsApp、Signal 和 CLI——全部从单个网关进程运行。语音备忘录转写、跨平台对话连续性。</td></tr>
-<tr><td><b>闭环学习</b></td><td>代理管理记忆并定期自我提醒。复杂任务后自动创建技能。技能在使用中自我改进。FTS5 会话搜索配合 LLM 摘要实现跨会话回溯。<a href="https://github.com/plastic-labs/honcho">Honcho</a> 辩证式用户建模。兼容 <a href="https://agentskills.io">agentskills.io</a> 开放标准。</td></tr>
+<tr><td><b>闭环学习</b></td><td>代理管理记忆并定期自我提醒。复杂任务后自动创建技能。技能在使用中自我改进。FTS5 会话搜索配合 LLM 摘要实现跨会话回溯。兼容 <a href="https://agentskills.io">agentskills.io</a> 开放标准。</td></tr>
 <tr><td><b>定时自动化</b></td><td>内置 cron 调度器，支持向任何平台投递。日报、夜间备份、周审计——全部用自然语言描述，无人值守运行。</td></tr>
 <tr><td><b>委派与并行</b></td><td>生成隔离子代理处理并行工作流。编写 Python 脚本通过 RPC 调用工具，将多步管道压缩为零上下文开销的轮次。</td></tr>
-<tr><td><b>随处运行</b></td><td>六种终端后端——本地、Docker、SSH、Daytona、Singularity 和 Modal。Daytona 和 Modal 提供 Serverless 持久化——代理环境空闲时休眠、按需唤醒，空闲期间几乎零成本。$5 VPS 或 GPU 集群都能跑。</td></tr>
-<tr><td><b>研究就绪</b></td><td>批量轨迹生成、轨迹压缩——用于训练下一代工具调用模型。</td></tr>
+<tr><td><b>默认本地优先</b></td><td>无需 Docker、无需服务器、无需 API Key 即可开始——`devbuddy` 直接连接你的本地 Ollama。Docker 及另外六种终端后端（SSH、Singularity、Modal、Daytona、Vercel Sandbox）仅在你需要隔离/远程执行时才会用到，并非必需。</td></tr>
 </table>
 
 ---
 
 ## 快速安装
 
-```bash
-curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
-```
+> **Docker 是可选的，并非必需。** `devbuddy` 是一个纯 Python 控制台脚本——它直接在你的机器
+> 上运行，连接你自己的本地 Ollama（或 OpenAI/Anthropic/任何服务商），完全不需要容器。本仓库
+> 中的 `docker-compose.yml` 仅用于启动 *gateway* 和 *dashboard* 服务（常驻的消息平台桥接和
+> 网页界面），适合希望它作为后台服务运行、可从 Telegram、Discord 等平台访问的用户。如果你只
+> 想在终端里和它对话，完全可以跳过 Docker。
 
-支持 Linux、macOS 和 WSL2。安装程序会自动处理平台特定的配置。
-
-> **Android / Termux：** aarch64 设备可使用预发布的 APT 软件包，其中包含 Python、Node.js 和 TUI。请按照 [Termux 指南](https://hermes-agent.nousresearch.com/docs/getting-started/termux)安装，不要使用桌面和服务器的安装脚本。
->
-> **Windows：** 在 PowerShell 中运行：
-> ```powershell
-> iex (irm https://hermes-agent.nousresearch.com/install.ps1)
-> ```
-> 安装完成后，可能需要重启终端，然后运行 `hermes` 开始对话。
-
-安装后：
+本仓库目前还没有托管安装脚本——请从源码运行：
 
 ```bash
-source ~/.bashrc    # 重新加载 shell（或: source ~/.zshrc）
-hermes              # 开始对话！
+git clone https://github.com/Gautam-Shah-14/DevBuddy.git && cd DevBuddy
+source ./activate      # 配置并激活本地 Python/Node 环境（无需 Docker）
+devbuddy                # 开始对话——默认连接你的本地 Ollama
 ```
+
+`source ./activate` 需要 Python 3.14（项目真正依赖的版本——更低版本完全无法解析其依赖）
+和 Node.js；`AGENTS.md` 中有 PM 工具管理器的完整工作流说明（激活、日常使用、依赖变更、运行
+测试）。
+
+### Windows / Android
+
+旧的托管一键安装脚本（`install.sh` / `install.ps1`、Termux 的 APT 仓库）指向 Nous Research
+自己的域名，目前还不适用于本 fork。原生 Windows 和 Termux/Android 都可以通过上面的源码安装
+方式运行；只是这里暂时还没有对应的一键安装包。
 
 ---
 
 ## 快速入门
 
 ```bash
-hermes              # 交互式 CLI — 开始对话
-hermes model        # 选择 LLM 提供商和模型
-hermes tools        # 配置启用的工具
-hermes config set   # 设置单个配置项
-hermes gateway      # 启动消息网关（Telegram、Discord 等）
-hermes setup        # 运行完整设置向导（一次性配置所有内容）
-hermes claw migrate # 从 OpenClaw 迁移（如果来自 OpenClaw）
-hermes update       # 更新到最新版本
-hermes doctor       # 诊断问题
+devbuddy              # 交互式 CLI — 开始对话
+devbuddy model        # 选择 LLM 提供商和模型
+devbuddy tools        # 配置启用的工具
+devbuddy config set   # 设置单个配置项
+devbuddy config get   # 打印单个配置项
+devbuddy gateway      # 启动消息网关（Telegram、Discord 等）
+devbuddy setup        # 运行完整设置向导（一次性配置所有内容）
+devbuddy claw migrate # 从 OpenClaw 迁移（如果来自 OpenClaw）
+devbuddy update       # 更新到最新版本
+devbuddy doctor       # 诊断问题
 ```
 
-📖 **[完整文档 →](https://hermes-agent.nousresearch.com/docs/)**
+### 数据与配置位置
 
----
-
-## 省去到处收集 API Key — Nous Portal
-
-Hermes 始终允许你使用任意服务商，这点不会改变。但如果你不想为模型、网页搜索、图像生成、TTS、云浏览器分别去申请五个不同的 API Key，**[Nous Portal](https://portal.nousresearch.com)** 用一个订阅就能覆盖全部：
-
-- **300+ 模型** — 用 `/model <name>` 随时切换
-- **Tool Gateway** — 网页搜索、图像生成（FAL）、文本转语音（OpenAI）、云浏览器（Browser Use），全部通过订阅托管。无需额外注册任何账户。
-
-全新安装时一条命令即可：
+所有本地状态——`config.yaml`、`.env` 密钥、会话数据库、技能、日志、命名配置文件——都存放在
+`~/.devbuddy`（原生 Windows 上是 `%LOCALAPPDATA%\devbuddy`）。这由代码中唯一一处控制
+（`devbuddy_constants._get_platform_default_hermes_home()`）；`HERMES_HOME` 环境变量依然和
+以前一样可以覆盖这个位置，如果你想把数据存到别的地方（另一个磁盘、同步文件夹、容器卷等）：
 
 ```bash
-hermes setup --portal
+export HERMES_HOME=/path/to/your/data   # 可选覆盖；默认 ~/.devbuddy
+devbuddy doctor                          # 确认当前读写位置
 ```
 
-它会通过 OAuth 登录、把 Nous 设为推理服务商，并启用 Tool Gateway。随时用 `hermes portal info` 查看路由状态。完整说明见 [Tool Gateway 文档](https://hermes-agent.nousresearch.com/docs/user-guide/features/tool-gateway)。
-
-你随时可以按工具单独切回自己的 API Key — Gateway 是按工具粒度生效的，不是一刀切。
+`devbuddy doctor` 和 `devbuddy profile list` 都会打印当前生效的 home 路径，方便你确认数据
+实际落在哪里。
 
 ---
 
 ## CLI 与消息平台 快速对照
 
-Hermes 有两种入口：用 `hermes` 启动终端 UI，或运行网关从 Telegram、Discord、Slack、WhatsApp、Signal 或 Email 与之对话。进入对话后，许多斜杠命令在两种界面中通用。
+DevBuddy 有两种入口：用 `devbuddy` 启动终端 UI，或运行网关从 Telegram、Discord、Slack、
+WhatsApp、Signal 或 Email 与之对话。进入对话后，许多斜杠命令在两种界面中通用。
 
 | 操作 | CLI | 消息平台 |
 |------|-----|----------|
-| 开始对话 | `hermes` | 运行 `hermes gateway setup` + `hermes gateway start`，然后给机器人发消息 |
+| 开始对话 | `devbuddy` | 运行 `devbuddy gateway setup` + `devbuddy gateway start`，然后给机器人发消息 |
 | 开始新对话 | `/new` 或 `/reset` | `/new` 或 `/reset` |
 | 更换模型 | `/model [provider:model]` | `/model [provider:model]` |
 | 设置人格 | `/personality [name]` | `/personality [name]` |
@@ -107,84 +107,63 @@ Hermes 有两种入口：用 `hermes` 启动终端 UI，或运行网关从 Teleg
 | 中断当前工作 | `Ctrl+C` 或发送新消息 | `/stop` 或发送新消息 |
 | 平台特定状态 | `/platforms` | `/status`、`/sethome` |
 
-完整命令列表请参阅 [CLI 指南](https://hermes-agent.nousresearch.com/docs/user-guide/cli) 和 [消息网关指南](https://hermes-agent.nousresearch.com/docs/user-guide/messaging)。
-
 ---
 
 ## 文档
 
-所有文档位于 **[hermes-agent.nousresearch.com/docs](https://hermes-agent.nousresearch.com/docs/)**：
-
-| 章节 | 内容 |
-|------|------|
-| [快速开始](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart) | 安装 → 设置 → 2 分钟内开始首次对话 |
-| [CLI 使用](https://hermes-agent.nousresearch.com/docs/user-guide/cli) | 命令、快捷键、人格、会话 |
-| [配置](https://hermes-agent.nousresearch.com/docs/user-guide/configuration) | 配置文件、提供商、模型、所有选项 |
-| [消息网关](https://hermes-agent.nousresearch.com/docs/user-guide/messaging) | Telegram、Discord、Slack、WhatsApp、Signal、Home Assistant |
-| [安全](https://hermes-agent.nousresearch.com/docs/user-guide/security) | 命令审批、DM 配对、容器隔离 |
-| [工具与工具集](https://hermes-agent.nousresearch.com/docs/user-guide/features/tools) | 40+ 工具、工具集系统、终端后端 |
-| [技能系统](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills) | 过程记忆、技能中心、创建技能 |
-| [记忆](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory) | 持久记忆、用户画像、最佳实践 |
-| [MCP 集成](https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp) | 连接任意 MCP 服务器扩展能力 |
-| [定时调度](https://hermes-agent.nousresearch.com/docs/user-guide/features/cron) | 定时任务与平台投递 |
-| [上下文文件](https://hermes-agent.nousresearch.com/docs/user-guide/features/context-files) | 影响每次对话的项目上下文 |
-| [架构](https://hermes-agent.nousresearch.com/docs/developer-guide/architecture) | 项目结构、代理循环、关键类 |
-| [贡献](https://hermes-agent.nousresearch.com/docs/developer-guide/contributing) | 开发设置、PR 流程、代码风格 |
-| [CLI 参考](https://hermes-agent.nousresearch.com/docs/reference/cli-commands) | 所有命令和标志 |
-| [环境变量](https://hermes-agent.nousresearch.com/docs/reference/environment-variables) | 完整环境变量参考 |
+本 fork 目前还没有自己的文档站点。[Hermes Agent 自己的文档](https://hermes-agent.nousresearch.com/docs/)
+仍是大多数功能（CLI 使用、配置、消息网关、工具/工具集、技能、记忆、MCP、定时任务）的最佳
+参考——本 fork 的代理核心、CLI 和网关底层仍然是 Hermes Agent，只是改了名字，并且默认指向
+`~/.devbuddy` 而不是 `~/.hermes`。本仓库中的 `AGENTS.md` 是本 fork 自身代码结构和约定的权威
+参考。
 
 ---
 
 ## 从 OpenClaw 迁移
 
-如果你来自 OpenClaw，Hermes 可以自动导入你的设置、记忆、技能和 API 密钥。
+如果你来自 OpenClaw，DevBuddy 可以自动导入你的设置、记忆、技能和 API 密钥。
 
-**首次安装时：** 安装向导（`hermes setup`）会自动检测 `~/.openclaw` 并在配置开始前提供迁移选项。
+**首次安装时：** 安装向导（`devbuddy setup`）会自动检测 `~/.openclaw` 并在配置开始前提供
+迁移选项。
 
 **安装后任意时间：**
 
 ```bash
-hermes claw migrate              # 交互式迁移（完整预设）
-hermes claw migrate --dry-run    # 预览将要迁移的内容
-hermes claw migrate --preset user-data   # 仅迁移用户数据，不含密钥
-hermes claw migrate --overwrite  # 覆盖已有冲突
+devbuddy claw migrate              # 交互式迁移（完整预设）
+devbuddy claw migrate --dry-run    # 预览将要迁移的内容
+devbuddy claw migrate --preset user-data   # 仅迁移用户数据，不含密钥
+devbuddy claw migrate --overwrite  # 覆盖已有冲突
 ```
 
 导入内容：
 - **SOUL.md** — 人格文件
 - **记忆** — MEMORY.md 和 USER.md 条目
-- **技能** — 用户创建的技能 → `~/.hermes/skills/openclaw-imports/`
+- **技能** — 用户创建的技能 → `~/.devbuddy/skills/openclaw-imports/`
 - **命令白名单** — 审批模式
 - **消息设置** — 平台配置、允许用户、工作目录
 - **API 密钥** — 白名单中的密钥（Telegram、OpenRouter、OpenAI、Anthropic、ElevenLabs）
 - **TTS 资产** — 工作区音频文件
 - **工作区指令** — AGENTS.md（使用 `--workspace-target`）
 
-使用 `hermes claw migrate --help` 查看所有选项，或使用 `openclaw-migration` 技能进行交互式代理引导迁移（含干运行预览）。
+使用 `devbuddy claw migrate --help` 查看所有选项，或使用 `openclaw-migration` 技能进行交互式
+代理引导迁移（含干运行预览）。
 
 ---
 
-## 贡献
+## 关于本 fork
 
-欢迎贡献！请参阅 [贡献指南](https://hermes-agent.nousresearch.com/docs/developer-guide/contributing) 了解开发设置、代码风格和 PR 流程。
+这是 DevBuddy 项目的一次从零重写（此前是一个独立的 TypeScript CLI）：不再继续扩展那个较小
+的代码库，而是构建在 Hermes Agent 自身（规模更大、MIT 许可）的代理平台之上，重新命名并默认
+指向 `~/.devbuddy`。目前还没有把 Hermes 自身的品牌痕迹从代码的每个角落清理干净——注释、少数
+第三方集成的默认标识符，以及 Hermes 的文档站点，仍有一些地方写着 "Hermes"。模块结构
+（`devbuddy_cli/`、`devbuddy_constants.py`、`devbuddy_state*.py` 等）、`devbuddy` 命令、默认
+数据路径，以及启动横幅/主题，都已经真正完成重命名并经过验证。
 
-PM 引导、Python 3.14 测试环境和规范验证命令见
-[开发环境配置](CONTRIBUTING.md#development-setup)。
-
----
-
-## 社区
-
-- 💬 [Discord](https://discord.gg/NousResearch)
-- 📚 [技能中心](https://agentskills.io)
-- 🐛 [问题反馈](https://github.com/NousResearch/hermes-agent/issues)
-- 💡 [讨论区](https://github.com/NousResearch/hermes-agent/discussions)
-- 🔌 [HermesClaw](https://github.com/AaronWong1999/hermesclaw) — 社区微信桥接：在同一微信账号上运行 Hermes Agent 和 OpenClaw。
+这是闭源开发软件——目前不接受外部贡献。
 
 ---
 
 ## 许可证
 
-MIT — 详见 [LICENSE](LICENSE)。
-
-由 [Nous Research](https://nousresearch.com) 构建。
+MIT — 详见 [LICENSE](LICENSE)。基于 [Hermes Agent](https://github.com/NousResearch/hermes-agent)
+（MIT，Nous Research）构建。本 fork 由 TokenBurners 制作。

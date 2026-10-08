@@ -43,8 +43,8 @@ def _entry(session_key, chat_id, profile):
 
 
 def _state_db():
-    from hermes_constants import get_hermes_home
-    from hermes_state import SessionDB
+    from devbuddy_constants import get_hermes_home
+    from devbuddy_state import SessionDB
     return SessionDB(Path(get_hermes_home()) / "state.db")
 
 

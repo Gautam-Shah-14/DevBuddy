@@ -1,10 +1,10 @@
-"""Tests for hermes_cli/setup_terminal.py backend wizards."""
+"""Tests for devbuddy_cli/setup_terminal.py backend wizards."""
 
 import pytest
 
-from hermes_cli.config import save_env_value, get_env_value
-from hermes_cli import setup as setup_mod
-from hermes_cli import setup_terminal
+from devbuddy_cli.config import save_env_value, get_env_value
+from devbuddy_cli import setup as setup_mod
+from devbuddy_cli import setup_terminal
 
 
 @pytest.fixture

@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-from hermes_cli import update_cmd, update_cmd_maint
+from devbuddy_cli import update_cmd, update_cmd_maint
 
 
 @pytest.mark.parametrize('verdict', ['safe', 'unsafe', 'unavailable'])
@@ -17,8 +17,8 @@ def test_selected_sqlite_controls_completion_and_action_receipt(tmp_path, monkey
         wal_reset_vulnerable=verdict == 'unsafe', sqlite_version_string='3.46.1')
     probes = []
     monkeypatch.setattr(sys, 'executable', str(selected))
-    monkeypatch.setattr('hermes_constants.project_venv_dir', lambda _: tmp_path / 'obsolete-venv')
-    monkeypatch.setattr('hermes_cli.sqlite_runtime.probe_sqlite_runtime', lambda python: probes.append(python) or info)
+    monkeypatch.setattr('devbuddy_constants.project_venv_dir', lambda _: tmp_path / 'obsolete-venv')
+    monkeypatch.setattr('devbuddy_cli.sqlite_runtime.probe_sqlite_runtime', lambda python: probes.append(python) or info)
     monkeypatch.setattr(update_cmd, '_branch_head_suffix', lambda: '')
     monkeypatch.setenv('HERMES_ACTION_ID', action_id)
     assert update_cmd_maint._print_verified_update_completion(message) is (verdict != 'unsafe')
@@ -39,7 +39,7 @@ def test_dashboard_refresh_preserves_restart_bookkeeping(already_restarted_units
     monkeypatch.setattr(update_cmd, '_m', lambda: SimpleNamespace(
         _kill_stale_dashboard_processes=lambda **kwargs: calls.append(kwargs) or {'unrecovered': [1234]}))
     update_cmd_maint._refresh_dashboard_after_update(already_restarted_units=already_restarted_units)
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
     assert calls == [{'restart_managed': True, 'already_restarted_units': already_restarted_units,
                       'scope_home': str(get_hermes_home())}]
     assert 'could not be auto-restarted' in capsys.readouterr().out

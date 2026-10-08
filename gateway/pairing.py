@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Optional
 
 from gateway.whatsapp_identity import expand_whatsapp_aliases, normalize_whatsapp_identifier
-from hermes_constants import get_default_hermes_root, get_hermes_dir, get_hermes_home
+from devbuddy_constants import get_default_hermes_root, get_hermes_dir, get_hermes_home
 from utils import atomic_json_write, file_signature
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ PAIRING_DIR = None
 # eagerly: this module is imported once by the long-lived gateway process at container/process boot, and
 # computing the path eagerly freezes it to whatever HERMES_HOME/profile context existed at that exact import
 # moment for the rest of the process's lifetime -- even if a context-local override (see
-# hermes_constants.set_hermes_home_override) is established afterward. A freshly-started, short-lived
+# devbuddy_constants.set_hermes_home_override) is established afterward. A freshly-started, short-lived
 # process (e.g. the ``hermes pairing`` CLI) re-imports this module later with the final environment already
 # in place, so it never observes the stale value -- the resulting asymmetry is what made pending pairing
 # codes issued by the gateway unrecoverable while CLI-side writes to the same directory kept working
@@ -156,7 +156,7 @@ def _configured_allowlist(platform: str):
 def _write_allowlist_env(env_var: str, ids: list) -> None:
     """Best-effort persist (empty list removes the key); the pairing store grant still authorizes via the union."""
     with contextlib.suppress(Exception):
-        from hermes_cli.config import save_env_value, remove_env_value
+        from devbuddy_cli.config import save_env_value, remove_env_value
         save_env_value(env_var, ",".join(ids)) if ids else remove_env_value(env_var)
 
 

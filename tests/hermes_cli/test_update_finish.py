@@ -30,7 +30,7 @@ def _put(root, name, content):
 
 @pytest.fixture
 def completion(tmp_path, monkeypatch):
-    from hermes_cli.config_defaults import DEFAULT_CONFIG
+    from devbuddy_cli.config_defaults import DEFAULT_CONFIG
     from pm.environments import install_state_dir, runtime_facts_path, site_packages
 
     home = tmp_path / "home"
@@ -44,7 +44,7 @@ def completion(tmp_path, monkeypatch):
     # in the working checkout is modified, even by import-time self-heals.
     for path in ROOT.glob("*.py"):
         shutil.copy2(path, source / path.name)
-    for name in ("hermes_cli", "hermes_platform", "pm", "agent", "gateway", "tools", "cron"):
+    for name in ("devbuddy_cli", "devbuddy_platform", "pm", "agent", "gateway", "tools", "cron"):
         shutil.copytree(ROOT / name, source / name,
                         ignore=shutil.ignore_patterns("__pycache__", "web_dist", "tui_dist"))
     shutil.copytree(ROOT / "scripts/build", source / "scripts/build",
@@ -139,7 +139,7 @@ def completion(tmp_path, monkeypatch):
                     spec.loader.exec_module = execute
                     return spec
 
-                if fullname != 'hermes_cli.main':
+                if fullname != 'devbuddy_cli.main':
                     return None
                 import selected_dependency
                 assert selected_dependency.VALUE == 'selected generation'
@@ -151,13 +151,13 @@ def completion(tmp_path, monkeypatch):
                     original(module)
                     # Install only service/machine boundaries after REAL CLI
                     # startup; all dependencies must be available by now.
-                    from hermes_cli import update_cmd as update
-                    from hermes_cli import update_cmd_maint as maint
-                    from hermes_cli import update_cmd_fleet as fleet
-                    from hermes_cli import gateway_migrate
-                    from hermes_cli import macos_tcc_anchor
-                    from hermes_cli import source_build
-                    from hermes_cli.update_inventory import UpdatePlan, RuntimeRecord
+                    from devbuddy_cli import update_cmd as update
+                    from devbuddy_cli import update_cmd_maint as maint
+                    from devbuddy_cli import update_cmd_fleet as fleet
+                    from devbuddy_cli import gateway_migrate
+                    from devbuddy_cli import macos_tcc_anchor
+                    from devbuddy_cli import source_build
+                    from devbuddy_cli.update_inventory import UpdatePlan, RuntimeRecord
                     from pm.package import Runner
                     import pm
                     import os
@@ -221,7 +221,7 @@ def completion(tmp_path, monkeypatch):
                 spec.loader.exec_module = execute
                 return spec
         sys.meta_path.insert(0, CompletionImports())
-        sys.argv = [str(root / 'hermes_cli/update_finish.py'), context, result]
+        sys.argv = [str(root / 'devbuddy_cli/update_finish.py'), context, result]
         runpy.run_path(sys.argv[0], run_name='__main__')
     '''))
     def run(fault=""):
@@ -355,9 +355,9 @@ def _npm_graph(source):
 
 @pytest.mark.platforms("posix")
 def test_selected_child_builds_and_finalizes_under_parent_lock(completion):
-    from hermes_cli.config_defaults import DEFAULT_CONFIG
-    from hermes_cli.update_lock import UpdateLock
-    import hermes_yaml
+    from devbuddy_cli.config_defaults import DEFAULT_CONFIG
+    from devbuddy_cli.update_lock import UpdateLock
+    import devbuddy_yaml
 
     source, home, request, context, result, run = completion
     node = _npm_graph(source)
@@ -371,8 +371,8 @@ def test_selected_child_builds_and_finalizes_under_parent_lock(completion):
     built = subprocess.run([node, str(source / "ui-tui/dist/entry.js")],
                            capture_output=True, text=True, check=True)
     assert built.stdout.strip() == "compiled local graph"
-    assert (source / "hermes_cli/web_dist/index.html").is_file()
-    assert any("compiled local graph" in p.read_text() for p in (source / "hermes_cli/web_dist/assets").glob("*.js"))
+    assert (source / "devbuddy_cli/web_dist/index.html").is_file()
+    assert any("compiled local graph" in p.read_text() for p in (source / "devbuddy_cli/web_dist/assets").glob("*.js"))
     assert (source / "node_modules/.hermes-node-deps").is_file()
     environment = json.loads((source / "build-environment.json").read_text())
     assert "repairing the recorded dependency environment" not in child.stderr
@@ -384,7 +384,7 @@ def test_selected_child_builds_and_finalizes_under_parent_lock(completion):
     assert context.read_bytes() == before
     assert json.loads((source / "restarted-plan.json").read_text())["expected_sha"] == "old-sha"
     assert json.loads((source / "resumed-token.json").read_text()) == request["windows_resume"]
-    config = hermes_yaml.safe_load((home / "config.yaml").read_text())
+    config = devbuddy_yaml.safe_load((home / "config.yaml").read_text())
     assert config["_config_version"] == DEFAULT_CONFIG["_config_version"], child.stdout + child.stderr
     assert config["model"]["default"] == "retained-model"
     receipt = json.loads((home / "logs/update_receipts/latest.json").read_text())
@@ -413,7 +413,7 @@ def test_real_compiler_failure_retains_receipt_and_skips_completion(completion):
     assert "TypeScript build failed" in child.stdout + child.stderr
     assert (source / "npm-python.json").is_file()
     assert (source / "ui-tui/dist/entry.js").is_file()
-    assert not (source / "hermes_cli/web_dist/index.html").exists()
+    assert not (source / "devbuddy_cli/web_dist/index.html").exists()
     assert not (source / "restarted-plan.json").exists()
     assert (home / "config.yaml").read_bytes() == config_before
     assert context.read_bytes() == context_before

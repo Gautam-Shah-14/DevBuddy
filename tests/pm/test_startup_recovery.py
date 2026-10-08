@@ -44,16 +44,16 @@ def test_bootstrap_repairs_before_dependency_activation(tmp_path, monkeypatch, m
     core.mkdir()
     home = tmp_path / "home"
     home.mkdir()
-    for name in ("hermes_bootstrap.py", "hermes_constants.py"):
+    for name in ("devbuddy_bootstrap.py", "devbuddy_constants.py"):
         shutil.copy2(repo / name, core / name)
     shutil.copytree(repo / "pm", core / "pm", ignore=shutil.ignore_patterns("__pycache__"))
-    cli = core / "hermes_cli"
+    cli = core / "devbuddy_cli"
     cli.mkdir()
     # Include the real preimport protocol, including its ownership check. Do
     # not stub prepare_launch: the same files are also saved in PM's workspace.
     for name in ("__init__.py", "runtime_state.py", "_early_recovery.py",
                  "_parser.py", "venv_sync.py", "steward.py"):
-        shutil.copy2(repo / "hermes_cli" / name, cli / name)
+        shutil.copy2(repo / "devbuddy_cli" / name, cli / name)
     wheels = tmp_path / "wheels"
     wheels.mkdir()
     _wheel(wheels, "startup_dep", "1.0")
@@ -138,7 +138,7 @@ def test_bootstrap_repairs_before_dependency_activation(tmp_path, monkeypatch, m
     launcher.write_text(
         'import importlib.util, json\n'
         'assert importlib.util.find_spec("startup_dep") is None\n'
-        'import hermes_bootstrap\nimport startup_dep\n'
+        'import devbuddy_bootstrap\nimport startup_dep\n'
         'print(json.dumps({"version": startup_dep.__version__, "file": startup_dep.__file__}))\n',
         encoding="utf-8",
     )

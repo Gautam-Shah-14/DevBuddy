@@ -22,7 +22,7 @@ import pytest
     ],
 )
 def test_local_endpoint_probes_bypass_env_proxy(url, trusts_env, monkeypatch):
-    from hermes_cli.web_routers.config_env import _endpoint_probe_client
+    from devbuddy_cli.web_routers.config_env import _endpoint_probe_client
 
     monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:1")
     monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:1")
@@ -33,8 +33,8 @@ def test_local_endpoint_probes_bypass_env_proxy(url, trusts_env, monkeypatch):
 def test_openai_base_url_probe_names_the_http_status_instead_of_no_models(monkeypatch):
     """A reachable endpoint answering non-2xx with no model list is a failure the user can act on,
     not an empty catalog the GUI turns into 'start a model on that endpoint'."""
-    import hermes_cli.web_routers.config_env as mod
-    from hermes_cli.web_models import EnvVarUpdate
+    import devbuddy_cli.web_routers.config_env as mod
+    from devbuddy_cli.web_models import EnvVarUpdate
 
     class _Resp:
         status_code = 502
@@ -71,8 +71,8 @@ def test_bare_root_probe_resolves_to_the_v1_base_that_served_models(route, monke
     """A custom endpoint typed without ``/v1`` (#65488): the probe must fall through to
     ``{base}/v1/models`` AND report that base as ``resolved_base_url`` so the Desktop persists a URL
     the runtime can POST ``/chat/completions`` to — detection green + every chat 404 is the bug."""
-    import hermes_cli.web_routers.config_env as mod
-    from hermes_cli.web_models import CustomEndpointUpdate, EnvVarUpdate
+    import devbuddy_cli.web_routers.config_env as mod
+    from devbuddy_cli.web_models import CustomEndpointUpdate, EnvVarUpdate
 
     class _Resp:
         def __init__(self, status):
@@ -112,8 +112,8 @@ def test_bare_root_probe_resolves_to_the_v1_base_that_served_models(route, monke
 def test_bare_root_probe_reports_the_v1_key_rejection_not_the_root_404(route, monkeypatch):
     """Server lives at ``/v1`` and wants a key: typed root 404s, ``/v1/models`` answers 401. The
     verdict must be the key rejection from the candidate that produced it, not the first 404."""
-    import hermes_cli.web_routers.config_env as mod
-    from hermes_cli.web_models import CustomEndpointUpdate, EnvVarUpdate
+    import devbuddy_cli.web_routers.config_env as mod
+    from devbuddy_cli.web_models import CustomEndpointUpdate, EnvVarUpdate
 
     class _Resp:
         def __init__(self, status):

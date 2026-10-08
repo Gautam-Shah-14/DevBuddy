@@ -1,14 +1,14 @@
 """Regression tests for interactive setup provider/model persistence.
 
 Since setup_model_provider delegates to select_provider_and_model()
-from hermes_cli.main, these tests mock the delegation point and verify
+from devbuddy_cli.main, these tests mock the delegation point and verify
 that the setup wizard correctly syncs config from disk after the call.
 """
 
 from __future__ import annotations
 
-from hermes_cli.config import load_config, save_config
-from hermes_cli.setup import _print_setup_summary, setup_model_provider
+from devbuddy_cli.config import load_config, save_config
+from devbuddy_cli.setup import _print_setup_summary, setup_model_provider
 
 
 def _clear_provider_env(monkeypatch):
@@ -50,7 +50,7 @@ def test_setup_model_provider_preserves_auxiliary_choices_written_by_picker(tmp_
     def fake_select():
         _write_aux_config("compression", "gemini", "gemini-2.5-flash")
 
-    monkeypatch.setattr("hermes_cli.main.select_provider_and_model", fake_select)
+    monkeypatch.setattr("devbuddy_cli.main.select_provider_and_model", fake_select)
 
     setup_model_provider(config, quick=True)
     save_config(config)  # mirrors run_setup_wizard(section="model") final save
@@ -83,9 +83,9 @@ def test_setup_summary_local_browser_unavailable_without_chromium(
     save_config(cfg)
 
     # Only stub the readiness probes; the feature resolver itself is real.
-    monkeypatch.setattr("hermes_cli.nous_subscription._has_agent_browser", lambda: True)
+    monkeypatch.setattr("devbuddy_cli.nous_subscription._has_agent_browser", lambda: True)
     monkeypatch.setattr(
-        "hermes_cli.nous_subscription.get_nous_portal_account_info",
+        "devbuddy_cli.nous_subscription.get_nous_portal_account_info",
         lambda *a, **k: None,
     )
     monkeypatch.setattr("tools.browser_tool_install._chromium_installed", lambda: False)

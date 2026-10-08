@@ -14,7 +14,7 @@ import os
 import threading
 from typing import Any, Dict, List, Optional
 
-from hermes_cli._subprocess_compat import windows_hide_flags
+from devbuddy_cli._subprocess_compat import windows_hide_flags
 from tools.computer_use import cua_backend_driver as _driver
 from tools.computer_use.cua_backend_parse import _extract_tool_result, _mcp_field, _tool_envelope
 
@@ -303,7 +303,7 @@ class _CuaDriverSession:
             self._signal_shutdown_locked()
             # Surface which startup phase wedged (issue #57025) — "doctor passes but the wrapper times out"
             # reports are undiagnosable from a bare "never reached ready".
-            from hermes_constants import display_hermes_home
+            from devbuddy_constants import display_hermes_home
             raise RuntimeError(
                 f"cua-driver session never reached ready (timeout 30s; stuck in phase: "
                 f"{getattr(self, '_startup_phase', 'unknown')}). Run `hermes computer-use doctor` and check "

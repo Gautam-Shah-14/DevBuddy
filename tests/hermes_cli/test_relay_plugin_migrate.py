@@ -9,9 +9,9 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.relay_plugin_migrate import (
+from devbuddy_cli.relay_plugin_migrate import (
     RELAY_PLUGINS_TOML_NAME, migrate_all_profile_relay_envs, migrate_profile_relay_env)
-from hermes_cli.relay_plugin_cutover import RELAY_PLUGINS_CONFIG_ENV, configured_legacy_relay_env_vars
+from devbuddy_cli.relay_plugin_cutover import RELAY_PLUGINS_CONFIG_ENV, configured_legacy_relay_env_vars
 
 nemo_relay = pytest.importorskip("nemo_relay")
 

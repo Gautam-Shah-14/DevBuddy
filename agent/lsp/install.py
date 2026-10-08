@@ -18,8 +18,8 @@ import threading
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
-from hermes_cli._subprocess_compat import windows_hide_flags
-from hermes_constants import find_node_executable, with_hermes_node_path
+from devbuddy_cli._subprocess_compat import windows_hide_flags
+from devbuddy_constants import find_node_executable, with_hermes_node_path
 
 logger = logging.getLogger("agent.lsp.install")
 
@@ -84,7 +84,7 @@ def _is_windows() -> bool:
 
 def hermes_lsp_bin_dir() -> Path:
     """Return the Hermes-owned bin staging dir for LSP servers."""
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
 
     p = get_hermes_home() / "lsp" / "bin"
     p.mkdir(parents=True, exist_ok=True)
@@ -224,7 +224,7 @@ _NODE_PM_ARGV: Dict[str, Callable[[str], list]] = {
 def _node_package_manager() -> Optional[str]:
     """``lsp.package_manager`` from config (npm default); an unknown value fails closed (``None``)."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from devbuddy_cli.config import load_config_readonly
         lsp_cfg = load_config_readonly().get("lsp") or {}
     except Exception:  # noqa: BLE001 — installer must not die on a broken config; npm is the historical default
         return "npm"

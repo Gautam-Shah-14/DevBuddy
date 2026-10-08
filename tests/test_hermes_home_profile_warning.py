@@ -20,13 +20,13 @@ import pytest
 
 @pytest.fixture
 def fresh_constants(monkeypatch, tmp_path):
-    """Import hermes_constants fresh and reset the one-shot warn flag."""
+    """Import devbuddy_constants fresh and reset the one-shot warn flag."""
     import importlib
-    import hermes_constants
-    importlib.reload(hermes_constants)
+    import devbuddy_constants
+    importlib.reload(devbuddy_constants)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.delenv("HERMES_HOME", raising=False)
-    return hermes_constants
+    return devbuddy_constants
 
 
 class TestGetHermesHomeProfileWarning:
@@ -98,7 +98,7 @@ class TestGetHermesHomeProfileWarning:
 class TestBootReadersBeforeProfileOverride:
     """Readers that run before the CLI applies the sticky ``active_profile`` must not warn.
 
-    ``hermes_bootstrap`` points ``TMPDIR`` at the scratch dir of the *process* home during
+    ``devbuddy_bootstrap`` points ``TMPDIR`` at the scratch dir of the *process* home during
     import, and ``main._apply_profile_override`` re-homes the process a few lines later. A
     caller that already resolved its home must not send the policy back through
     ``get_hermes_home()``: for a sticky-profile user with ``HERMES_HOME`` unset in a plain

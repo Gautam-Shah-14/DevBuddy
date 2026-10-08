@@ -408,14 +408,14 @@ def default_db_path() -> Path:
     tables in a dedicated file means profile gateways never open the master
     session store writable.
     """
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
     home = get_hermes_home()
     return (home.parent.parent if home.parent.name == "profiles" else home) / "shared-state.db"
 
 
 def local_authority_gateway_id() -> str:
     """Return the stable server-owned identity for hosted-room authority."""
-    from hermes_cli.install_identity import get_install_id
+    from devbuddy_cli.install_identity import get_install_id
     install_id = get_install_id()
     if not install_id:
         raise HostedRoomError("stable gateway install identity is unavailable")

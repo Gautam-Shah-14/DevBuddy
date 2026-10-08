@@ -1,4 +1,4 @@
-"""Per-install update-channel records (hermes_cli/update_channel.py).
+"""Per-install update-channel records (devbuddy_cli/update_channel.py).
 
 Channel is config, keyed by the install id (sha16 of the canonical
 install-root path — inline helper, to be deduped with
@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.update_channel import (
+from devbuddy_cli.update_channel import (
     CHANNEL_MAIN,
     CHANNEL_CANARY,
     CHANNEL_STABLE,
@@ -43,8 +43,8 @@ def _config_for(root: Path, channel: str) -> dict:
 
 def test_dynamic_channel_parser_and_per_install_round_trip(tmp_path, monkeypatch):
     import argparse
-    import hermes_yaml as yaml
-    from hermes_cli.subcommands.update import build_update_parser
+    import devbuddy_yaml as yaml
+    from devbuddy_cli.subcommands.update import build_update_parser
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
     parser = argparse.ArgumentParser()
@@ -156,7 +156,7 @@ class TestSetChannel:
 
     @pytest.mark.parametrize("channel", ["stable", "canary", "main"])
     def test_set_resolve_round_trip(self, tmp_path, monkeypatch, channel):
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
         home = self._home(tmp_path, monkeypatch)
         root = tmp_path / "install"
@@ -239,7 +239,7 @@ class TestSetChannelCLI:
             return _deny
 
         monkeypatch.setattr(
-            "hermes_cli.update_cmd._cmd_update_impl", _sentinel
+            "devbuddy_cli.update_cmd._cmd_update_impl", _sentinel
         )
         for name in ("Popen", "run", "call", "check_call", "check_output"):
             monkeypatch.setattr(subprocess, name, _denied(f"subprocess.{name}"))
@@ -277,9 +277,9 @@ class TestSetChannelCLI:
     def test_metadata_commands_precede_managed_refusal_and_write_once(
         self, tmp_path, monkeypatch, capsys
     ):
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
         import utils
-        from hermes_cli import config, main
+        from devbuddy_cli import config, main
 
         home = self._home(tmp_path, monkeypatch)
         monkeypatch.setenv("HERMES_MANAGED", "nix")
@@ -319,7 +319,7 @@ class TestSetChannelCLI:
         assert not (home / "logs" / "update_receipts").exists()
 
     def test_metadata_refusals_leave_config_unchanged(self, tmp_path, monkeypatch, capsys):
-        from hermes_cli import main
+        from devbuddy_cli import main
 
         home = self._home(tmp_path, monkeypatch)
         monkeypatch.setenv("HERMES_MANAGED", "nix")
@@ -350,7 +350,7 @@ class TestSetChannelCLI:
     @pytest.fixture(autouse=True)
     def _no_real_updater(self, monkeypatch, tmp_path):
         """Metadata commands must not enter the code-update pipeline."""
-        from hermes_cli import main, update_cmd
+        from devbuddy_cli import main, update_cmd
 
         monkeypatch.setattr(main, "PROJECT_ROOT", tmp_path)
         def unexpected_update(*args, **kwargs):
@@ -358,7 +358,7 @@ class TestSetChannelCLI:
         monkeypatch.setattr(update_cmd, "_cmd_update_impl", unexpected_update)
 
     def test_stable_switch_warns_about_state_without_requiring_a_newer_release(self, tmp_path, monkeypatch, capsys):
-        from hermes_cli.main import cmd_update
+        from devbuddy_cli.main import cmd_update
 
         self._home(tmp_path, monkeypatch)
         _stamp(tmp_path, "self", "v0.28.0+canary.20260818T000000Z")

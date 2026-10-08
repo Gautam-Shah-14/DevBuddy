@@ -6,9 +6,9 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.main_web_build import _build_web_ui, _web_ui_build_needed
-from tests.hermes_cli.test_source_build import stamp_product, copy_freshness_scripts
-from tests.hermes_cli.test_source_build import source_checkout, source_products, _events  # noqa: F401
+from devbuddy_cli.main_web_build import _build_web_ui, _web_ui_build_needed
+from tests.devbuddy_cli.test_source_build import stamp_product, copy_freshness_scripts
+from tests.devbuddy_cli.test_source_build import source_checkout, source_products, _events  # noqa: F401
 
 
 @pytest.fixture(autouse=True)
@@ -31,7 +31,7 @@ def _make_web_dir(tmp_path: Path) -> tuple[Path, Path]:
     web_dir = tmp_path / "web"
     web_dir.mkdir(parents=True)
     (web_dir / "package.json").touch()
-    dist_dir = tmp_path / "hermes_cli" / "web_dist"
+    dist_dir = tmp_path / "devbuddy_cli" / "web_dist"
     return web_dir, dist_dir
 
 
@@ -52,7 +52,7 @@ def test_web_build_prepares_once_and_skips_a_current_product(source_products):
 @pytest.mark.parametrize("fatal", [False, True])
 def test_web_failure_is_not_success_even_with_an_old_dist(source_products, fatal):
     root, acquired = source_products
-    dist = root / "hermes_cli/web_dist/index.html"
+    dist = root / "devbuddy_cli/web_dist/index.html"
     dist.parent.mkdir(parents=True)
     dist.write_text("old product")
     (root / "fail-web").touch()
@@ -60,7 +60,7 @@ def test_web_failure_is_not_success_even_with_an_old_dist(source_products, fatal
     assert acquired == ["npm"]
     assert [event["step"] for event in _events(root)] == ["deps", "web"]
     assert dist.read_text() == "old product"
-    assert not (root / "hermes_cli/web_dist/hermes-build.json").exists()
+    assert not (root / "devbuddy_cli/web_dist/hermes-build.json").exists()
 
 
 @pytest.mark.platforms("posix")
@@ -70,12 +70,12 @@ def test_failed_preparation_never_runs_web_compilation(source_products):
     assert not _build_web_ui(root / "web", fatal=True)
     assert acquired == ["npm"]
     assert _events(root) == []
-    assert not (root / "hermes_cli/web_dist/hermes-build.json").exists()
+    assert not (root / "devbuddy_cli/web_dist/hermes-build.json").exists()
 
 
 @pytest.mark.platforms("linux")
 def test_web_rebuild_reuses_the_existing_desktop_union(source_products):
-    from hermes_cli.source_build import build_update_products
+    from devbuddy_cli.source_build import build_update_products
 
     root, acquired = source_products
     build_update_products(root, desktop=True)
@@ -115,7 +115,7 @@ def test_contended_build_waits_and_rechecks_winner(tmp_path, monkeypatch, existi
     worker = threading.Thread(target=finish)
     worker.start()
     try:
-        with patch('hermes_cli.source_build.source_build_env', side_effect=AssertionError('duplicate preparation')):
+        with patch('devbuddy_cli.source_build.source_build_env', side_effect=AssertionError('duplicate preparation')):
             assert _build_web_ui(web, fatal=True)
         assert (dist / 'index.html').read_text(encoding='utf-8') == 'winner'
     finally:

@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional
 
-from hermes_constants import get_hermes_home
+from devbuddy_constants import get_hermes_home
 
 logger = logging.getLogger(__name__)
 
@@ -374,7 +374,7 @@ def _should_auto_start(env: Dict[str, str]) -> bool:
         return False
     if missing_binaries():
         return False
-    from hermes_cli.config import load_config_readonly
+    from devbuddy_cli.config import load_config_readonly
     cfg = load_config_readonly().get("bot_desktop") or {}
     return bool(cfg.get("auto_start", False))
 
@@ -408,7 +408,7 @@ def idle_seconds() -> Optional[float]:
 
 
 def idle_stop_seconds() -> float:
-    from hermes_cli.config import load_config_readonly
+    from devbuddy_cli.config import load_config_readonly
     cfg = load_config_readonly().get("bot_desktop") or {}
     try:
         minutes = float(cfg.get("idle_stop_minutes", DEFAULT_IDLE_STOP_MINUTES))
@@ -454,7 +454,7 @@ def rfb_socket_path() -> Optional[Path]:
 
 
 def geometry() -> str:
-    from hermes_cli.config import load_config_readonly
+    from devbuddy_cli.config import load_config_readonly
     cfg = load_config_readonly().get("bot_desktop") or {}
     return str(cfg.get("geometry") or "1440x900")
 
@@ -488,7 +488,7 @@ def status(profile: Optional[str] = None) -> DesktopStatus:
 
 def _profile_name() -> str:
     try:
-        from hermes_cli.profiles import get_active_profile_name
+        from devbuddy_cli.profiles import get_active_profile_name
         return get_active_profile_name() or "default"
     except Exception:
         return "default"

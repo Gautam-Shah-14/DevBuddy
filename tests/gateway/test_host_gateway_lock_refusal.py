@@ -41,7 +41,7 @@ def test_second_host_gateway_is_refused_with_75_naming_the_owner_and_the_migrate
     from gateway import host_rendezvous as hr
     from gateway.restart import GATEWAY_FATAL_CONFIG_EXIT_CODE, GATEWAY_SERVICE_RESTART_EXIT_CODE
     from gateway.run import _claim_host_gateway_role
-    from hermes_cli.gateway_migrate import MIGRATE_COMMAND
+    from devbuddy_cli.gateway_migrate import MIGRATE_COMMAND
 
     hr.publish_record(hr.ROLE_GATEWAY, profiles=("default", "coder"), home=str(host_lock_dir))
     owner = hr.read_record(hr.ROLE_GATEWAY, include_stale=True)
@@ -125,7 +125,7 @@ def test_an_unmigrated_standalone_fleet_starts_beside_the_owner_instead_of_spinn
     finally:
         handle.close()
 
-    from hermes_cli.gateway_migrate import MIGRATE_COMMAND
+    from devbuddy_cli.gateway_migrate import MIGRATE_COMMAND
     logged = "\n".join(r.getMessage() for r in caplog.records)
     assert "standalone gateway owns this host" in logged
     assert MIGRATE_COMMAND in logged, "the bounded outcome must name the command that converges"
@@ -195,8 +195,8 @@ async def test_a_replace_unit_that_replaced_nothing_is_still_refused_when_it_los
     monkeypatch.setattr("gateway.run._host_attach_or_none", AsyncMock(return_value=None))
     monkeypatch.setattr("gateway.status.get_running_pid", lambda: None)
     monkeypatch.setattr("tools.skills_sync.sync_skills", lambda quiet=True: None)
-    monkeypatch.setattr("hermes_logging.setup_logging", lambda hermes_home, mode: tmp_path)
-    monkeypatch.setattr("hermes_logging._add_rotating_handler", lambda *args, **kwargs: None)
+    monkeypatch.setattr("devbuddy_logging.setup_logging", lambda hermes_home, mode: tmp_path)
+    monkeypatch.setattr("devbuddy_logging._add_rotating_handler", lambda *args, **kwargs: None)
     monkeypatch.setattr("gateway.run.GatewayRunner", _RunnerMustNotStart)
     # The lock holder is a multiplexer: the standalone start-beside carve-out must not rescue a
     # --replace unit. Patched where _claim_host_gateway_role reads it; the request_serve_profile

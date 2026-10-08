@@ -13,9 +13,9 @@ import sys
 
 import pytest
 
-import hermes_state_lockguard as lg
-from hermes_state import SessionDB
-from tests.hermes_state._wal_generation_harness import make_db, pin_wal, require_wal
+import devbuddy_state_lockguard as lg
+from devbuddy_state import SessionDB
+from tests.devbuddy_state._wal_generation_harness import make_db, pin_wal, require_wal
 
 pytestmark = pytest.mark.platforms("linux")
 

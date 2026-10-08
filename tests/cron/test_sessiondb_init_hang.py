@@ -79,7 +79,7 @@ class TestSessionDbInitTimeout:
         self, tmp_path, monkeypatch
     ):
         """The timeout worker must construct SessionDB under the active profile."""
-        from hermes_constants import (
+        from devbuddy_constants import (
             get_hermes_home,
             reset_hermes_home_override,
             set_hermes_home_override,
@@ -100,11 +100,11 @@ class TestSessionDbInitTimeout:
         try:
             with patch("cron.scheduler._hermes_home", None), \
                  patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-                 patch("hermes_cli.env_loader.load_hermes_dotenv"), \
-                 patch("hermes_cli.env_loader.reset_secret_source_cache"), \
-                 patch("hermes_state_registry.acquire", side_effect=make_session_db), \
+                 patch("devbuddy_cli.env_loader.load_hermes_dotenv"), \
+                 patch("devbuddy_cli.env_loader.reset_secret_source_cache"), \
+                 patch("devbuddy_state_registry.acquire", side_effect=make_session_db), \
                  patch(
-                     "hermes_cli.runtime_provider.resolve_runtime_provider",
+                     "devbuddy_cli.runtime_provider.resolve_runtime_provider",
                      return_value=_RUNTIME,
                  ), \
                  patch("run_agent.AIAgent") as mock_agent_cls:
@@ -129,11 +129,11 @@ class TestSessionDbInitTimeout:
 
         with patch("cron.scheduler._hermes_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("hermes_cli.env_loader.load_hermes_dotenv"), \
-             patch("hermes_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state_registry.acquire"), \
+             patch("devbuddy_cli.env_loader.load_hermes_dotenv"), \
+             patch("devbuddy_cli.env_loader.reset_secret_source_cache"), \
+             patch("devbuddy_state_registry.acquire"), \
              patch(
-                 "hermes_cli.runtime_provider.resolve_runtime_provider",
+                 "devbuddy_cli.runtime_provider.resolve_runtime_provider",
                  return_value=_RUNTIME,
              ), \
              patch("run_agent.AIAgent") as mock_agent_cls, \
@@ -158,7 +158,7 @@ class TestSessionDbInitTimeout:
     def test_timeout_resolved_from_config_yaml(self, tmp_path, monkeypatch):
         """cron.session_db_timeout_seconds in config.yaml is respected when
         the env var is not set — the canonical config-first resolution path."""
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
         monkeypatch.delenv("HERMES_CRON_SESSION_DB_TIMEOUT", raising=False)
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
@@ -170,11 +170,11 @@ class TestSessionDbInitTimeout:
 
         with patch("cron.scheduler._hermes_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("hermes_cli.env_loader.load_hermes_dotenv"), \
-             patch("hermes_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state_registry.acquire"), \
+             patch("devbuddy_cli.env_loader.load_hermes_dotenv"), \
+             patch("devbuddy_cli.env_loader.reset_secret_source_cache"), \
+             patch("devbuddy_state_registry.acquire"), \
              patch(
-                 "hermes_cli.runtime_provider.resolve_runtime_provider",
+                 "devbuddy_cli.runtime_provider.resolve_runtime_provider",
                  return_value=_RUNTIME,
              ), \
              patch("run_agent.AIAgent") as mock_agent_cls, \
@@ -220,11 +220,11 @@ class TestDispatchGuardReleasedAfterHang:
         try:
             with patch("cron.scheduler._hermes_home", tmp_path), \
                  patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-                 patch("hermes_cli.env_loader.load_hermes_dotenv"), \
-                 patch("hermes_cli.env_loader.reset_secret_source_cache"), \
-                 patch("hermes_state_registry.acquire"), \
+                 patch("devbuddy_cli.env_loader.load_hermes_dotenv"), \
+                 patch("devbuddy_cli.env_loader.reset_secret_source_cache"), \
+                 patch("devbuddy_state_registry.acquire"), \
                  patch(
-                     "hermes_cli.runtime_provider.resolve_runtime_provider",
+                     "devbuddy_cli.runtime_provider.resolve_runtime_provider",
                      return_value=_RUNTIME,
                  ), \
                  patch("run_agent.AIAgent") as mock_agent_cls, \
@@ -284,11 +284,11 @@ class TestLateSessionDbClosedAfterTimeout:
         try:
             with patch("cron.scheduler._hermes_home", tmp_path), \
                  patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-                 patch("hermes_cli.env_loader.load_hermes_dotenv"), \
-                 patch("hermes_cli.env_loader.reset_secret_source_cache"), \
-                 patch("hermes_state_registry.acquire", side_effect=_hanging_then_capture), \
+                 patch("devbuddy_cli.env_loader.load_hermes_dotenv"), \
+                 patch("devbuddy_cli.env_loader.reset_secret_source_cache"), \
+                 patch("devbuddy_state_registry.acquire", side_effect=_hanging_then_capture), \
                  patch(
-                     "hermes_cli.runtime_provider.resolve_runtime_provider",
+                     "devbuddy_cli.runtime_provider.resolve_runtime_provider",
                      return_value={
                          "api_key": "test-key",
                          "base_url": "https://example.invalid/v1",
@@ -342,9 +342,9 @@ class TestSessionDbInitAfterEarlyReturns:
 
         with patch("cron.scheduler._hermes_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("hermes_cli.env_loader.load_hermes_dotenv"), \
-             patch("hermes_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state_registry.acquire") as mock_db_cls, \
+             patch("devbuddy_cli.env_loader.load_hermes_dotenv"), \
+             patch("devbuddy_cli.env_loader.reset_secret_source_cache"), \
+             patch("devbuddy_state_registry.acquire") as mock_db_cls, \
              patch(
                  "cron.scheduler._run_job_script_with_claim_heartbeat",
                  return_value=(True, '{"wakeAgent": false}'),

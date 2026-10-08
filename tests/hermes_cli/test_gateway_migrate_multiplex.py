@@ -15,8 +15,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_constants
-from hermes_cli import gateway_migrate as gm
+import devbuddy_constants
+from devbuddy_cli import gateway_migrate as gm
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def fleet(tmp_path, monkeypatch):
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "API_SERVER_KEY", "WEBHOOK_ENABLED"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(devbuddy_constants, "_default_hermes_root_memo", None)
 
     state = SimpleNamespace(
         # profile -> installed unit(s); a tuple is one unit, a list is every installed unit.
@@ -49,7 +49,7 @@ def fleet(tmp_path, monkeypatch):
         if verb == "start" and name != "default":
             # What the real `hermes -p <name> gateway run` checks first: is a live multiplexer
             # still recorded as serving me? (exit 78 if so — the unit is then parked for good).
-            from hermes_cli.gateway import named_profile_served_by_running_multiplexer
+            from devbuddy_cli.gateway import named_profile_served_by_running_multiplexer
             state.refused_at_start[name] = named_profile_served_by_running_multiplexer(name)
         if verb == "uninstall":
             remaining = [u for u in _units(state.services.get(name)) if u != (kind, system)]
@@ -89,8 +89,8 @@ def fleet(tmp_path, monkeypatch):
     # name a real root-owned process in /proc on a CI runner (a spurious "UNIX privilege boundary"
     # blocker), and the user-scope unit path lives under the real $HOME. The whole fleet runs as this
     # user with no unit files on disk unless a test writes some (it repoints _SYSTEM_UNIT_DIR itself).
-    from hermes_cli import gateway as gw
-    from hermes_cli import gateway_migrate_guards as guards
+    from devbuddy_cli import gateway as gw
+    from devbuddy_cli import gateway_migrate_guards as guards
     monkeypatch.setattr(guards, "_pid_uid", lambda pid: root.stat().st_uid if pid in state.pids.values() else None)
     _unit_path = gw.get_systemd_unit_path
     monkeypatch.setattr(gw, "get_systemd_unit_path", lambda system=False: _unit_path(system=True) if system
@@ -116,7 +116,7 @@ def _pid_of_started_gateway(home: Path):
 
 
 def _name(home: Path) -> str:
-    return hermes_constants.profile_name_for_home(home) or "default"
+    return devbuddy_constants.profile_name_for_home(home) or "default"
 
 
 def _units(recorded) -> list:
@@ -129,7 +129,7 @@ _real_preflight = gm._preflight_apply
 
 
 def _config_flag(root: Path):
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
     raw = yaml.safe_load((root / "config.yaml").read_text(encoding="utf-8")) or {}
     return (raw.get("gateway") or {}).get("multiplex_profiles")
 
@@ -179,7 +179,7 @@ def test_migration_removes_parked_footprint_without_waiting_for_it_to_serve(flee
     def boot_unparked_profiles(kind, system, verb, home, **kwargs):
         service_op(kind, system, verb, home, **kwargs)
         if _name(home) == "default" and verb in ("start", "restart"):
-            from hermes_cli.profiles import profiles_to_serve
+            from devbuddy_cli.profiles import profiles_to_serve
             path = fleet.root / "gateway_state.json"
             runtime = json.loads(path.read_text())
             runtime["served_profiles"] = [name for name, _ in profiles_to_serve(True)]
@@ -256,7 +256,7 @@ def test_apply_clears_the_manifest_on_success_and_the_compensator_restores(fleet
     runtime = json.loads(runtime_path.read_text(encoding="utf-8"))
     assert runtime["served_profiles"] == []
     assert runtime["platforms"] == {"telegram": {"state": "connected"}}
-    from hermes_cli.gateway import named_profile_served_by_running_multiplexer
+    from devbuddy_cli.gateway import named_profile_served_by_running_multiplexer
     assert named_profile_served_by_running_multiplexer("coder") is False
     assert not (fleet.root / gm.MANIFEST_NAME).exists()
 
@@ -456,7 +456,7 @@ def test_update_hook_folds_a_unit_less_default_when_every_secondary_shares_one_m
     elects as the target (``target_service_kind``) is the reference the guard must agree with — not the
     default's empty unit list, which turned every such fleet into "blockers" instead of a fold.
     Controls: a default unit under another manager, and two managers among the secondaries, still refuse."""
-    from hermes_cli.gateway_migrate_guards import auto_migration_blockers
+    from devbuddy_cli.gateway_migrate_guards import auto_migration_blockers
     monkeypatch.setattr(gm, "_gateway_identity", lambda home, pid, service: (1000, home), raising=False)
     fleet.services.update({"coder": ("launchd", False), "ops": ("launchd", False)})
     assert "default" not in fleet.services
@@ -499,7 +499,7 @@ def test_auto_multiplex_migration_false_opts_out_of_the_update_hook_but_not_the_
     assert not (fleet.root / gm.MANIFEST_NAME).exists()
 
     # A top-level alias is NOT honoured; absent and an explicit true keep the automatic behaviour.
-    from hermes_cli.gateway_migrate_guards import auto_migration_opted_out
+    from devbuddy_cli.gateway_migrate_guards import auto_migration_opted_out
     (fleet.root / "config.yaml").write_text(
         "model:\n  default: x\nauto_multiplex_migration: false\n", encoding="utf-8")
     assert auto_migration_opted_out(fleet.root) is False
@@ -638,8 +638,8 @@ def test_every_installed_unit_of_a_secondary_is_removed_and_recorded(fleet, caps
 def test_unresolvable_system_unit_user_is_unknown_principal_not_directory_owner(fleet, tmp_path, monkeypatch, capsys):
     """A system unit pinned to a User= this host cannot resolve: the principal is unknown, never the
     profile directory's owner, and unknown blocks the unattended path."""
-    from hermes_cli import gateway as gw
-    from hermes_cli.gateway_migrate_guards import gateway_identity
+    from devbuddy_cli import gateway as gw
+    from devbuddy_cli.gateway_migrate_guards import gateway_identity
     unit_dir = tmp_path / "system"; unit_dir.mkdir()
     monkeypatch.setattr(gw, "_SYSTEM_UNIT_DIR", unit_dir)
     coder_home = fleet.root / "profiles/coder"
@@ -663,10 +663,10 @@ def test_opt_out_reads_effective_config_managed_false_wins_and_string_false_is_f
     """The opt-out authorizes an unattended destructive action, so it reads the same effective config
     the CLI does: a managed ``false`` overrides the user's ``true``; a hand-written ``"false"`` string is
     an opt-out, not a truthy value; the declared default keeps absent == opted in."""
-    from hermes_cli import config as cfg
-    from hermes_cli.config_defaults import DEFAULT_CONFIG
-    from hermes_cli.gateway_migrate_guards import auto_migration_opted_out
-    from hermes_cli import managed_scope
+    from devbuddy_cli import config as cfg
+    from devbuddy_cli.config_defaults import DEFAULT_CONFIG
+    from devbuddy_cli.gateway_migrate_guards import auto_migration_opted_out
+    from devbuddy_cli import managed_scope
     assert DEFAULT_CONFIG["gateway"]["auto_multiplex_migration"] is True
     assert auto_migration_opted_out(fleet.root) is False  # absent -> DEFAULT_CONFIG value
 
@@ -756,7 +756,7 @@ def test_failure_anywhere_in_the_destructive_phase_restores_the_removed_secondar
 def test_known_bringup_refusal_is_rejected_before_any_secondary_is_touched(fleet, monkeypatch, capsys):
     """A system-unit fleet with no recorded User= run by root is the #110850 refusal: known from the plan,
     so it is refused before a working gateway is stopped rather than discovered and rolled back."""
-    from hermes_cli import gateway as gw
+    from devbuddy_cli import gateway as gw
     fleet.services.update({"coder": ("systemd", True), "ops": ("systemd", True)})
     monkeypatch.setattr(gm, "_systemd_service_user", lambda home, services: None)
     monkeypatch.setattr(gm, "_preflight_apply", _real_preflight)
@@ -773,8 +773,8 @@ def test_unknown_default_system_principal_blocks_the_update_hook(fleet, tmp_path
     """Mirror of the unknown-secondary case: the default's system unit names a User= this host cannot
     resolve while both secondaries are known root system units. Folding INTO an unidentifiable
     principal is the same boundary; known-same uid still folds, known-different still refuses."""
-    from hermes_cli import gateway as gw
-    from hermes_cli.gateway_migrate_guards import auto_migration_blockers, gateway_identity
+    from devbuddy_cli import gateway as gw
+    from devbuddy_cli.gateway_migrate_guards import auto_migration_blockers, gateway_identity
     unit_dir = tmp_path / "system"; unit_dir.mkdir()
     monkeypatch.setattr(gw, "_SYSTEM_UNIT_DIR", unit_dir)
     with gm._home_env(fleet.root):
@@ -871,7 +871,7 @@ def test_windows_task_detection_reads_both_the_task_and_the_startup_fallback(mon
     """`hermes gateway install` falls back to a Startup-folder entry when it cannot register a
     task; a migration that removed only the task would leave that entry launching a second
     gateway at the next logon."""
-    from hermes_cli import gateway_windows as gww
+    from devbuddy_cli import gateway_windows as gww
     for task, startup, expected in ((True, False, True), (False, True, True), (False, False, False)):
         monkeypatch.setattr(gww, "is_task_registered", lambda t=task: t)
         monkeypatch.setattr(gww, "is_startup_entry_installed", lambda s=startup: s)
@@ -884,7 +884,7 @@ def test_windows_task_detection_reads_both_the_task_and_the_startup_fallback(mon
 def test_windows_is_migratable_and_only_s6_is_refused(monkeypatch):
     """The host predicate: Windows used to be a flat refusal with hand-migration instructions.
     s6 stays refused -- its per-profile gateways are slots the container's own boot registers."""
-    from hermes_cli import gateway as gw
+    from devbuddy_cli import gateway as gw
     monkeypatch.setattr(gw, "_running_under_s6", lambda: False)
     assert gm._host_supports_migration() is None
 

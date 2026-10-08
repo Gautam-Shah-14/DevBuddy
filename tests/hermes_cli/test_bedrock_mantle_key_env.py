@@ -11,10 +11,10 @@ runtime resolver then makes of it.
 
 import os
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-import hermes_cli.runtime_provider as rp
-from hermes_cli.model_setup_flows_bedrock import _model_flow_bedrock_api_key
+import devbuddy_cli.runtime_provider as rp
+from devbuddy_cli.model_setup_flows_bedrock import _model_flow_bedrock_api_key
 
 
 REGION = "us-east-1"
@@ -23,7 +23,7 @@ TOKEN = "test-bedrock-bearer-token"
 
 def _run_wizard(monkeypatch, selected="openai.gpt-5.6-terra"):
     """Drive the real setup flow non-interactively and return the saved config."""
-    import hermes_cli.auth as auth_mod
+    import devbuddy_cli.auth as auth_mod
 
     monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", TOKEN)
     monkeypatch.setattr(
@@ -34,7 +34,7 @@ def _run_wizard(monkeypatch, selected="openai.gpt-5.6-terra"):
 
     _model_flow_bedrock_api_key({}, REGION)
 
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
 
     return get_hermes_home(), yaml.safe_load(
         (get_hermes_home() / "config.yaml").read_text(encoding="utf-8")

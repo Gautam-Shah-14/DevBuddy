@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-import hermes_constants
-from hermes_cli import gateway as gw
-from hermes_cli import gateway_migrate as gm
-from hermes_cli import gateway_multiplex_mode as mode
-from hermes_cli import gateway_multiplex_s6 as s6
-from hermes_cli.container_boot import reconcile_profile_gateways
-from hermes_cli.service_manager import S6ServiceManager
+import devbuddy_constants
+from devbuddy_cli import gateway as gw
+from devbuddy_cli import gateway_migrate as gm
+from devbuddy_cli import gateway_multiplex_mode as mode
+from devbuddy_cli import gateway_multiplex_s6 as s6
+from devbuddy_cli.container_boot import reconcile_profile_gateways
+from devbuddy_cli.service_manager import S6ServiceManager
 
 
 class _FakeS6:
@@ -50,7 +50,7 @@ def s6_host(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(root))
     for name in ("GATEWAY_MULTIPLEX_PROFILES", "TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "API_SERVER_KEY"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(devbuddy_constants, "_default_hermes_root_memo", None)
     scandir = tmp_path / "run-service"
     fake = _FakeS6(scandir, up=set())
     monkeypatch.setattr(gw, "_running_under_s6", lambda: True)

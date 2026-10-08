@@ -23,8 +23,8 @@ from unittest.mock import patch
 
 import pytest
 
-import hermes_cli.gateway_windows as gateway_windows
-import hermes_cli.main as hm
+import devbuddy_cli.gateway_windows as gateway_windows
+import devbuddy_cli.main as hm
 
 
 @pytest.fixture(autouse=True)
@@ -46,7 +46,7 @@ def test_merge_helper_reads_token_keys_into_restart_outcome(monkeypatch):
     """Drive the real merge helper (not a mirror): the Windows resume token's
     ``relaunched_profiles`` / ``restarted_services`` / ``service_profiles`` /
     ``services`` keys must land in the shared restart bookkeeping."""
-    from hermes_cli import update_cmd
+    from devbuddy_cli import update_cmd
 
     monkeypatch.setattr(hm, "_resume_windows_gateways_after_update", lambda token: None)
     outcome = update_cmd._GatewayRestartOutcome(
@@ -66,7 +66,7 @@ def test_merge_helper_reads_token_keys_into_restart_outcome(monkeypatch):
         "service_profiles": {"svc": "p2", "pending": "p3"},
         "services": ["pending"],
     }
-    with patch("hermes_cli.update_receipt.record_gateway_restart", lambda **kw: None):
+    with patch("devbuddy_cli.update_receipt.record_gateway_restart", lambda **kw: None):
         update_cmd._resume_windows_gateways_and_merge_outcome(outcome, token, False)
 
     assert outcome.relaunched_profiles == ["p1", "p2"]
@@ -86,7 +86,7 @@ def test_resume_unregisters_its_own_atexit_fallback_before_running(monkeypatch):
     the identical error a second time at interpreter teardown (#115563)."""
     import atexit
 
-    from hermes_cli import update_cmd_windows
+    from devbuddy_cli import update_cmd_windows
 
     calls = []
     monkeypatch.setattr(

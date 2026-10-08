@@ -1,192 +1,111 @@
 <p align="center">
-  <img src="assets/banner.png" alt="Hermes Agent" width="100%">
+  <img src="assets/devbuddy-banner-dark.svg" alt="DevBuddy Agent" width="100%">
 </p>
 
-# Hermes Agent ☤
+# DevBuddy Agent 🔥
+
 <p align="center">
-  <a href="https://hermes-agent.nousresearch.com/">Hermes Agent</a> | <a href="https://hermes-agent.nousresearch.com/">Hermes Desktop</a>
-</p>
-<p align="center">
-  <a href="https://hermes-agent.nousresearch.com/docs/"><img src="https://img.shields.io/badge/Docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Documentation"></a>
-  <a href="https://discord.gg/NousResearch"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://github.com/NousResearch/hermes-agent/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
-  <a href="https://nousresearch.com"><img src="https://img.shields.io/badge/Built%20by-Nous%20Research-blueviolet?style=for-the-badge" alt="Built by Nous Research"></a>
+  <a href="https://github.com/Gautam-Shah-14/DevBuddy/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
+  <a href="https://github.com/Gautam-Shah-14/DevBuddy"><img src="https://img.shields.io/badge/Built%20by-TokenBurners-blueviolet?style=for-the-badge" alt="Built by TokenBurners"></a>
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/Lang-中文-red?style=for-the-badge" alt="中文"></a>
   <a href="README.ur-pk.md"><img src="https://img.shields.io/badge/Lang-اردو-green?style=for-the-badge" alt="اردو"></a>
   <a href="README.es.md"><img src="https://img.shields.io/badge/Lang-Español-orange?style=for-the-badge" alt="Español"></a>
 </p>
 
-**The self-improving AI agent built by [Nous Research](https://nousresearch.com).** It's the only agent with a built-in learning loop — it creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions. Run it on a $5 VPS, a GPU cluster, or serverless infrastructure that costs nearly nothing when idle. It's not tied to your laptop — talk to it from Telegram while it works on a cloud VM.
+**DevBuddy is a self-improving local-first AI agent, by TokenBurners**, built on top of
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research, MIT-licensed).
+It creates skills from experience, improves them during use, nudges itself to persist
+knowledge, searches its own past conversations, and builds a deepening model of who you are
+across sessions. Runs fully on your own machine against your own local Ollama — no API keys,
+no cloud calls required — or against OpenAI/Anthropic/any OpenAI-compatible endpoint if you'd
+rather.
 
-Use any model you want — [Nous Portal](https://portal.nousresearch.com), OpenRouter, OpenAI, your own endpoint, and [many others](https://hermes-agent.nousresearch.com/docs/integrations/providers). Switch with `hermes model` — no code changes, no lock-in.
+Switch providers/models with `devbuddy model` — no code changes, no lock-in.
 
 <table>
 <tr><td><b>A real terminal interface</b></td><td>Full TUI with multiline editing, slash-command autocomplete, conversation history, interrupt-and-redirect, and streaming tool output.</td></tr>
 <tr><td><b>Lives where you do</b></td><td>Telegram, Discord, Slack, WhatsApp, Signal, and CLI — all from a single gateway process. Voice memo transcription, cross-platform conversation continuity.</td></tr>
-<tr><td><b>A closed learning loop</b></td><td>Agent-curated memory with periodic nudges. Autonomous skill creation after complex tasks. Skills self-improve during use. FTS5 session search with LLM summarization for cross-session recall. <a href="https://github.com/plastic-labs/honcho">Honcho</a> dialectic user modeling. Compatible with the <a href="https://agentskills.io">agentskills.io</a> open standard.</td></tr>
+<tr><td><b>A closed learning loop</b></td><td>Agent-curated memory with periodic nudges. Autonomous skill creation after complex tasks. Skills self-improve during use. FTS5 session search with LLM summarization for cross-session recall. Compatible with the <a href="https://agentskills.io">agentskills.io</a> open standard.</td></tr>
 <tr><td><b>Scheduled automations</b></td><td>Built-in cron scheduler with delivery to any platform. Daily reports, nightly backups, weekly audits — all in natural language, running unattended.</td></tr>
 <tr><td><b>Delegates and parallelizes</b></td><td>Spawn isolated subagents for parallel workstreams. Write Python scripts that call tools via RPC, collapsing multi-step pipelines into zero-context-cost turns.</td></tr>
-<tr><td><b>Runs anywhere, not just your laptop</b></td><td>Seven terminal backends — local, Docker, SSH, Singularity, Modal, Daytona, and Vercel Sandbox. Daytona and Modal offer serverless persistence — your agent's environment hibernates when idle and wakes on demand, costing nearly nothing between sessions. Run it on a $5 VPS or a GPU cluster.</td></tr>
-<tr><td><b>Research-ready</b></td><td>Batch trajectory generation, trajectory compression for training the next generation of tool-calling models.</td></tr>
+<tr><td><b>Local-first by default</b></td><td>No Docker, no server, no API key required to start — `devbuddy` talks straight to your local Ollama. Docker and six other terminal backends (SSH, Singularity, Modal, Daytona, Vercel Sandbox) are available for sandboxed/remote execution when you want them, never required.</td></tr>
 </table>
 
 ---
 
 ## Quick Install
 
-> **Docker is optional, not required.** The CLI (`hermes`) is a plain Python program — it
+> **Docker is optional, not required.** `devbuddy` is a plain Python console script — it
 > runs directly on your machine against your own local Ollama (or OpenAI/Anthropic/any
 > provider) with no container involved. `docker-compose.yml` in this repo only stands up
 > the *gateway* and *dashboard* services (the always-on messaging-platform bridge and web
-> UI) for people who want Hermes running as a background service reachable from Telegram,
+> UI) for people who want it running as a background service reachable from Telegram,
 > Discord, etc. If you just want to chat with it from a terminal, skip Docker entirely.
 
-> **This repo is a fork-in-progress**, not yet packaged under its own installer. There is
-> no hosted one-liner yet — run it from source for now:
->
-> ```bash
-> git clone <this repo's URL> && cd <repo>
-> source ./activate      # provisions + activates a local Python/Node environment (no Docker)
-> hermes                 # start chatting — defaults to your local Ollama
-> ```
->
-> See `CONTRIBUTING.md` for the full source-setup walkthrough (Python/Node versions, the
-> `pm` tool-manager, running tests). The sections below describe the installer-based setup
-> inherited from upstream Hermes Agent and still apply once this fork has its own installer.
-
-### Linux, macOS, WSL2 (upstream installer — not yet repointed at this fork)
+This repo doesn't have a hosted installer yet — run it from source:
 
 ```bash
-curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+git clone https://github.com/Gautam-Shah-14/DevBuddy.git && cd DevBuddy
+source ./activate      # provisions + activates a local Python/Node environment (no Docker)
+devbuddy                # start chatting — defaults to your local Ollama
 ```
 
-### Windows (native, PowerShell)
+`source ./activate` needs Python 3.14 (the project's real pin — earlier versions don't
+resolve its dependencies at all) and Node.js; see `AGENTS.md` for the PM tool-manager
+workflow it uses under the hood (activation, daily use, dependency changes, running tests).
 
-> **Heads up:** Native Windows runs Hermes without WSL — CLI, gateway, TUI, and tools all work natively. If you'd rather use WSL2, the Linux/macOS one-liner above works there too. Found a bug? Please [file issues](https://github.com/NousResearch/hermes-agent/issues).
+### Windows / Android
 
-Run this in PowerShell:
-
-```powershell
-iex (irm https://hermes-agent.nousresearch.com/install.ps1)
-```
-
-The source installer delegates Python 3.14, Node.js, npm, ripgrep, FFmpeg,
-and Python dependencies to PM. If Git is absent, it stages the verified Git
-for Windows archive in Hermes' tool store. It does not replace your system Git.
-See [installation methods](https://hermes-agent.nousresearch.com/docs/getting-started/installation)
-for the separate MSIX/App Installer package and its update ownership.
-
-> **Android / Termux:** A signed APT repository is available for aarch64 devices, with a `stable` channel (tagged releases) and a prerelease `canary` channel. The package includes Python, Node.js, and the TUI. Use the [Termux guide](https://hermes-agent.nousresearch.com/docs/getting-started/termux), not the desktop/server installer script.
->
-> **Windows:** Native Windows is fully supported — the PowerShell one-liner above installs everything. If you'd rather use WSL2, the Linux command works there too. Native Windows install lives under `%LOCALAPPDATA%\devbuddy`; WSL2 installs under `~/.devbuddy` as on Linux.
-
-After installation:
-
-```bash
-source ~/.bashrc    # reload shell (or: source ~/.zshrc)
-hermes              # start chatting!
-```
-
-### Troubleshooting
-
-#### Windows Defender or antivirus flags `uv.exe` as malware
-
-If your antivirus (Bitdefender, Windows Defender, etc.) quarantines `uv.exe` from the Hermes `bin` folder (`%LOCALAPPDATA%\hermes\bin\uv.exe`), this is a **false positive**. The file is Astral's `uv` — the Rust Python package manager Hermes bundles to manage its Python environment. ML-based antivirus engines commonly flag unsigned Rust binaries that download and install packages.
-
-**To verify your copy is authentic:**
-
-```powershell
-# Install GitHub CLI if needed
-winget install --id GitHub.cli
-
-# Login to GitHub
-gh auth login
-
-# Run verification
-$uv = "$env:LOCALAPPDATA\hermes\bin\uv.exe"
-$ver = (& $uv --version).Split(' ')[1]
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$zip = "$env:TEMP\uv.zip"
-Invoke-WebRequest "https://github.com/astral-sh/uv/releases/download/$ver/uv-x86_64-pc-windows-msvc.zip" -OutFile $zip -UseBasicParsing
-gh attestation verify $zip --repo astral-sh/uv
-Expand-Archive $zip "$env:TEMP\uv_x" -Force
-(Get-FileHash "$env:TEMP\uv_x\uv.exe").Hash -eq (Get-FileHash $uv).Hash
-```
-
-If attestation says "Verification succeeded" and the last line prints `True`, you're good.
-
-**To whitelist Hermes:**
-- **Windows Defender:** Run PowerShell as Admin → `Add-MpPreference -ExclusionPath "$env:LOCALAPPDATA\hermes\bin"`
-- **Bitdefender:** Add an exception in the Bitdefender console (Protection > Antivirus > Settings > Manage Exceptions)
-- Whitelist the **folder**, not the file hash — Hermes updates `uv` and the hash changes every version
-
-For more context, see the upstream Astral reports: [astral-sh/uv#13553](https://github.com/astral-sh/uv/issues/13553), [astral-sh/uv#15011](https://github.com/astral-sh/uv/issues/15011), [astral-sh/uv#10079](https://github.com/astral-sh/uv/issues/10079).
+The old hosted one-click installers (`install.sh` / `install.ps.1`, the Termux APT repo)
+pointed at Nous Research's own domain and don't apply to this fork yet. Native Windows and
+Termux/Android both work via the same from-source path above; there's just no packaged
+one-liner for them here yet.
 
 ---
 
 ## Getting Started
 
 ```bash
-hermes              # Interactive CLI — start a conversation
-hermes model        # Choose your LLM provider and model
-hermes tools        # Configure which tools are enabled
-hermes config set   # Set individual config values
-hermes config get   # Print individual config values
-hermes gateway      # Start the messaging gateway (Telegram, Discord, etc.)
-hermes setup        # Run the full setup wizard (configures everything at once)
-hermes claw migrate # Migrate from OpenClaw (if coming from OpenClaw)
-hermes update       # Update to the latest version
-hermes doctor       # Diagnose any issues
+devbuddy              # Interactive CLI — start a conversation
+devbuddy model        # Choose your LLM provider and model
+devbuddy tools        # Configure which tools are enabled
+devbuddy config set   # Set individual config values
+devbuddy config get   # Print individual config values
+devbuddy gateway      # Start the messaging gateway (Telegram, Discord, etc.)
+devbuddy setup        # Run the full setup wizard (configures everything at once)
+devbuddy claw migrate # Migrate from OpenClaw (if coming from OpenClaw)
+devbuddy update       # Update to the latest version
+devbuddy doctor       # Diagnose any issues
 ```
-
-📖 **[Full documentation →](https://hermes-agent.nousresearch.com/docs/)** (upstream Hermes docs —
-mostly still accurate for this fork, except anything about where data is stored; see below)
 
 ### Data & config location
 
 All local state — `config.yaml`, `.env` secrets, the session database, skills, logs, named
-profiles — lives under `~/.devbuddy` (`%LOCALAPPDATA%\devbuddy` on native Windows), not
-`~/.hermes`. This is controlled by one place in the code
-(`hermes_constants._get_platform_default_hermes_home()`); the `HERMES_HOME` environment
-variable still overrides it the same way it always did, if you want data stored somewhere
-else entirely (a different drive, a synced folder, a container volume, etc.):
+profiles — lives under `~/.devbuddy` (`%LOCALAPPDATA%\devbuddy` on native Windows). This is
+controlled by one place in the code (`devbuddy_constants._get_platform_default_hermes_home()`);
+the `HERMES_HOME` environment variable still overrides it the same way it always did, if you
+want data stored somewhere else entirely (a different drive, a synced folder, a container
+volume, etc.):
 
 ```bash
 export HERMES_HOME=/path/to/your/data   # optional override; defaults to ~/.devbuddy
-hermes doctor                            # confirms where it's reading/writing from
+devbuddy doctor                          # confirms where it's reading/writing from
 ```
 
-`hermes doctor` and `hermes profile list` both print the active home path if you want to
+`devbuddy doctor` and `devbuddy profile list` both print the active home path if you want to
 double-check where things actually landed.
-
----
-
-## Skip the API-key collection — Nous Portal
-
-Hermes works with whatever provider you want — that's not changing. But if you'd rather not collect five separate API keys for the model, web search, image generation, TTS, and a cloud browser, **[Nous Portal](https://portal.nousresearch.com)** covers all of them under one subscription:
-
-- **300+ models** — pick any of them with `/model <name>`
-- **Tool Gateway** — web search, image generation (FAL), text-to-speech (OpenAI), cloud browser (Browser Use), all routed through your sub. No extra accounts.
-
-One command from a fresh install:
-
-```bash
-hermes setup --portal
-```
-
-That logs you in via OAuth, sets Nous as your provider, and turns on the Tool Gateway. Check what's wired up any time with `hermes portal info`. Full details on the [Tool Gateway docs page](https://hermes-agent.nousresearch.com/docs/user-guide/features/tool-gateway).
-
-You can still bring your own keys per-tool whenever you want — the gateway is per-backend, not all-or-nothing.
 
 ---
 
 ## CLI vs Messaging Quick Reference
 
-Hermes has two entry points: start the terminal UI with `hermes`, or run the gateway and talk to it from Telegram, Discord, Slack, WhatsApp, Signal, or Email. Once you're in a conversation, many slash commands are shared across both interfaces.
+DevBuddy has two entry points: start the terminal UI with `devbuddy`, or run the gateway and
+talk to it from Telegram, Discord, Slack, WhatsApp, Signal, or Email. Once you're in a
+conversation, many slash commands are shared across both interfaces.
 
 | Action                         | CLI                                           | Messaging platforms                                                              |
 | ------------------------------ | --------------------------------------------- | -------------------------------------------------------------------------------- |
-| Start chatting                 | `hermes`                                      | Run `hermes gateway setup` + `hermes gateway start`, then send the bot a message |
+| Start chatting                 | `devbuddy`                                    | Run `devbuddy gateway setup` + `devbuddy gateway start`, then message the bot    |
 | Start fresh conversation       | `/new` or `/reset`                            | `/new` or `/reset`                                                               |
 | Change model                   | `/model [provider:model]`                     | `/model [provider:model]`                                                        |
 | Set a personality              | `/personality [name]`                         | `/personality [name]`                                                            |
@@ -196,47 +115,34 @@ Hermes has two entry points: start the terminal UI with `hermes`, or run the gat
 | Interrupt current work         | `Ctrl+C` or send a new message                | `/stop` or send a new message                                                    |
 | Platform-specific status       | `/platforms`                                  | `/status`, `/sethome`                                                            |
 
-For the full command lists, see the [CLI guide](https://hermes-agent.nousresearch.com/docs/user-guide/cli) and the [Messaging Gateway guide](https://hermes-agent.nousresearch.com/docs/user-guide/messaging).
-
 ---
 
 ## Documentation
 
-All documentation lives at **[hermes-agent.nousresearch.com/docs](https://hermes-agent.nousresearch.com/docs/)**:
-
-| Section                                                                                             | What's Covered                                             |
-| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| [Quickstart](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart)                 | Install → setup → first conversation in 2 minutes          |
-| [CLI Usage](https://hermes-agent.nousresearch.com/docs/user-guide/cli)                              | Commands, keybindings, personalities, sessions             |
-| [Configuration](https://hermes-agent.nousresearch.com/docs/user-guide/configuration)                | Config file, providers, models, all options                |
-| [Messaging Gateway](https://hermes-agent.nousresearch.com/docs/user-guide/messaging)                | Telegram, Discord, Slack, WhatsApp, Signal, Home Assistant |
-| [Security](https://hermes-agent.nousresearch.com/docs/user-guide/security)                          | Command approval, DM pairing, container isolation          |
-| [Tools & Toolsets](https://hermes-agent.nousresearch.com/docs/user-guide/features/tools)            | 40+ tools, toolset system, terminal backends               |
-| [Skills System](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills)              | Procedural memory, Skills Hub, creating skills             |
-| [Memory](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory)                     | Persistent memory, user profiles, best practices           |
-| [MCP Integration](https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp)               | Connect any MCP server for extended capabilities           |
-| [Cron Scheduling](https://hermes-agent.nousresearch.com/docs/user-guide/features/cron)              | Scheduled tasks with platform delivery                     |
-| [Context Files](https://hermes-agent.nousresearch.com/docs/user-guide/features/context-files)       | Project context that shapes every conversation             |
-| [Architecture](https://hermes-agent.nousresearch.com/docs/developer-guide/architecture)             | Project structure, agent loop, key classes                 |
-| [Contributing](https://hermes-agent.nousresearch.com/docs/developer-guide/contributing)             | Development setup, PR process, code style                  |
-| [CLI Reference](https://hermes-agent.nousresearch.com/docs/reference/cli-commands)                  | All commands and flags                                     |
-| [Environment Variables](https://hermes-agent.nousresearch.com/docs/reference/environment-variables) | Complete env var reference                                 |
+This fork doesn't have its own docs site yet. [Hermes Agent's own docs](https://hermes-agent.nousresearch.com/docs/)
+are the best reference for most features (CLI usage, configuration, messaging gateway,
+tools/toolsets, skills, memory, MCP, cron) — this fork's agent core, CLI, and gateway are
+still Hermes Agent underneath, just renamed and pointed at `~/.devbuddy` by default instead
+of `~/.hermes`. `AGENTS.md` in this repo is the authoritative reference for this fork's own
+code layout and conventions.
 
 ---
 
 ## Migrating from OpenClaw
 
-If you're coming from OpenClaw, Hermes can automatically import your settings, memories, skills, and API keys.
+If you're coming from OpenClaw, DevBuddy can automatically import your settings, memories,
+skills, and API keys.
 
-**During first-time setup:** The setup wizard (`hermes setup`) automatically detects `~/.openclaw` and offers to migrate before configuration begins.
+**During first-time setup:** The setup wizard (`devbuddy setup`) automatically detects
+`~/.openclaw` and offers to migrate before configuration begins.
 
 **Anytime after install:**
 
 ```bash
-hermes claw migrate              # Interactive migration (full preset)
-hermes claw migrate --dry-run    # Preview what would be migrated
-hermes claw migrate --preset user-data   # Migrate without secrets
-hermes claw migrate --overwrite  # Overwrite existing conflicts
+devbuddy claw migrate              # Interactive migration (full preset)
+devbuddy claw migrate --dry-run    # Preview what would be migrated
+devbuddy claw migrate --preset user-data   # Migrate without secrets
+devbuddy claw migrate --overwrite  # Overwrite existing conflicts
 ```
 
 What gets imported:
@@ -250,32 +156,28 @@ What gets imported:
 - **TTS assets** — workspace audio files
 - **Workspace instructions** — AGENTS.md (with `--workspace-target`)
 
-See `hermes claw migrate --help` for all options, or use the `openclaw-migration` skill for an interactive agent-guided migration with dry-run previews.
+See `devbuddy claw migrate --help` for all options, or use the `openclaw-migration` skill for
+an interactive agent-guided migration with dry-run previews.
 
 ---
 
-## Contributing
+## About this fork
 
-We welcome contributions! See the [Contributing Guide](https://hermes-agent.nousresearch.com/docs/developer-guide/contributing) for development setup, code style, and PR process.
+This is a from-scratch rewrite direction for the DevBuddy project (previously a standalone
+TypeScript CLI): rather than keep extending that smaller codebase, it's now built on top of
+Hermes Agent's own (much larger, MIT-licensed) agent platform, rebranded and pointed at
+`~/.devbuddy` by default. Not all of Hermes' own branding has been swept from every corner of
+the codebase yet — comments, a handful of third-party-integration default identifiers, and
+the Hermes docs site are known to still say "Hermes" in places. The module layout
+(`devbuddy_cli/`, `devbuddy_constants.py`, `devbuddy_state*.py`, etc.), the `devbuddy` CLI
+command, the default data path, and the startup banner/skin are all genuinely renamed and
+tested.
 
-Start with the [PM developer workflow](website/docs/reference/package-management.md#developer-workflow)
-for activation, daily use, dependency changes, and leaving the environment.
-[Development Setup](CONTRIBUTING.md#development-setup) covers the separate test environment and verification commands.
-
----
-
-## Community
-
-- 💬 [Discord](https://discord.gg/NousResearch)
-- 📚 [Skills Hub](https://agentskills.io)
-- 🐛 [Issues](https://github.com/NousResearch/hermes-agent/issues)
-- 🔌 [computer-use-linux](https://github.com/avifenesh/computer-use-linux) — Linux desktop-control MCP server for Hermes and other MCP hosts, with AT-SPI accessibility trees, Wayland/X11 input, screenshots, and compositor window targeting.
-- 🔌 [HermesClaw](https://github.com/AaronWong1999/hermesclaw) — Community WeChat bridge: Run Hermes Agent and OpenClaw on the same WeChat account.
+This is closed-development software — not currently accepting outside contributions.
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
-
-Built by [Nous Research](https://nousresearch.com).
+MIT — see [LICENSE](LICENSE). Built on [Hermes Agent](https://github.com/NousResearch/hermes-agent)
+(MIT, Nous Research). This fork is built by TokenBurners.

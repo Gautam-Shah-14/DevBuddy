@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 
 def _write_plugin(
@@ -57,7 +57,7 @@ def _enable(hermes_home: Path, name: str) -> None:
 
 class TestRegisterTranscriptionProvider:
     def test_accepts_valid_provider(self):
-        from hermes_cli.plugins import PluginManager
+        from devbuddy_cli.plugins import PluginManager
 
         from agent import transcription_registry
         transcription_registry._reset_for_tests()
@@ -89,7 +89,7 @@ class TestRegisterTranscriptionProvider:
         transcription_registry._reset_for_tests()
 
     def test_rejects_non_provider(self, caplog):
-        from hermes_cli.plugins import PluginManager
+        from devbuddy_cli.plugins import PluginManager
 
         from agent import transcription_registry
         transcription_registry._reset_for_tests()
@@ -113,7 +113,7 @@ class TestRegisterTranscriptionProvider:
         transcription_registry._reset_for_tests()
 
     def test_rejects_builtin_shadow(self, caplog):
-        from hermes_cli.plugins import PluginManager
+        from devbuddy_cli.plugins import PluginManager
 
         from agent import transcription_registry
         transcription_registry._reset_for_tests()

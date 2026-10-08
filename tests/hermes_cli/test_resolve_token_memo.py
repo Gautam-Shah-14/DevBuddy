@@ -11,7 +11,7 @@ import time
 
 import pytest
 
-import hermes_cli.auth as auth
+import devbuddy_cli.auth as auth
 
 
 @pytest.fixture(autouse=True)
@@ -99,12 +99,12 @@ def test_insecure_callers_bypass_memo(monkeypatch, tmp_path):
 
 def test_memo_does_not_leak_across_multiplex_profile_contexts(tmp_path):
     """A multiplex gateway scopes each profile's context via
-    hermes_constants.set_hermes_home_override (gateway/run.py,
+    devbuddy_constants.set_hermes_home_override (gateway/run.py,
     tui_gateway/server.py), not the HERMES_HOME env var — the memo must key
     on that same resolved home, or one profile's context can read another
     profile's already-cached Nous access token for up to the TTL window.
     """
-    import hermes_constants
+    import devbuddy_constants
 
     profile_a = tmp_path / "profile-a"
     profile_b = tmp_path / "profile-b"
@@ -114,19 +114,19 @@ def test_memo_does_not_leak_across_multiplex_profile_contexts(tmp_path):
     _write_valid_auth_file(profile_b, token="token-b")
 
     token_a = token_b = None
-    reset_token = hermes_constants.set_hermes_home_override(str(profile_a))
+    reset_token = devbuddy_constants.set_hermes_home_override(str(profile_a))
     try:
         token_a = auth.resolve_nous_access_token()
     finally:
-        hermes_constants.reset_hermes_home_override(reset_token)
+        devbuddy_constants.reset_hermes_home_override(reset_token)
 
     # Still well within the 5s TTL — this is exactly the race window: profile
     # B's context calls resolve_nous_access_token() shortly after profile A's.
-    reset_token = hermes_constants.set_hermes_home_override(str(profile_b))
+    reset_token = devbuddy_constants.set_hermes_home_override(str(profile_b))
     try:
         token_b = auth.resolve_nous_access_token()
     finally:
-        hermes_constants.reset_hermes_home_override(reset_token)
+        devbuddy_constants.reset_hermes_home_override(reset_token)
 
     assert token_a == "token-a"
     assert token_b == "token-b", (

@@ -14,9 +14,9 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_cli.auth as auth_mod
-import hermes_cli.auth_codex as auth_codex
-from hermes_cli.auth import (
+import devbuddy_cli.auth as auth_mod
+import devbuddy_cli.auth_codex as auth_codex
+from devbuddy_cli.auth import (
     AuthError,
     _codex_usage_probe_url,
     _is_codex_rate_limit_shaped,

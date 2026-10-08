@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.plugins_cmd — the ``hermes plugins`` CLI subcommand."""
+"""Tests for devbuddy_cli.plugins_cmd — the ``hermes plugins`` CLI subcommand."""
 
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from tests.pm._fixtures import client, isolated_python  # noqa: F401
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-from hermes_cli.plugins_cmd import (
+from devbuddy_cli.plugins_cmd import (
     PluginOperationError,
     _copy_example_files,
     _read_manifest,
@@ -22,12 +22,12 @@ from hermes_cli.plugins_cmd import (
     _resolve_subdir_within,
     _sanitize_plugin_name,
 )
-from hermes_cli.plugins_cmd_install import _refuse_unavailable_portable_plugin
+from devbuddy_cli.plugins_cmd_install import _refuse_unavailable_portable_plugin
 
 
 def _write_portable_app_plugin(root: Path, app: Path) -> None:
-    from hermes_cli.agent_plugins import MCP_SCHEMA_V1, PLUGIN_SCHEMA_V1
-    from hermes_platform.host.facts import os_family
+    from devbuddy_cli.agent_plugins import MCP_SCHEMA_V1, PLUGIN_SCHEMA_V1
+    from devbuddy_platform.host.facts import os_family
 
     (root / "plugin.json").write_text(json.dumps({
         "$schema": PLUGIN_SCHEMA_V1,
@@ -188,7 +188,7 @@ class TestGitPullPluginDirAutostash:
         f.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     def test_dirty_checkout_pulls_and_reapplies_local_edit(self, tmp_path):
-        import hermes_cli.plugins_cmd as pc
+        import devbuddy_cli.plugins_cmd as pc
 
         if not pc._resolve_git_executable():
             pytest.skip("git not available")
@@ -209,7 +209,7 @@ class TestGitPullPluginDirAutostash:
         assert git(checkout, "stash", "list").strip() == ""
 
     def test_conflicting_local_edit_is_preserved_in_stash(self, tmp_path):
-        import hermes_cli.plugins_cmd as pc
+        import devbuddy_cli.plugins_cmd as pc
 
         if not pc._resolve_git_executable():
             pytest.skip("git not available")
@@ -234,7 +234,7 @@ class TestGitPullPluginDirAutostash:
         assert "VALUE = 99" in stash_diff
 
     def test_untracked_local_file_survives_update(self, tmp_path):
-        import hermes_cli.plugins_cmd as pc
+        import devbuddy_cli.plugins_cmd as pc
 
         if not pc._resolve_git_executable():
             pytest.skip("git not available")
@@ -250,7 +250,7 @@ class TestGitPullPluginDirAutostash:
         assert "VALUE = 2" in (checkout / "plugin.py").read_text(encoding="utf-8")
 
     def test_clean_checkout_unchanged_behavior(self, tmp_path):
-        import hermes_cli.plugins_cmd as pc
+        import devbuddy_cli.plugins_cmd as pc
 
         if not pc._resolve_git_executable():
             pytest.skip("git not available")
@@ -264,7 +264,7 @@ class TestGitPullPluginDirAutostash:
     def test_autostash_addresses_git_by_sha_never_brace_selector(self, tmp_path, monkeypatch):
         """Native Windows: MSYS strips the braces from ``stash@{0}`` in git.exe's argv, so the
         apply and the drop must target the autostash by its commit sha / positionally (#87542)."""
-        import hermes_cli.plugins_cmd as pc
+        import devbuddy_cli.plugins_cmd as pc
 
         if not pc._resolve_git_executable():
             pytest.skip("git not available")
@@ -320,7 +320,7 @@ class TestReadManifest:
 
     def test_invalid_yaml_returns_empty_and_logs(self, tmp_path, caplog):
         (tmp_path / "plugin.yaml").write_text(": : : bad yaml [[[", encoding="utf-8")
-        with caplog.at_level(logging.WARNING, logger="hermes_cli.plugins_cmd"):
+        with caplog.at_level(logging.WARNING, logger="devbuddy_cli.plugins_cmd"):
             result = _read_manifest(tmp_path)
         assert result == {}
         assert any("Failed to read plugin.yaml" in r.message for r in caplog.records)
@@ -338,14 +338,14 @@ class TestCmdInstall:
     """Test the install command."""
 
     def test_install_requires_identifier(self):
-        from hermes_cli.plugins_cmd import cmd_install
+        from devbuddy_cli.plugins_cmd import cmd_install
 
         with pytest.raises(SystemExit):
             cmd_install("")
 
-    @patch("hermes_cli.plugins_cmd._resolve_git_url")
+    @patch("devbuddy_cli.plugins_cmd._resolve_git_url")
     def test_install_validates_identifier(self, mock_resolve):
-        from hermes_cli.plugins_cmd import cmd_install
+        from devbuddy_cli.plugins_cmd import cmd_install
 
         mock_resolve.side_effect = ValueError("Invalid identifier")
 
@@ -353,11 +353,11 @@ class TestCmdInstall:
             cmd_install("invalid")
         assert exc_info.value.code == 1
 
-    @patch("hermes_cli.plugins_cmd._display_after_install")
-    @patch("hermes_cli.plugins_cmd.shutil.move")
-    @patch("hermes_cli.plugins_cmd.rmtree_readonly")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
-    @patch("hermes_cli.plugins_cmd._read_manifest")
+    @patch("devbuddy_cli.plugins_cmd._display_after_install")
+    @patch("devbuddy_cli.plugins_cmd.shutil.move")
+    @patch("devbuddy_cli.plugins_cmd.rmtree_readonly")
+    @patch("devbuddy_cli.plugins_cmd._plugins_dir")
+    @patch("devbuddy_cli.plugins_cmd._read_manifest")
     @patch("subprocess.run")
     def test_install_rejects_manifest_name_pointing_at_plugins_root(
         self,
@@ -369,7 +369,7 @@ class TestCmdInstall:
         mock_display_after_install,
         tmp_path,
     ):
-        from hermes_cli.plugins_cmd import cmd_install
+        from devbuddy_cli.plugins_cmd import cmd_install
 
         plugins_dir = tmp_path / "plugins"
         plugins_dir.mkdir()
@@ -393,10 +393,10 @@ class TestCmdUpdate:
     """Test the update command."""
 
 
-    @patch("hermes_cli.plugins_cmd._sanitize_plugin_name")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
+    @patch("devbuddy_cli.plugins_cmd._sanitize_plugin_name")
+    @patch("devbuddy_cli.plugins_cmd._plugins_dir")
     def test_update_plugin_not_found(self, mock_plugins_dir, mock_sanitize):
-        from hermes_cli.plugins_cmd import cmd_update
+        from devbuddy_cli.plugins_cmd import cmd_update
 
         mock_plugins_dir_val = MagicMock()
         mock_plugins_dir_val.iterdir.return_value = []
@@ -418,10 +418,10 @@ class TestCmdRemove:
     """Test the remove command."""
 
 
-    @patch("hermes_cli.plugins_cmd._sanitize_plugin_name")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
+    @patch("devbuddy_cli.plugins_cmd._sanitize_plugin_name")
+    @patch("devbuddy_cli.plugins_cmd._plugins_dir")
     def test_remove_plugin_not_found(self, mock_plugins_dir, mock_sanitize):
-        from hermes_cli.plugins_cmd import cmd_remove
+        from devbuddy_cli.plugins_cmd import cmd_remove
 
         mock_plugins_dir_val = MagicMock()
         mock_plugins_dir_val.iterdir.return_value = []
@@ -437,7 +437,7 @@ class TestCmdRemove:
 
     def test_remove_plugin_core_deletes_read_only_git_tree(self, tmp_path):
         """Git leaves loose objects read-only: removal must clear that, not abort (#117179)."""
-        from hermes_cli.plugins_cmd import _remove_plugin_core
+        from devbuddy_cli.plugins_cmd import _remove_plugin_core
 
         target = tmp_path / "plugins" / "demo"
         obj_dir = target / ".git" / "objects" / "4b"
@@ -452,7 +452,7 @@ class TestCmdRemove:
         assert not target.exists()
 
     def test_remove_deletes_only_the_requested_plugin(self, tmp_path, monkeypatch):
-        from hermes_cli.plugins_cmd import cmd_remove
+        from devbuddy_cli.plugins_cmd import cmd_remove
 
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         target = tmp_path / "plugins/test-plugin"
@@ -505,7 +505,7 @@ class TestCopyExampleFiles:
 
         # Mock shutil.copy2 to raise an error
         with patch(
-            "hermes_cli.plugins_cmd.shutil.copy2",
+            "devbuddy_cli.plugins_cmd.shutil.copy2",
             side_effect=OSError("Permission denied"),
         ):
             # Should not raise, just warn
@@ -522,7 +522,7 @@ class TestPromptPluginEnvVars:
 
 
     def test_prompts_for_missing_var_rich_format(self):
-        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
+        from devbuddy_cli.plugins_cmd import _prompt_plugin_env_vars
         from unittest.mock import MagicMock, patch
 
         console = MagicMock()
@@ -538,9 +538,9 @@ class TestPromptPluginEnvVars:
             ],
         }
 
-        with patch("hermes_cli.config.get_env_value", return_value=None), \
+        with patch("devbuddy_cli.config.get_env_value", return_value=None), \
              patch("builtins.input", return_value="pk-lf-123"), \
-             patch("hermes_cli.config.save_env_value") as mock_save:
+             patch("devbuddy_cli.config.save_env_value") as mock_save:
             _prompt_plugin_env_vars(manifest, console)
 
         mock_save.assert_called_once_with("LANGFUSE_PUBLIC_KEY", "pk-lf-123")
@@ -549,7 +549,7 @@ class TestPromptPluginEnvVars:
         assert "langfuse.com" in printed
 
     def test_secret_uses_masked_prompt(self):
-        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
+        from devbuddy_cli.plugins_cmd import _prompt_plugin_env_vars
         from unittest.mock import MagicMock, patch
 
         console = MagicMock()
@@ -558,9 +558,9 @@ class TestPromptPluginEnvVars:
             "requires_env": [{"name": "SECRET_KEY", "secret": True}],
         }
 
-        with patch("hermes_cli.config.get_env_value", return_value=None), \
-             patch("hermes_cli.plugins_cmd.masked_secret_prompt", return_value="s3cret") as mock_prompt, \
-             patch("hermes_cli.config.save_env_value"):
+        with patch("devbuddy_cli.config.get_env_value", return_value=None), \
+             patch("devbuddy_cli.plugins_cmd.masked_secret_prompt", return_value="s3cret") as mock_prompt, \
+             patch("devbuddy_cli.config.save_env_value"):
             _prompt_plugin_env_vars(manifest, console)
 
         mock_prompt.assert_called_once()
@@ -575,7 +575,7 @@ class TestCursesRadiolist:
     """Test the curses_radiolist function."""
 
     def test_non_tty_returns_default(self):
-        from hermes_cli.curses_ui import curses_radiolist
+        from devbuddy_cli.curses_ui import curses_radiolist
         with patch("sys.stdin") as mock_stdin:
             mock_stdin.isatty.return_value = False
             result = curses_radiolist("Pick one", ["a", "b", "c"], selected=1)
@@ -595,7 +595,7 @@ class TestProviderDiscovery:
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         config_file = tmp_path / "config.yaml"
         config_file.write_text("context:\n  engine: compressor\n", encoding="utf-8")
-        from hermes_cli.plugins_cmd import _save_context_engine
+        from devbuddy_cli.plugins_cmd import _save_context_engine
         _save_context_engine("lcm")
         content = yaml.safe_load(config_file.read_text(encoding="utf-8"))
         assert content["context"]["engine"] == "lcm"
@@ -605,7 +605,7 @@ class TestProviderDiscovery:
         """Discovery returns empty list when import fails."""
         with patch("plugins.context_engine.discover_context_engines",
                     side_effect=ImportError("no module")):
-            from hermes_cli.plugins_cmd import _discover_context_engines
+            from devbuddy_cli.plugins_cmd import _discover_context_engines
             result = _discover_context_engines()
             assert result == []
 
@@ -663,7 +663,7 @@ class TestSubdirInstallE2E:
         if shutil.which("git") is None:
             pytest.skip("git not available")
 
-        from hermes_cli import plugins_cmd as pc
+        from devbuddy_cli import plugins_cmd as pc
 
         repo_root = tmp_path / "monorepo"
         self._make_repo_with_subdir_plugin(repo_root)
@@ -690,7 +690,7 @@ class TestSubdirInstallE2E:
         if shutil.which("git") is None:
             pytest.skip("git not available")
 
-        from hermes_cli import plugins_cmd as pc
+        from devbuddy_cli import plugins_cmd as pc
 
         repo_root = tmp_path / "monorepo"
         self._make_repo_with_subdir_plugin(repo_root)
@@ -710,8 +710,8 @@ class TestSubdirInstallE2E:
             pytest.skip("git not available")
         import subprocess as sp
 
-        from hermes_cli import plugins_cmd as pc
-        from hermes_cli.plugins_cmd_update import _pull_plugin_update
+        from devbuddy_cli import plugins_cmd as pc
+        from devbuddy_cli.plugins_cmd_update import _pull_plugin_update
 
         repo_root = tmp_path / "monorepo"
         self._make_repo_with_subdir_plugin(repo_root)
@@ -741,8 +741,8 @@ class TestSubdirInstallE2E:
 
         import json
         import subprocess as sp
-        from hermes_cli import plugins_cmd as pc
-        from hermes_cli.agent_plugins import PLUGIN_SCHEMA_V1
+        from devbuddy_cli import plugins_cmd as pc
+        from devbuddy_cli.agent_plugins import PLUGIN_SCHEMA_V1
 
         repo_root = tmp_path / "portable-repo"
         repo_root.mkdir()
@@ -796,7 +796,7 @@ class TestReviewedPinScanTrust:
         monkeypatch.setattr(pc, "_scan_on_install_enabled", lambda: True)
 
     def test_caution_trusted_only_at_the_reviewed_sha(self, tmp_path, monkeypatch):
-        from hermes_cli import plugins_cmd as pc
+        from devbuddy_cli import plugins_cmd as pc
 
         plugins_dir = tmp_path / "plugins"
         plugins_dir.mkdir()
@@ -811,7 +811,7 @@ class TestReviewedPinScanTrust:
         assert name == "scanme" and target.is_dir()
 
     def test_dangerous_blocks_even_at_the_reviewed_sha(self, tmp_path, monkeypatch):
-        from hermes_cli import plugins_cmd as pc
+        from devbuddy_cli import plugins_cmd as pc
 
         plugins_dir = tmp_path / "plugins"
         plugins_dir.mkdir()
@@ -840,7 +840,7 @@ class TestInstallReadabilityGate:
     @pytest.mark.platforms("posix")
     @pytest.mark.skipif(getattr(os, "geteuid", lambda: 1)() == 0, reason="root ignores mode bits")
     def test_unreadable_file_is_repaired_before_install(self, tmp_path, monkeypatch):
-        from hermes_cli import plugins_cmd as pc
+        from devbuddy_cli import plugins_cmd as pc
 
         plugins_dir = tmp_path / "plugins"
         plugins_dir.mkdir()
@@ -855,7 +855,7 @@ class TestInstallReadabilityGate:
     @pytest.mark.platforms("posix")
     @pytest.mark.skipif(getattr(os, "geteuid", lambda: 1)() == 0, reason="root ignores mode bits")
     def test_unrepairable_tree_rolls_back_and_names_the_fix(self, tmp_path, monkeypatch):
-        from hermes_cli import plugins_cmd as pc
+        from devbuddy_cli import plugins_cmd as pc
 
         plugins_dir = tmp_path / "plugins"
         plugins_dir.mkdir()
@@ -872,8 +872,8 @@ class TestInstallReadabilityGate:
 def test_portable_manifest_is_visible_to_plugin_cli(tmp_path):
     import json
 
-    from hermes_cli.agent_plugins import PLUGIN_SCHEMA_V1
-    from hermes_cli.plugins_cmd import _read_manifest_info
+    from devbuddy_cli.agent_plugins import PLUGIN_SCHEMA_V1
+    from devbuddy_cli.plugins_cmd import _read_manifest_info
 
     plugin = tmp_path / "portable"
     plugin.mkdir()
@@ -905,7 +905,7 @@ def test_autostash_dirty_tree_promotes_intent_to_add_entries(tmp_path):
     """
     import subprocess
 
-    from hermes_cli.plugins_cmd_git import _autostash_dirty_tree
+    from devbuddy_cli.plugins_cmd_git import _autostash_dirty_tree
 
     def git(*args, check=True):
         return subprocess.run(
@@ -936,7 +936,7 @@ def test_toggle_plugin_toolset_rewrites_a_list_literal_string_platform_entry(tmp
     list-literal string an older ``hermes config set`` stored, and re-save it as a real list —
     the runtime already reads that string as the user's selection (follow-up to #115866)."""
 
-    from hermes_cli import plugins_cmd
+    from devbuddy_cli import plugins_cmd
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
@@ -964,6 +964,6 @@ def test_default_compressor_does_not_activate_an_offered_plugin(monkeypatch):
     from types import SimpleNamespace
     candidate = SimpleNamespace(name='offered', clone_for_agent=lambda: candidate)
     monkeypatch.setattr('plugins.context_engine.load_context_engine', lambda _: None)
-    monkeypatch.setattr('hermes_cli.plugins.get_plugin_context_engine', lambda: candidate)
+    monkeypatch.setattr('devbuddy_cli.plugins.get_plugin_context_engine', lambda: candidate)
     assert _select_context_engine({'context': {'engine': 'compressor'}}) is None
     assert _select_context_engine({'context': {'engine': 'offered'}}).name == 'offered'

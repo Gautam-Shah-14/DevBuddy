@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 import pytest
 from rich.console import Console
 
-from hermes_cli import anon_auth
-from hermes_cli import cli_commands_mixin as commands
+from devbuddy_cli import anon_auth
+from devbuddy_cli import cli_commands_mixin as commands
 
 class _Thread:
     def __init__(self, target):

@@ -78,8 +78,8 @@ def install_portal(monkeypatch, tmp_path, fake: FakePortal | None = None) -> Fak
 
     One transport seam: ``httpx.Client`` itself, which ``auth_nous._nous_http_client`` and
     ``resolve_nous_access_token`` both construct."""
-    from hermes_cli import anon_auth, free_tier_bootstrap
-    from hermes_cli import auth as auth_mod
+    from devbuddy_cli import anon_auth, free_tier_bootstrap
+    from devbuddy_cli import auth as auth_mod
 
     fake = fake or FakePortal()
     monkeypatch.setenv("HERMES_PORTAL_BASE_URL", PORTAL)

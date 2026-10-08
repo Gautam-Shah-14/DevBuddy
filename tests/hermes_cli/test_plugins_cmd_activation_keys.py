@@ -1,6 +1,6 @@
 """Plugin activation writes and reads the SAME key on every surface (#27548, #73131, #82898).
 
-Runs the real ``hermes_cli.plugins_cmd`` commands against a temp HERMES_HOME and checks the verdict
+Runs the real ``devbuddy_cli.plugins_cmd`` commands against a temp HERMES_HOME and checks the verdict
 through the loader's own gate (``plugins_discovery.gate_manifest``) — never by re-reading the list
 the command just wrote.
 """
@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_cli import plugins_cmd
-from hermes_cli.config import load_config, save_config
-from hermes_cli.plugins_discovery import collect_directory_manifests, gate_manifest
+from devbuddy_cli import plugins_cmd
+from devbuddy_cli.config import load_config, save_config
+from devbuddy_cli.plugins_discovery import collect_directory_manifests, gate_manifest
 
 
 def _write_plugin(root, rel, name, extra=""):
@@ -39,7 +39,7 @@ def _commit_plugin_selection_without_building_an_environment(monkeypatch):
         cfg["plugins"] = {"enabled": sorted(enabled), "disabled": sorted(disabled)}
         save_config(cfg)
 
-    monkeypatch.setattr("hermes_cli.plugins_admission.admit_plugin_set_change", admit)
+    monkeypatch.setattr("devbuddy_cli.plugins_admission.admit_plugin_set_change", admit)
 
 
 def _lists():

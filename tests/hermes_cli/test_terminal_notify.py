@@ -5,7 +5,7 @@ import json
 import pytest
 
 from cli import HermesCLI
-from hermes_cli import terminal_notify
+from devbuddy_cli import terminal_notify
 
 _WARP_OK = {
     "TERM_PROGRAM": "WarpTerminal",

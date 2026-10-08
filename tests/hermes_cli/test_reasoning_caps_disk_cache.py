@@ -16,9 +16,9 @@ import json
 
 import pytest
 
-import hermes_cli.models as models_mod
-from hermes_cli import models_pricing
-from hermes_cli import models_reasoning_caps
+import devbuddy_cli.models as models_mod
+from devbuddy_cli import models_pricing
+from devbuddy_cli import models_reasoning_caps
 
 
 _CATALOG = json.dumps({

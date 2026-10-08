@@ -92,9 +92,9 @@ class LiveEndpointUnavailable(ConnectionError):
 
 def _live_endpoint(server_name: str) -> Optional[tuple[str, dict]]:
     from agent.redact import register_vault_redaction_value
-    from hermes_platform import declaration
-    from hermes_platform.host import facts
-    from hermes_platform.resolver.app import AppResolver
+    from devbuddy_platform import declaration
+    from devbuddy_platform.host import facts
+    from devbuddy_platform.resolver.app import AppResolver
     from tools.mcp_liveness import liveness_for
 
     live = liveness_for(server_name)
@@ -274,7 +274,7 @@ class MCPServerTransportMixin:
         # Machine spawn ledger (startup sweeps reap orphans after an unclean exit); best-effort.
         for _pid in new_pids:
             try:
-                from hermes_cli.process_identity import register_child
+                from devbuddy_cli.process_identity import register_child
                 register_child(_pid, "mcp-helper")
             except Exception:
                 logger.debug("spawn-ledger register_child failed for MCP helper pid %s", _pid, exc_info=True)

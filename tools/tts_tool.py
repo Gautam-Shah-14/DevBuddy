@@ -23,7 +23,7 @@ from typing import Callable, Dict, Any, List, Optional
 
 import copy
 
-from hermes_constants import display_hermes_home
+from devbuddy_constants import display_hermes_home
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ DEFAULT_PROVIDER = "edge"
 
 
 def _get_default_output_dir() -> str:
-    from hermes_constants import get_hermes_dir
+    from devbuddy_constants import get_hermes_dir
     return str(get_hermes_dir("cache/audio", "audio_cache"))
 
 
@@ -119,7 +119,7 @@ def _default_output_dir() -> str:
     Same bug class as skills_tool (f8723c478) and skills_sync (#65828): long-lived multi-profile runtimes
     (dashboard console, TUI/Desktop backend, cron, kanban workers) import this module once under the launch
     HERMES_HOME and later scope requests to a different profile via
-    ``hermes_constants.set_hermes_home_override()`` — a frozen module constant keeps writing synthesized
+    ``devbuddy_constants.set_hermes_home_override()`` — a frozen module constant keeps writing synthesized
     audio into the launch profile's cache instead of the active profile's (#98749). Keep the legacy
     ``DEFAULT_OUTPUT_DIR`` module attribute for tests and external patchers; when it has not been patched,
     re-resolve from the live profile-scoped HERMES_HOME on every call.
@@ -132,10 +132,10 @@ def _default_output_dir() -> str:
 def _load_tts_config() -> Dict[str, Any]:
     """Return the ``tts`` config section ({} when unavailable)."""
     try:
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
         return load_config().get("tts") or {}
     except ImportError:
-        logger.debug("hermes_cli.config not available, using default TTS config")
+        logger.debug("devbuddy_cli.config not available, using default TTS config")
     except Exception as e:
         logger.warning("Failed to load TTS config: %s", e, exc_info=True)
     return {}
@@ -749,7 +749,7 @@ _PLUGIN_COMPAT_LAZY = {
     'stream_tts_to_speaker': ('tools.tts_tool_speaker', 'stream_tts_to_speaker'),
     'tts_lease_holders': ('tools.tts_tool_lifecycle', 'tts_lease_holders'),
     'warm_tts_provider': ('tools.tts_tool_lifecycle', 'warm_tts_provider'),
-    'windows_hide_flags': ('hermes_cli._subprocess_compat', 'windows_hide_flags'),
+    'windows_hide_flags': ('devbuddy_cli._subprocess_compat', 'windows_hide_flags'),
 }
 
 
@@ -758,7 +758,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

@@ -20,9 +20,9 @@ import time
 from typing import Dict, Any, Optional, Union
 from pathlib import Path
 from agent.redact import redact_cdp_url
-from hermes_constants import get_hermes_home, hermes_home_key
+from devbuddy_constants import get_hermes_home, hermes_home_key
 from utils import env_int
-from hermes_cli.config import DEFAULT_CONFIG, cfg_get
+from devbuddy_cli.config import DEFAULT_CONFIG, cfg_get
 
 
 # Env keys re-added to the agent-browser subprocess AFTER credential stripping.
@@ -188,7 +188,7 @@ def _browser_cfg(key: str, default, parse, log_label: str):
     """``parse(browser.<key>)`` from the RAW profile config (loader warnings must not
     leak into tool JSON); ``default`` when absent, not a mapping, or on any error."""
     try:
-        from hermes_cli.config import read_raw_config
+        from devbuddy_cli.config import read_raw_config
         browser_cfg = read_raw_config().get("browser", {})
         if isinstance(browser_cfg, dict) and key in browser_cfg:
             return parse(browser_cfg[key])
@@ -364,8 +364,8 @@ def _last_session_key(task_id: str) -> str:
 
 def _socket_safe_tmpdir() -> str:
     """Temp root short enough for the agent-browser socket dir and Chrome's SingletonSocket
-    (``hermes_constants.socket_safe_tmpdir``)."""
-    from hermes_constants import socket_safe_tmpdir
+    (``devbuddy_constants.socket_safe_tmpdir``)."""
+    from devbuddy_constants import socket_safe_tmpdir
     return socket_safe_tmpdir()
 
 
@@ -1143,7 +1143,7 @@ def _maybe_start_recording(task_id: str):
         if task_id in _recording_sessions:
             return
     try:
-        from hermes_cli.config import read_raw_config
+        from devbuddy_cli.config import read_raw_config
         hermes_home = get_hermes_home()
         if not cfg_get(read_raw_config(), "browser", "record_sessions", default=False):
             return
@@ -1244,7 +1244,7 @@ def browser_vision(question: str, annotate: bool = False, task_id: Optional[str]
         return _camofox("camofox_vision", question, annotate, task_id)
 
     import uuid as uuid_mod
-    from hermes_constants import get_hermes_dir
+    from devbuddy_constants import get_hermes_dir
     screenshots_dir = get_hermes_dir("cache/screenshots", "browser_screenshots")
     screenshot_path = screenshots_dir / f"browser_screenshot_{uuid_mod.uuid4().hex}.png"
     effective_task_id = _last_session_key(task_id or "default")
@@ -1375,20 +1375,20 @@ _PLUGIN_COMPAT_LAZY = {
     'BrowserbaseProvider': ('plugins.browser.browserbase.provider', 'BrowserbaseBrowserProvider'),
     'CloudBrowserProvider': ('agent.browser_provider', 'BrowserProvider'),
     'FirecrawlProvider': ('plugins.browser.firecrawl.provider', 'FirecrawlBrowserProvider'),
-    'agent_browser_runnable': ('hermes_constants', 'agent_browser_runnable'),
+    'agent_browser_runnable': ('devbuddy_constants', 'agent_browser_runnable'),
     'check_browser_requirements': ('tools.browser_tool_install', 'check_browser_requirements'),
     'check_browser_vision_requirements': ('tools.browser_tool_install', 'check_browser_vision_requirements'),
     'cleanup_all_browsers': ('tools.browser_tool_lifecycle', 'cleanup_all_browsers'),
     'cleanup_browser': ('tools.browser_tool_lifecycle', 'cleanup_browser'),
-    'get_hermes_home_override': ('hermes_constants', 'get_hermes_home_override'),
-    'hermes_home_key': ('hermes_constants', 'hermes_home_key'),
+    'get_hermes_home_override': ('devbuddy_constants', 'get_hermes_home_override'),
+    'hermes_home_key': ('devbuddy_constants', 'hermes_home_key'),
     'is_truthy_value': ('utils', 'is_truthy_value'),
     'lightpanda_engine_status': ('tools.browser_tool_lightpanda_fallback', 'lightpanda_engine_status'),
-    'node_tool_runnable': ('hermes_constants', 'node_tool_runnable'),
+    'node_tool_runnable': ('devbuddy_constants', 'node_tool_runnable'),
     'normalize_browser_cloud_provider': ('tools.tool_backend_helpers', 'normalize_browser_cloud_provider'),
-    'reset_hermes_home_override': ('hermes_constants', 'reset_hermes_home_override'),
-    'set_hermes_home_override': ('hermes_constants', 'set_hermes_home_override'),
-    'windows_hide_flags': ('hermes_cli._subprocess_compat', 'windows_hide_flags'),
+    'reset_hermes_home_override': ('devbuddy_constants', 'reset_hermes_home_override'),
+    'set_hermes_home_override': ('devbuddy_constants', 'set_hermes_home_override'),
+    'windows_hide_flags': ('devbuddy_cli._subprocess_compat', 'windows_hide_flags'),
 }
 
 
@@ -1397,7 +1397,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

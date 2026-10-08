@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 from acp_adapter import session as acp_session
 from acp_adapter.session import SessionManager, SessionState
-from hermes_state import SessionDB
+from devbuddy_state import SessionDB
 
 
 def _mock_agent():
@@ -45,7 +45,7 @@ class TestCreateSession:
             captured["task_id"] = task_id
             captured["overrides"] = overrides
 
-        monkeypatch.setattr("hermes_platform.host.runtime._wsl_detected", True)
+        monkeypatch.setattr("devbuddy_platform.host.runtime._wsl_detected", True)
         monkeypatch.setattr(
             "tools.terminal_tool.register_task_env_overrides",
             fake_register_task_env_overrides,
@@ -88,7 +88,7 @@ class TestCreateSession:
             raising=False,
         )
         monkeypatch.setattr(
-            "hermes_cli.config.load_config",
+            "devbuddy_cli.config.load_config",
             lambda: {
                 "model": {
                     "default": "fake-model",
@@ -98,7 +98,7 @@ class TestCreateSession:
             },
         )
         monkeypatch.setattr(
-            "hermes_cli.runtime_provider.resolve_runtime_provider",
+            "devbuddy_cli.runtime_provider.resolve_runtime_provider",
             lambda requested=None: {
                 "provider": requested,
                 "api_mode": "codex_app_server",
@@ -107,7 +107,7 @@ class TestCreateSession:
             },
         )
         monkeypatch.setattr("acp_adapter.session._register_task_cwd", lambda task_id, cwd: None)
-        monkeypatch.setattr("hermes_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
+        monkeypatch.setattr("devbuddy_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
 
         SessionManager(db=None).create_session(cwd=str(workspace))
 
@@ -124,9 +124,9 @@ class TestCreateSession:
 
         config = {"model": {"default": "m", "provider": "p"}, "mcp_servers": {"cfg-server": {}}}
         monkeypatch.setattr("run_agent.AIAgent", FakeAgent)
-        monkeypatch.setattr("hermes_cli.config.load_config", lambda: config)
-        monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", lambda **_kw: {})
-        monkeypatch.setattr("hermes_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
+        monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: config)
+        monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", lambda **_kw: {})
+        monkeypatch.setattr("devbuddy_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
         monkeypatch.setattr("acp_adapter.session._register_task_cwd", lambda task_id, cwd: None)
         manager = SessionManager(db=None)
 
@@ -157,9 +157,9 @@ class TestCreateSession:
                 seen.append(kwargs)
 
         monkeypatch.setattr("run_agent.AIAgent", FakeAgent)
-        monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"model": {"default": "m"}, **config})
-        monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", lambda **_kw: {})
-        monkeypatch.setattr("hermes_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
+        monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: {"model": {"default": "m"}, **config})
+        monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", lambda **_kw: {})
+        monkeypatch.setattr("devbuddy_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
         monkeypatch.setattr("acp_adapter.session._register_task_cwd", lambda task_id, cwd: None)
 
         SessionManager(db=None)._make_agent(session_id="fresh", cwd=".")
@@ -192,9 +192,9 @@ class TestCreateSession:
         if acp_toolsets is not None:
             config["platform_toolsets"] = {"acp": acp_toolsets}
         monkeypatch.setattr("run_agent.AIAgent", FakeAgent)
-        monkeypatch.setattr("hermes_cli.config.load_config", lambda: config)
-        monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", lambda **_kw: {})
-        monkeypatch.setattr("hermes_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
+        monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: config)
+        monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", lambda **_kw: {})
+        monkeypatch.setattr("devbuddy_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
         monkeypatch.setattr("acp_adapter.session._register_task_cwd", lambda task_id, cwd: None)
 
         SessionManager(db=None)._make_agent(session_id="fresh", cwd=".")
@@ -218,9 +218,9 @@ class TestCreateSession:
             def __init__(self, **kwargs):
                 self.kwargs = kwargs
 
-        monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"model": {"default": "m", "provider": "openai-codex"}})
-        monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", _no_creds)
-        monkeypatch.setattr("hermes_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
+        monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: {"model": {"default": "m", "provider": "openai-codex"}})
+        monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", _no_creds)
+        monkeypatch.setattr("devbuddy_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
         monkeypatch.setattr("acp_adapter.session._register_task_cwd", lambda task_id, cwd: None)
         manager = SessionManager(db=None)
 
@@ -244,11 +244,11 @@ class TestCreateSession:
                 seen.append(kwargs)
 
         monkeypatch.setattr("run_agent.AIAgent", FakeAgent)
-        monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"model": {"default": "m", "provider": "openai-codex"}})
-        monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", lambda **_kw: {
+        monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: {"model": {"default": "m", "provider": "openai-codex"}})
+        monkeypatch.setattr("devbuddy_cli.runtime_provider.resolve_runtime_provider", lambda **_kw: {
             "provider": "openai-codex", "api_mode": "codex_app_server", "api_key": "test-key", "credential_pool": sentinel_pool,
         })
-        monkeypatch.setattr("hermes_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
+        monkeypatch.setattr("devbuddy_cli.mcp_startup.ensure_mcp_discovery_before_agent_build", lambda **_kw: None)
         monkeypatch.setattr("acp_adapter.session._register_task_cwd", lambda task_id, cwd: None)
 
         SessionManager(db=None)._make_agent(session_id="s", cwd=".")
@@ -265,7 +265,7 @@ class TestCreateSession:
 
 class TestWslCwdTranslation:
     def test_translate_acp_cwd_converts_windows_drive_path_when_wsl(self, monkeypatch):
-        monkeypatch.setattr("hermes_platform.host.runtime._wsl_detected", True)
+        monkeypatch.setattr("devbuddy_platform.host.runtime._wsl_detected", True)
 
         assert acp_session._translate_acp_cwd(r"E:\Projects\AI\paperclip") == "/mnt/e/Projects/AI/paperclip"
 
@@ -274,7 +274,7 @@ class TestWslCwdTranslation:
 
 
     def test_fork_session_stores_translated_cwd_on_wsl(self, manager, monkeypatch):
-        monkeypatch.setattr("hermes_platform.host.runtime._wsl_detected", True)
+        monkeypatch.setattr("devbuddy_platform.host.runtime._wsl_detected", True)
         original = manager.create_session(cwd="/tmp/base")
 
         forked = manager.fork_session(original.session_id, cwd=r"D:\work\project")
@@ -283,7 +283,7 @@ class TestWslCwdTranslation:
         assert forked.cwd == "/mnt/d/work/project"
 
     def test_update_cwd_stores_translated_cwd_on_wsl(self, manager, monkeypatch):
-        monkeypatch.setattr("hermes_platform.host.runtime._wsl_detected", True)
+        monkeypatch.setattr("devbuddy_platform.host.runtime._wsl_detected", True)
         state = manager.create_session(cwd="/tmp/old")
 
         updated = manager.update_cwd(state.session_id, cwd=r"C:\Users\foo\project")
@@ -503,11 +503,11 @@ class TestPersistence:
         def fake_agent(**kwargs):
             return SimpleNamespace(model=kwargs.get("model"), _print_fn=None)
 
-        monkeypatch.setattr("hermes_cli.config.load_config", lambda: {
+        monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: {
             "model": {"provider": "openrouter", "default": "test-model"}
         })
         monkeypatch.setattr(
-            "hermes_cli.runtime_provider.resolve_runtime_provider",
+            "devbuddy_cli.runtime_provider.resolve_runtime_provider",
             fake_resolve_runtime_provider,
         )
         db = SessionDB(tmp_path / "state.db")

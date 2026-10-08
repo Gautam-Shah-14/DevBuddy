@@ -11,14 +11,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import hermes_cli.gateway as gateway_mod
+import devbuddy_cli.gateway as gateway_mod
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-_GATEWAY_CMD = "python -m hermes_cli.main gateway run"
+_GATEWAY_CMD = "python -m devbuddy_cli.main gateway run"
 _OTHER_CMD = "python -m some_other_thing"
 
 
@@ -66,7 +66,7 @@ class TestProcFallback:
     def test_detects_gateway_pid_via_proc(self):
         my_pid = os.getpid()
         entries = {
-            my_pid: "python -m hermes_cli.main",   # own process — excluded
+            my_pid: "python -m devbuddy_cli.main",   # own process — excluded
             12345: _GATEWAY_CMD,
             99999: _OTHER_CMD,
         }
@@ -76,7 +76,7 @@ class TestProcFallback:
             patch("os.path.isdir", side_effect=_isdir),
             patch("os.listdir", side_effect=_listdir),
             patch("builtins.open", side_effect=_open),
-            patch("hermes_cli.gateway._get_ancestor_pids", return_value=set()),
+            patch("devbuddy_cli.gateway._get_ancestor_pids", return_value=set()),
             patch("subprocess.run") as mock_ps,
         ):
             pids = gateway_mod._scan_gateway_pids(set(), all_profiles=True)
@@ -104,7 +104,7 @@ class TestProcFallback:
             patch("os.path.isdir", side_effect=_isdir),
             patch("os.listdir", side_effect=_listdir),
             patch("builtins.open", side_effect=_open),
-            patch("hermes_cli.gateway._get_ancestor_pids", return_value=set()),
+            patch("devbuddy_cli.gateway._get_ancestor_pids", return_value=set()),
             patch("subprocess.run") as mock_ps,
         ):
             pids = gateway_mod._scan_gateway_pids(set(), all_profiles=True)
@@ -127,7 +127,7 @@ class TestPsFallbackBsdCompat:
     def test_ps_fallback_uses_bsd_compatible_flags_and_columns(self):
         with (
             patch("os.path.isdir", side_effect=lambda p: p != "/proc"),
-            patch("hermes_cli.gateway._get_ancestor_pids", return_value=set()),
+            patch("devbuddy_cli.gateway._get_ancestor_pids", return_value=set()),
             patch("subprocess.run") as mock_run,
         ):
             mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="")
@@ -156,13 +156,13 @@ class TestGetServicePidsAllProfiles:
             return ("gui/501", 123)
 
         with (
-            patch("hermes_cli.gateway.supports_systemd_services", return_value=False),
+            patch("devbuddy_cli.gateway.supports_systemd_services", return_value=False),
             patch(
-                "hermes_cli.gateway.get_launchd_label",
+                "devbuddy_cli.gateway.get_launchd_label",
                 return_value="ai.hermes.gateway.myprofile",
             ),
             patch(
-                "hermes_cli.gateway._locate_launchd_gateway_service",
+                "devbuddy_cli.gateway._locate_launchd_gateway_service",
                 side_effect=_fake_locate,
             ),
             patch("subprocess.run") as mock_run,
@@ -198,17 +198,17 @@ class TestGetServicePidsAllProfiles:
             return ("gui/501", pid) if pid else (None, None)
 
         with (
-            patch("hermes_cli.gateway.supports_systemd_services", return_value=False),
+            patch("devbuddy_cli.gateway.supports_systemd_services", return_value=False),
             patch(
-                "hermes_cli.gateway.get_launchd_label",
+                "devbuddy_cli.gateway.get_launchd_label",
                 return_value="ai.hermes.gateway",
             ),
             patch(
-                "hermes_cli.gateway.launchd_gateway_labels_for_install",
+                "devbuddy_cli.gateway.launchd_gateway_labels_for_install",
                 return_value=["ai.hermes.gateway", "ai.hermes.gateway-profile-b"],
             ),
             patch(
-                "hermes_cli.gateway._locate_launchd_gateway_service",
+                "devbuddy_cli.gateway._locate_launchd_gateway_service",
                 side_effect=_fake_locate,
             ),
             patch("subprocess.run") as mock_run,
@@ -242,7 +242,7 @@ class TestGetServicePidsAllProfiles:
         """systemd scope is unaffected by the all_profiles switch — it already
         lists every hermes-gateway* unit unconditionally."""
         with (
-            patch("hermes_cli.gateway.supports_systemd_services", return_value=True),
+            patch("devbuddy_cli.gateway.supports_systemd_services", return_value=True),
             patch("subprocess.run") as mock_run,
         ):
             def _run_side_effect(args, **kwargs):

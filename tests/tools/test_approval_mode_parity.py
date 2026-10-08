@@ -42,8 +42,8 @@ def tui_server():
     with patch.dict(
         "sys.modules",
         {
-            "hermes_cli.env_loader": MagicMock(),
-            "hermes_cli.banner": MagicMock(),
+            "devbuddy_cli.env_loader": MagicMock(),
+            "devbuddy_cli.banner": MagicMock(),
         },
     ):
         yield importlib.import_module("tui_gateway.server")

@@ -84,7 +84,7 @@ _HOME_LAYERS: dict[str, _HomeLayer] = {}
 _HOME_LAYERS_LOCK = threading.Lock()
 # The layer a ``$HERMES_HOME`` plugin import registers into. A ContextVar, not a module global:
 # two turn threads scanning two profile homes at once must not cross-register. Never a lock held
-# across the import itself — a thread mid-``import hermes_cli.auth`` (whose import calls
+# across the import itself — a thread mid-``import devbuddy_cli.auth`` (whose import calls
 # ``list_providers()``) would block on it while the scanning thread waits on that module's import lock.
 _REGISTRATION_TARGET: ContextVar[_HomeLayer | None] = ContextVar("_provider_registration_target", default=None)
 
@@ -95,19 +95,19 @@ _BUNDLED_PLUGINS_DIR = (
 
 
 def _sync_auth_registry() -> None:
-    """Mirror profiles into the ``hermes_cli`` snapshots (auth registry, picker catalog) that are loaded.
+    """Mirror profiles into the ``devbuddy_cli`` snapshots (auth registry, picker catalog) that are loaded.
 
-    ``hermes_cli.auth`` takes its own snapshot of ``list_providers()`` when it is imported. If a
+    ``devbuddy_cli.auth`` takes its own snapshot of ``list_providers()`` when it is imported. If a
     plugin's imports pull that module in while :func:`_discover_providers` is still running, the
     snapshot is partial and later plugins never reach the auth registry ("Unknown provider",
     #102123). Calling back into auth once discovery is complete closes that window. Looked up via
-    ``sys.modules`` on purpose: this layer must never import ``hermes_cli`` (that would run auth's
+    ``sys.modules`` on purpose: this layer must never import ``devbuddy_cli`` (that would run auth's
     top-level code mid-scan and risk a circular import). Never raises: registration must not fail
     because of the auth mirror.
     """
     for module, attr in (
-        ("hermes_cli.auth", "sync_plugin_provider_registry"),
-        ("hermes_cli.models_catalog_static", "sync_plugin_provider_catalog"),
+        ("devbuddy_cli.auth", "sync_plugin_provider_registry"),
+        ("devbuddy_cli.models_catalog_static", "sync_plugin_provider_catalog"),
     ):
         sync = getattr(sys.modules.get(module), attr, None)
         if sync is None:
@@ -146,7 +146,7 @@ def provider_source(name: str) -> str | None:
     """Discovery source of the profile currently registered under *name* (see ``_SOURCES``), or None.
 
     ``"user"`` is what lets a ``$HERMES_HOME`` plugin re-registering a bundled name win in
-    ``hermes_cli.auth.PROVIDER_REGISTRY`` too — a bundled profile never rewrites a built-in row.
+    ``devbuddy_cli.auth.PROVIDER_REGISTRY`` too — a bundled profile never rewrites a built-in row.
     """
     layer = _home_layer()
     canonical = layer.aliases.get(name) or _ALIASES.get(name, name)
@@ -201,7 +201,7 @@ def routed_model_rejects_vision_tool_messages(provider: str, model: str) -> bool
     # Routing aggregators accept a ``vendor/model`` identifier while the request is sent
     # to the aggregator; the target provider can have stricter message-shape support than
     # the aggregator's generic OpenAI-compatible transport profile.
-    from hermes_cli.providers import is_routing_aggregator
+    from devbuddy_cli.providers import is_routing_aggregator
     if not is_routing_aggregator(provider_name):
         return False
 
@@ -242,7 +242,7 @@ def _home_layer(*, force_stamp_check: bool = False) -> _HomeLayer:
 
 def _bound_home_layer() -> tuple[_HomeLayer, Path | None, str]:
     try:
-        from hermes_constants import get_hermes_home, hermes_home_key
+        from devbuddy_constants import get_hermes_home, hermes_home_key
 
         home = get_hermes_home()
         key = hermes_home_key(home)
@@ -297,7 +297,7 @@ def _plugin_dir_stamps(home: Path) -> tuple:
 def _user_plugins_dir() -> Path | None:
     """Return ``$HERMES_HOME/plugins/model-providers/`` if it exists."""
     try:
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
 
         d = get_hermes_home() / "plugins" / "model-providers"
         return d if d.is_dir() else None
@@ -313,7 +313,7 @@ def _installed_plugins_dir() -> Path | None:
     :func:`_discover_installed_provider_plugins`.
     """
     try:
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
 
         d = get_hermes_home() / "plugins"
         return d if d.is_dir() else None
@@ -472,7 +472,7 @@ def _discover_entry_point_providers() -> None:
     # Same opt-in gate as the general PluginManager: only entry points named
     # in ``plugins.enabled`` load, and ``plugins.disabled`` always wins.
     try:
-        from hermes_cli.plugins import _get_disabled_plugins, _get_enabled_plugins
+        from devbuddy_cli.plugins import _get_disabled_plugins, _get_enabled_plugins
 
         enabled = _get_enabled_plugins()  # None = nothing enabled yet (opt-in default)
         disabled = _get_disabled_plugins()
@@ -573,7 +573,7 @@ def _discover_providers() -> None:
         _run_discovery_steps()
     finally:
         _discovering = False
-        # hermes_cli.auth may have been imported by a plugin during discovery and snapshotted a
+        # devbuddy_cli.auth may have been imported by a plugin during discovery and snapshotted a
         # partial profile list — hand it the complete one (no-op unless auth is already loaded).
         _sync_auth_registry()
 
@@ -644,7 +644,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

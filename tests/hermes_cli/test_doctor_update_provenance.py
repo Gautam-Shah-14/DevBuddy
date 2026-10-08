@@ -1,7 +1,7 @@
 """Doctor's plugin update-provenance check (SPEC-05 warning surface).
 
 Bounded and READ-ONLY: the pure 2x2 plugin provenance reconciliation
-(hermes_cli.plugins_provenance — the actual authority) plus the
+(devbuddy_cli.plugins_provenance — the actual authority) plus the
 manifest/sidecar update-url cross-check, surfaced as doctor rows. NO
 network (no fetch, no ls-remote — the cadence owns online checks), no
 mkdir — the plugins dir is computed, never created.
@@ -14,7 +14,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-import hermes_cli.doctor_state as ds
+import devbuddy_cli.doctor_state as ds
 
 
 # --- plugin provenance rows ---------------------------------------------
@@ -64,7 +64,7 @@ def test_mixed_provenance_diagnostic_is_read_only(tmp_path, monkeypatch, capsys)
     for name, *_, severity, remedy in cases:
         assert any(kind == severity and name in text and remedy in text + detail
                    for kind, text, detail in rows)
-    monkeypatch.setattr('hermes_constants.get_hermes_home', lambda: tmp_path)
+    monkeypatch.setattr('devbuddy_constants.get_hermes_home', lambda: tmp_path)
     ds._check_update_provenance(False)
     output = capsys.readouterr().out
     assert all(name in output for name, *_ in cases)
@@ -77,7 +77,7 @@ def test_mixed_provenance_diagnostic_is_read_only(tmp_path, monkeypatch, capsys)
 def test_check_is_read_only(tmp_path, monkeypatch, capsys):
     """The check must not create or modify anything under HERMES_HOME —
     no plugins/ mkdir; a missing dir is informational, not a warning."""
-    import hermes_constants as config_mod
+    import devbuddy_constants as config_mod
 
     monkeypatch.setattr(config_mod, "get_hermes_home", lambda: tmp_path, raising=False)
     ds._check_update_provenance(False)
@@ -88,12 +88,12 @@ def test_check_is_read_only(tmp_path, monkeypatch, capsys):
 
 
 def test_check_swallows_provenance_read_failure(tmp_path, monkeypatch, capsys):
-    import hermes_constants as config_mod
+    import devbuddy_constants as config_mod
 
     monkeypatch.setattr(config_mod, "get_hermes_home", lambda: tmp_path, raising=False)
     (tmp_path / "plugins").mkdir()
     with patch(
-        "hermes_cli.plugins_provenance.plugins_provenance",
+        "devbuddy_cli.plugins_provenance.plugins_provenance",
         side_effect=RuntimeError("disk gone"),
     ):
         ds._check_update_provenance(False)

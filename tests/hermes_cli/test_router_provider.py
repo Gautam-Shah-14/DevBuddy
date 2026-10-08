@@ -5,13 +5,13 @@ POST /v1/responses, and /v1/chat/completions is only a minimal
 compatibility shim translated onto Responses.
 These tests pin the host mandate, the runtime URL detection that mirrors
 it, and the profile/auth registry wiring — same contract suite shape as
-tests/hermes_cli/test_meta_prompt_cache.py.
+tests/devbuddy_cli/test_meta_prompt_cache.py.
 """
 
 import pytest
 
-from hermes_cli.providers import determine_api_mode, host_mandated_api_mode
-from hermes_cli import runtime_provider as rp
+from devbuddy_cli.providers import determine_api_mode, host_mandated_api_mode
+from devbuddy_cli import runtime_provider as rp
 
 
 class TestHostMandatedRouterResponses:
@@ -84,7 +84,7 @@ class TestRouterProfileRegistration:
 
 
     def test_auth_registry_autowired(self):
-        from hermes_cli.auth import PROVIDER_REGISTRY
+        from devbuddy_cli.auth import PROVIDER_REGISTRY
 
         config = PROVIDER_REGISTRY.get("router")
         assert config is not None

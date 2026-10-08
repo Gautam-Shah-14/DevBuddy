@@ -10,7 +10,7 @@ import pytest
 @pytest.mark.parametrize("surface", ["serve", "version", "gateway"])
 def test_each_start_checks_pm_once_before_dispatch(surface, tmp_path, monkeypatch, capsys, caplog):
     import pm
-    from hermes_cli import boot_bootstrap
+    from devbuddy_cli import boot_bootstrap
 
     home = tmp_path / "home"
     home.mkdir()
@@ -57,7 +57,7 @@ def test_each_start_checks_pm_once_before_dispatch(surface, tmp_path, monkeypatc
         monkeypatch.setattr(sys, "argv", ["gateway"])
         run = gr.main
     else:
-        from hermes_cli import main
+        from devbuddy_cli import main
 
         monkeypatch.setattr(main, "cmd_dashboard", lambda args: dispatched.append(len(checked)))
         monkeypatch.setattr(main, "cmd_version", lambda args: dispatched.append(len(checked)))
@@ -87,7 +87,7 @@ def test_concurrent_boots_bound_real_home_migration(tmp_path, monkeypatch, sibli
     import subprocess
     import sqlite3
     import time
-    from hermes_cli.config import DEFAULT_CONFIG
+    from devbuddy_cli.config import DEFAULT_CONFIG
 
     root = tmp_path / "payload"
     root.mkdir()
@@ -108,7 +108,7 @@ def test_concurrent_boots_bound_real_home_migration(tmp_path, monkeypatch, sibli
     script = tmp_path / "boot.py"
     script.write_text('''import json, sys, time
 from pathlib import Path
-from hermes_cli import boot_bootstrap, post_update
+from devbuddy_cli import boot_bootstrap, post_update
 root, entered, release = map(Path, sys.argv[1:4])
 def migrate():
     if sys.argv[4] == 'hold':
@@ -166,8 +166,8 @@ print(json.dumps(boot_bootstrap.run_boot_bootstrap(root)))
             changed = subprocess.run([*command, 'go'], env=env, capture_output=True, text=True, timeout=30)
             assert changed.returncode == 0, changed.stderr
             assert json.loads(changed.stdout.splitlines()[-1])['home']['migrate']['ok']
-            import hermes_yaml
-            assert hermes_yaml.safe_load((home / 'config.yaml').read_text())['_config_version'] == DEFAULT_CONFIG['_config_version']
+            import devbuddy_yaml
+            assert devbuddy_yaml.safe_load((home / 'config.yaml').read_text())['_config_version'] == DEFAULT_CONFIG['_config_version']
     finally:
         release.touch()
         if first.poll() is None:
@@ -176,7 +176,7 @@ print(json.dumps(boot_bootstrap.run_boot_bootstrap(root)))
 
 
 def test_failed_migration_is_restored_and_not_retried(tmp_path, monkeypatch):
-    from hermes_cli import boot_bootstrap, config, post_update
+    from devbuddy_cli import boot_bootstrap, config, post_update
 
     home = tmp_path / "home"
     home.mkdir()

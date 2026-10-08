@@ -16,7 +16,7 @@ import os
 
 import pytest
 
-import hermes_cli.auth as auth_mod
+import devbuddy_cli.auth as auth_mod
 
 
 @pytest.fixture(autouse=True)

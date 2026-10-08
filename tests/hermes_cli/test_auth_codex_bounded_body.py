@@ -14,9 +14,9 @@ import json
 import httpx
 import pytest
 
-from hermes_cli import auth_codex
-from hermes_cli.auth import AuthError
-from hermes_cli.web_routers import oauth as web_oauth
+from devbuddy_cli import auth_codex
+from devbuddy_cli.auth import AuthError
+from devbuddy_cli.web_routers import oauth as web_oauth
 
 
 class _LazyBody(httpx.SyncByteStream):

@@ -12,7 +12,7 @@ import pytest
 
 @pytest.mark.platforms("linux")
 def test_restart_without_service_unit_runs_gateway_even_without_linger(monkeypatch):
-    from hermes_cli import gateway as gw
+    from devbuddy_cli import gateway as gw
 
     monkeypatch.setattr(gw, "_refuse_from_inside_gateway", lambda *a, **k: None)
     monkeypatch.setattr(gw, "_dispatch_via_service_manager_if_s6", lambda *a, **k: False)
@@ -31,7 +31,7 @@ def test_restart_without_service_unit_runs_gateway_even_without_linger(monkeypat
 
 @pytest.mark.platforms("linux")
 def test_restart_with_systemd_unit_still_reports_missing_linger(monkeypatch):
-    from hermes_cli import gateway as gw
+    from devbuddy_cli import gateway as gw
 
     monkeypatch.setattr(gw, "_refuse_from_inside_gateway", lambda *a, **k: None)
     monkeypatch.setattr(gw, "_dispatch_via_service_manager_if_s6", lambda *a, **k: False)

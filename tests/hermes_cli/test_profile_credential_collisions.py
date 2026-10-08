@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-import hermes_constants
-from hermes_cli import doctor_state, gateway, gateway_migrate as gm
+import devbuddy_constants
+from devbuddy_cli import doctor_state, gateway, gateway_migrate as gm
 
 SECRET = "123456:shared-secret-value"
 
@@ -25,7 +25,7 @@ def homes(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(root))
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "OPENAI_API_KEY"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(devbuddy_constants, "_default_hermes_root_memo", None)
     monkeypatch.setattr(gm, "_live_gateway_pid", lambda home: None)
     monkeypatch.setattr(gm, "_installed_services", lambda home: [])
     return root, root / "profiles" / "worker"

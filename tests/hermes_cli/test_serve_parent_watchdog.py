@@ -2,7 +2,7 @@
 
 import pytest
 
-from hermes_cli.web_server_lifecycle import (
+from devbuddy_cli.web_server_lifecycle import (
     _is_serve_orphaned,
     _parent_start_marker_mismatch_is_conclusive,
     _valid_parent_start_marker,
@@ -127,7 +127,7 @@ def test_macos_ps_marker_requires_full_lstart_not_a_truncated_weekday():
 
 def test_parent_watchdog_treats_empty_marker_env_as_absent(monkeypatch):
     """Blank inherited HERMES_PARENT_START_MARKER/NONCE degrade to PID-only tracking."""
-    from hermes_cli import web_server_lifecycle
+    from devbuddy_cli import web_server_lifecycle
 
     monkeypatch.setenv("HERMES_PARENT_PID", "4242")
     monkeypatch.setenv("HERMES_PARENT_START_MARKER", "")
@@ -159,7 +159,7 @@ def test_parent_watchdog_warns_when_disarmed_by_unusable_marker(monkeypatch, cap
     """Disarming is fail-safe but must leave a trace in the log."""
     import logging
 
-    from hermes_cli import web_server_lifecycle
+    from devbuddy_cli import web_server_lifecycle
 
     monkeypatch.setenv("HERMES_PARENT_PID", "4242")
     monkeypatch.setenv("HERMES_PARENT_START_MARKER", "ps:Sat")
@@ -168,7 +168,7 @@ def test_parent_watchdog_warns_when_disarmed_by_unusable_marker(monkeypatch, cap
     monkeypatch.setattr(
         web_server_lifecycle.threading, "Thread", lambda *a, **k: started.append(1) or _NoThread()
     )
-    with caplog.at_level(logging.WARNING, logger="hermes_cli.web_server"):
+    with caplog.at_level(logging.WARNING, logger="devbuddy_cli.web_server"):
         web_server_lifecycle._start_parent_death_watchdog()
     assert started == [], "an unusable marker must disarm, not arm, the watchdog"
     assert any("watchdog disabled" in r.getMessage() for r in caplog.records)
@@ -206,7 +206,7 @@ def test_ps_marker_probe_classifies_missing_process_vs_other_ps_failures(monkeyp
     of killing a healthy backend."""
     import subprocess
 
-    from hermes_cli import web_server_lifecycle
+    from devbuddy_cli import web_server_lifecycle
 
     def fake_run(stderr):
         return lambda *a, **k: subprocess.CompletedProcess(args=a, returncode=2, stdout="", stderr=stderr)

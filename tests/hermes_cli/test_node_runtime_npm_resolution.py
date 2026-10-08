@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from unittest.mock import patch
 
-from hermes_cli.main_install_repair import _is_windows_npm_path, _resolve_node_runtime_npm
+from devbuddy_cli.main_install_repair import _is_windows_npm_path, _resolve_node_runtime_npm
 
 
 def test_windows_npm_path_refuses_windows_shims_but_not_native_data_mounts():
@@ -28,7 +28,7 @@ def test_resolve_node_runtime_npm_rescans_past_windows_drive_to_native_mount(mon
         return native_npm if path == "/mnt/data/node/bin" else None
 
     with (
-        patch("hermes_constants.find_node_executable", return_value="/mnt/c/Program Files/nodejs/npm"),
-        patch("hermes_cli.main_install_repair.shutil.which", side_effect=fake_which),
+        patch("devbuddy_constants.find_node_executable", return_value="/mnt/c/Program Files/nodejs/npm"),
+        patch("devbuddy_cli.main_install_repair.shutil.which", side_effect=fake_which),
     ):
         assert _resolve_node_runtime_npm() == native_npm

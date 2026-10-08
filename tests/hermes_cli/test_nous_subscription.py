@@ -3,8 +3,8 @@
 import shutil
 import sys
 
-from hermes_cli.nous_account import NousPortalAccountInfo, NousToolAccessInfo
-from hermes_cli import nous_subscription as ns
+from devbuddy_cli.nous_account import NousPortalAccountInfo, NousToolAccessInfo
+from devbuddy_cli import nous_subscription as ns
 from tools import tool_backend_helpers
 from tools import browser_tool_install as bt_install
 
@@ -179,11 +179,11 @@ def _capture_checklist(monkeypatch, *, selected_idx):
         captured["pre_selected"] = list(pre_selected or [])
         return list(selected_idx)
 
-    import hermes_cli.setup as setup_mod
+    import devbuddy_cli.setup as setup_mod
 
     monkeypatch.setattr(setup_mod, "prompt_checklist", _fake_checklist, raising=False)
     monkeypatch.setattr(
-        "hermes_cli.config.save_config", lambda cfg: None, raising=False
+        "devbuddy_cli.config.save_config", lambda cfg: None, raising=False
     )
     return captured
 
@@ -334,7 +334,7 @@ def test_prompt_enable_tool_gateway_persists_decline(monkeypatch):
     saved = []
     captured = _capture_checklist(monkeypatch, selected_idx=[])
     monkeypatch.setattr(
-        "hermes_cli.config.save_config", lambda cfg: saved.append(dict(cfg)), raising=False
+        "devbuddy_cli.config.save_config", lambda cfg: saved.append(dict(cfg)), raising=False
     )
 
     config = {"model": {"provider": "nous"}}
@@ -349,7 +349,7 @@ def test_prompt_enable_tool_gateway_persists_decline(monkeypatch):
     # Second offer with the recorded declines: nothing is pre-checked.
     captured2 = _capture_checklist(monkeypatch, selected_idx=[])
     monkeypatch.setattr(
-        "hermes_cli.config.save_config", lambda cfg: saved.append(dict(cfg)), raising=False
+        "devbuddy_cli.config.save_config", lambda cfg: saved.append(dict(cfg)), raising=False
     )
     ns.prompt_enable_tool_gateway(config)
     assert captured2["pre_selected"] == []
@@ -436,7 +436,7 @@ def _block_legacy_agent_browser_checks(monkeypatch):
             None if cmd == "agent-browser" else real_which(cmd, *args, **kwargs)
         ),
     )
-    monkeypatch.setattr("hermes_constants.agent_browser_runnable", lambda path: False)
+    monkeypatch.setattr("devbuddy_constants.agent_browser_runnable", lambda path: False)
 
 
 def test_has_agent_browser_uses_passive_runtime_resolution(monkeypatch):
@@ -481,7 +481,7 @@ def test_has_agent_browser_import_failure_does_not_run_another_resolver(monkeypa
         ),
     )
     monkeypatch.setattr(
-        "hermes_constants.agent_browser_runnable",
+        "devbuddy_constants.agent_browser_runnable",
         lambda path: path == "/fake/bin/agent-browser",
     )
 

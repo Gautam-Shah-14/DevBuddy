@@ -6,7 +6,7 @@ import functools
 import os
 import shutil
 
-from hermes_constants import agent_browser_runnable, is_termux as _is_termux_environment
+from devbuddy_constants import agent_browser_runnable, is_termux as _is_termux_environment
 from tools.browser_tool_origin import origin_module as _origin
 from tools import browser_tool_cdp as _cdp
 from tools import browser_tool_cloud as _cloud
@@ -99,7 +99,7 @@ def warm_agent_browser_npx_cache(timeout: float = 60.0) -> bool:
 
 def _chromium_installed() -> bool:
     """An explicit browser executable or PM's selected full Chromium exists."""
-    from hermes_cli.browser_runtime import chromium_executable
+    from devbuddy_cli.browser_runtime import chromium_executable
 
     ab_path = chromium_executable()
     return bool(ab_path and (os.path.isfile(ab_path) or shutil.which(ab_path)))

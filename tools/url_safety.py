@@ -20,7 +20,7 @@ from contextlib import contextmanager
 from typing import Any, Optional
 from urllib.parse import parse_qsl, quote, unquote, urljoin, urlparse, urlsplit, urlunsplit
 
-from hermes_constants import get_hermes_home_override
+from devbuddy_constants import get_hermes_home_override
 from utils import is_truthy_value
 
 logger = logging.getLogger(__name__)
@@ -162,7 +162,7 @@ def _resolve_allow_private_urls() -> bool:
     if env_val in {"false", "0", "no"}:
         return False  # explicit false does not fall through to config
     try:
-        from hermes_cli.config import read_raw_config
+        from devbuddy_cli.config import read_raw_config
         cfg = read_raw_config()
         for section in ("security", "browser"):  # preferred, then legacy
             block = cfg.get(section, {})
@@ -190,7 +190,7 @@ def _resolve_fake_ip_ranges() -> tuple:
     declares one, and the sentinel range keeps the ordinary private-address verdict otherwise.
     """
     try:
-        from hermes_cli.config import read_raw_config
+        from devbuddy_cli.config import read_raw_config
         block = read_raw_config().get("security", {})
         raw = block.get("fake_ip_ranges") if isinstance(block, dict) else None
     except Exception:

@@ -50,7 +50,7 @@ def test_process_completion_display_keeps_payload_separate_across_surfaces(monke
     assert staged["display_kind"] == PROCESS_COMPLETE_DISPLAY_KIND
     assert staged["display_metadata"]["display_text"] == expected
 
-    from hermes_cli.cli_agent_setup_mixin import _collect_resume_entries
+    from devbuddy_cli.cli_agent_setup_mixin import _collect_resume_entries
     entries, _, _ = _collect_resume_entries(cli.conversation_history, {}, lambda text: text)
     assert entries == [("event", expected)]
 

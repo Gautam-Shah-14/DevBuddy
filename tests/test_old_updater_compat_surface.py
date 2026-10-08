@@ -18,7 +18,7 @@ enforce the contract without reconstructing (or silently truncating) it.
 
 `managed_uv._reload_hermes_constants` is the scar proving the failure
 mode is real: a live updater hit ``cannot import name 'venv_python_path'
-from 'hermes_constants'`` while the NEW file on disk plainly held it.
+from 'devbuddy_constants'`` while the NEW file on disk plainly held it.
 
 If this test fails you have two honest options:
 * restore the name (a stub with the old signature is fine), or
@@ -103,12 +103,12 @@ class TestTheFrozenFileIsSane:
         # pass vacuously.
         bare = set(_load_surface()["bare"])
         for anchor in (
-            "hermes_constants::with_hermes_node_path",
-            "hermes_constants::venv_python_path",
-            "hermes_cli.gitlock::clear_stale_git_locks",
-            "hermes_cli.managed_uv::ensure_uv",
-            "hermes_cli.managed_uv::rebuild_venv",
-            "hermes_cli._subprocess_compat::run",
+            "devbuddy_constants::with_hermes_node_path",
+            "devbuddy_constants::venv_python_path",
+            "devbuddy_cli.gitlock::clear_stale_git_locks",
+            "devbuddy_cli.managed_uv::ensure_uv",
+            "devbuddy_cli.managed_uv::rebuild_venv",
+            "devbuddy_cli._subprocess_compat::run",
         ):
             assert anchor in bare, (
                 f"{anchor} missing from the frozen surface — the freeze "
@@ -129,12 +129,12 @@ class TestTheFrozenFileIsSane:
         assert history.get("complete_history") is True
         assert history["commits"] > 0
         assert history["roots"] and history["entrypoint_paths"]
-        assert "hermes_cli/main.py" in history["entrypoint_paths"], (
+        assert "devbuddy_cli/main.py" in history["entrypoint_paths"], (
             "the freeze omitted the original inline cmd_update history"
         )
         assert history["history_ref"]
         analyzed = set(history["files_analyzed"])
-        for must_see in ("hermes_cli/update_cmd.py", "hermes_cli/managed_uv.py"):
+        for must_see in ("devbuddy_cli/update_cmd.py", "devbuddy_cli/managed_uv.py"):
             assert must_see in analyzed, (
                 f"{must_see} was not analyzed for the freeze — the audit "
                 f"lost part of the update flow; a vacuously small surface "

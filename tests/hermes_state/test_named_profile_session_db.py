@@ -25,8 +25,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_state
-from hermes_state import SessionDB
+import devbuddy_state
+from devbuddy_state import SessionDB
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def homes(tmp_path, monkeypatch):
     root.mkdir(parents=True)
     profile.mkdir(parents=True)
     monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH)
+    monkeypatch.setattr(devbuddy_state, "DEFAULT_DB_PATH", devbuddy_state._IMPORT_DEFAULT_DB_PATH)
     return root, profile
 
 
@@ -96,7 +96,7 @@ def test_open_profile_session_db_does_not_fallback_on_open_failure(homes, monkey
     def boom_db(**_kwargs):
         raise Boom("profile store unavailable")
 
-    monkeypatch.setattr("hermes_state.SessionDB", boom_db)
+    monkeypatch.setattr("devbuddy_state.SessionDB", boom_db)
     with pytest.raises(RuntimeError, match="profile session store unavailable") as ei:
         server._open_profile_session_db(str(profile))
     assert isinstance(ei.value.__cause__, Boom)
@@ -216,7 +216,7 @@ def _stub_rebuild_env(monkeypatch, server, launch) -> list[str]:
     homes_seen: list[str] = []
 
     def fake_make_agent(_sid, _key, *, session_db=None, **_kw):
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
 
         homes_seen.append(str(get_hermes_home()))
         return SimpleNamespace(_session_db=session_db, _owns_session_db=False)

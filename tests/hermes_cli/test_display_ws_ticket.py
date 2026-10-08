@@ -3,8 +3,8 @@ an expired ticket, or one for another provider is refused before any socket is d
 
 from __future__ import annotations
 
-from hermes_cli.dashboard_auth import ws_tickets
-from hermes_cli.web_routers import display
+from devbuddy_cli.dashboard_auth import ws_tickets
+from devbuddy_cli.web_routers import display
 
 
 class _Ws:
@@ -36,7 +36,7 @@ def test_a_bad_ticket_is_refused_with_a_close_frame_the_renderer_can_read(monkey
     from starlette.testclient import TestClient
     from starlette.websockets import WebSocketDisconnect
 
-    from hermes_cli import web_server
+    from devbuddy_cli import web_server
 
     ws_tickets._reset_for_tests()
     prev = {k: getattr(web_server.app.state, k, None) for k in ("auth_required", "bound_host")}

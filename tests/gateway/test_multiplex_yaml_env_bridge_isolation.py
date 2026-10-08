@@ -16,7 +16,7 @@ from agent.secret_scope import (
     set_multiplex_active,
     set_secret_scope,
 )
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 
 _SECONDARY_YAML = """\
 require_mention: false
@@ -84,7 +84,7 @@ def secondary_scope(tmp_path, monkeypatch):
 
 
 def test_secondary_profile_yaml_reaches_its_extra_not_the_process_env(secondary_scope):
-    from hermes_cli.plugins import discover_plugins
+    from devbuddy_cli.plugins import discover_plugins
     from gateway.config import Platform, load_gateway_config
 
     discover_plugins()

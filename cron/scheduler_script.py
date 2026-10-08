@@ -23,7 +23,7 @@ from cron.jobs import _ensure_cron_dir
 from pathlib import Path
 from typing import Any, Callable, Optional, TYPE_CHECKING
 
-from hermes_cli._subprocess_compat import windows_hide_flags
+from devbuddy_cli._subprocess_compat import windows_hide_flags
 
 if TYPE_CHECKING:
     from cron.scheduler import _CancelEventLike
@@ -130,7 +130,7 @@ def _windows_cron_python_invocation(python_exe: str) -> tuple[str, dict[str, str
         if sibling.exists():
             interpreter = sibling
 
-    from hermes_cli._launchers import resolve_store_python
+    from devbuddy_cli._launchers import resolve_store_python
     from pm.environments import selected_venv, site_packages as dependency_site
 
     repo = Path(__file__).resolve().parents[1]

@@ -25,7 +25,7 @@ def test_standalone_fallback_pool_keeps_profile_scope(tmp_path, monkeypatch):
         set_multiplex_active,
         set_secret_scope,
     )
-    from hermes_constants import get_hermes_home, set_hermes_home_override
+    from devbuddy_constants import get_hermes_home, set_hermes_home_override
     import cron.scheduler as sched
     import tools.send_message_tool as smt
 
@@ -66,7 +66,7 @@ def test_standalone_fallback_pool_keeps_profile_scope(tmp_path, monkeypatch):
 
 def test_multiplex_ticker_profile_gate_skips_rejected_profile(tmp_path):
     from cron.scheduler_provider import InProcessCronScheduler
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
 
     own_gateway = tmp_path / "own-gateway"
     orphan = tmp_path / "orphan"
@@ -110,17 +110,17 @@ def test_multiplex_ticker_profile_gate_skips_rejected_profile(tmp_path):
 @pytest.mark.parametrize("profile_count", [1, 2])
 def test_desktop_ticker_gates_on_profile_gateway_running(tmp_path, monkeypatch, profile_count):
     """Desktop yields to each live gateway, including a single-profile install."""
-    from hermes_cli import web_server
+    from devbuddy_cli import web_server
 
     homes = [("default", tmp_path / "default"), ("ops", tmp_path / "ops")][:profile_count]
     running = {homes[-1][1]}
     monkeypatch.setattr(
-        "hermes_cli.profiles.profiles_to_serve", lambda multiplex=False: list(homes)
+        "devbuddy_cli.profiles.profiles_to_serve", lambda multiplex=False: list(homes)
     )
     monkeypatch.setattr(
-        "hermes_cli.profiles._check_gateway_running", lambda home: home in running
+        "devbuddy_cli.profiles._check_gateway_running", lambda home: home in running
     )
-    monkeypatch.setattr("hermes_cli.profiles._served_by_running_multiplexer", lambda name: False)
+    monkeypatch.setattr("devbuddy_cli.profiles._served_by_running_multiplexer", lambda name: False)
     captured = {}
 
     class _Provider:
@@ -134,7 +134,7 @@ def test_desktop_ticker_gates_on_profile_gateway_running(tmp_path, monkeypatch, 
     monkeypatch.setattr(web_server, "resolve_cron_scheduler", lambda: _Provider(), raising=False)
     monkeypatch.setattr(sp, "resolve_cron_scheduler", lambda: _Provider())
     monkeypatch.setattr(sp, "InProcessCronScheduler", _Provider)
-    monkeypatch.setattr("hermes_logging.enable_profile_log_routing", lambda homes: None)
+    monkeypatch.setattr("devbuddy_logging.enable_profile_log_routing", lambda homes: None)
 
     web_server._start_desktop_cron_ticker(threading.Event(), interval=0)
 

@@ -90,7 +90,7 @@ BOT_CHAT_TURN_ARGS = ("chat", "--in", "~", "-c", "Bot Chat", "--create-if-missin
 # ``tui_gateway.methods_bot_relay``). The failed attempt's turn-start persist already left the DM as the
 # Bot Chat's unanswered tail row, and a fresh process cannot tell that from a new message on its own — so
 # the re-run is told to adopt that row instead of appending a second copy
-# (``hermes_cli.quiet_single_query.adopt_unanswered_turn``, which consumes the variable before the turn).
+# (``devbuddy_cli.quiet_single_query.adopt_unanswered_turn``, which consumes the variable before the turn).
 RESUME_UNANSWERED_TURN_ENV = "HERMES_RESUME_UNANSWERED_TURN"
 
 
@@ -106,7 +106,7 @@ def relay_root(root: Path | str) -> Path:
 def _ensure_dirs(root: Path | str) -> Path:
     base = relay_root(root)
     for sub in (OUTBOX_DIR, CLAIMED_DIR, REPLIES_DIR):
-        from hermes_constants import mkdir_under_hermes_home
+        from devbuddy_constants import mkdir_under_hermes_home
         mkdir_under_hermes_home(base / sub)
     return base
 
@@ -119,7 +119,7 @@ def _bot_mode_cfg(key: str, *, loader: str) -> Any:
     """``bot_mode.<key>`` from config, read lazily (tools/ must not import CLI
     config at import time); None when absent or the config is unreadable."""
     try:
-        import hermes_cli.config as cfgmod
+        import devbuddy_cli.config as cfgmod
 
         cfg = getattr(cfgmod, loader)() or {}
         return (cfg.get("bot_mode") or {}).get(key)

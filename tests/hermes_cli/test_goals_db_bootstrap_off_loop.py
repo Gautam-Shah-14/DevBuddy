@@ -25,7 +25,7 @@ import time
 
 import pytest
 
-import hermes_cli.goals as goals
+import devbuddy_cli.goals as goals
 
 
 class _RecordingDB:
@@ -48,11 +48,11 @@ def _clean_cache(monkeypatch):
 
 
 def _patch_sessiondb(monkeypatch, cls=_RecordingDB):
-    # goals.py acquires through hermes_state_registry (shared writer per home); patch its
+    # goals.py acquires through devbuddy_state_registry (shared writer per home); patch its
     # construction seam, and keep every acquired fake out of the registry so tests don't share.
-    import hermes_state_registry
+    import devbuddy_state_registry
 
-    monkeypatch.setattr(hermes_state_registry, "_open_session_db", lambda path: cls(db_path=path))
+    monkeypatch.setattr(devbuddy_state_registry, "_open_session_db", lambda path: cls(db_path=path))
 
 
 def test_loop_thread_cache_miss_constructs_off_loop(monkeypatch):
@@ -88,7 +88,7 @@ def test_loop_thread_cache_hit_returns_cached_instance(monkeypatch):
     """A warm cache is returned directly even on the loop thread."""
     _patch_sessiondb(monkeypatch)
     sentinel = _RecordingDB()
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
 
     goals._DB_CACHE[str(get_hermes_home())] = sentinel
     result = "UNSET"

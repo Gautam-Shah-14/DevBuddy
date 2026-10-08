@@ -17,7 +17,7 @@ import os
 
 import pytest
 
-from hermes_cli.auth import (
+from devbuddy_cli.auth import (
     get_auth_status,
     get_external_process_provider_status,
 )
@@ -168,7 +168,7 @@ def test_explicit_filter_keeps_signed_in_external_process_row(tmp_path, monkeypa
     # A verified CLI login leaves no trace in active_provider/config/env —
     # the explicit-only desktop filter must treat it like the Anthropic OAuth
     # carve-out and keep the row.
-    from hermes_cli.inventory import _filter_explicit_provider_rows
+    from devbuddy_cli.inventory import _filter_explicit_provider_rows
 
     monkeypatch.setenv("HOME", str(tmp_path))
     cfg_dir = tmp_path / ".copilot"
@@ -190,7 +190,7 @@ def test_explicit_filter_keeps_signed_in_external_process_row(tmp_path, monkeypa
 def test_explicit_filter_drops_unverified_external_process_row(tmp_path, monkeypatch, _clean_copilot_env):
     # Merely having the executable on PATH is ambient discovery, not an
     # explicit configuration — the desktop filter keeps its narrower contract.
-    from hermes_cli.inventory import _filter_explicit_provider_rows
+    from devbuddy_cli.inventory import _filter_explicit_provider_rows
 
     monkeypatch.setenv("HOME", str(tmp_path))  # no credential stores
 
@@ -209,7 +209,7 @@ def test_explicit_filter_drops_unverified_external_process_row(tmp_path, monkeyp
 
 
 def test_cli_command_reflects_configured_executable(tmp_path, monkeypatch, _clean_copilot_env):
-    from hermes_cli.web_server_oauth import _external_process_cli_command
+    from devbuddy_cli.web_server_oauth import _external_process_cli_command
 
     fake = tmp_path / ("copilot.exe" if os.name == "nt" else "copilot")
     fake.write_text("", encoding="utf-8")
@@ -222,13 +222,13 @@ def test_cli_command_reflects_configured_executable(tmp_path, monkeypatch, _clea
 
 
 def test_cli_command_untouched_for_non_external_providers(_clean_copilot_env):
-    from hermes_cli.web_server_oauth import _external_process_cli_command
+    from devbuddy_cli.web_server_oauth import _external_process_cli_command
 
     assert _external_process_cli_command("nous", "hermes auth add nous") == "hermes auth add nous"
 
 
 def test_cli_command_default_when_no_override(monkeypatch, _clean_copilot_env):
-    from hermes_cli.web_server_oauth import _external_process_cli_command
+    from devbuddy_cli.web_server_oauth import _external_process_cli_command
 
     assert _external_process_cli_command("copilot-acp", "copilot login") == "copilot login"
 
@@ -242,7 +242,7 @@ def test_catalog_key_resolves_from_copilot_cli_store(tmp_path, monkeypatch, _cle
     # curated list (visibly wrong vs. what their subscription serves).
     from unittest.mock import patch as mock_patch
 
-    from hermes_cli import models as models_mod
+    from devbuddy_cli import models as models_mod
 
     monkeypatch.setenv("HOME", str(tmp_path))
     cfg_dir = tmp_path / ".copilot"
@@ -256,13 +256,13 @@ def test_catalog_key_resolves_from_copilot_cli_store(tmp_path, monkeypatch, _cle
     with mock_patch.object(
         models_mod, "_resolve_copilot_catalog_api_key", wraps=models_mod._resolve_copilot_catalog_api_key
     ), mock_patch(
-        "hermes_cli.copilot_auth.exchange_copilot_token",
+        "devbuddy_cli.copilot_auth.exchange_copilot_token",
         return_value=("exchanged-api-token", 0.0, None),
     ), mock_patch(
-        "hermes_cli.auth.resolve_api_key_provider_credentials",
+        "devbuddy_cli.auth.resolve_api_key_provider_credentials",
         side_effect=Exception("no env creds"),
     ), mock_patch(
-        "hermes_cli.auth.read_credential_pool", return_value=[]
+        "devbuddy_cli.auth.read_credential_pool", return_value=[]
     ):
         key = models_mod._resolve_copilot_catalog_api_key()
 
@@ -272,15 +272,15 @@ def test_catalog_key_resolves_from_copilot_cli_store(tmp_path, monkeypatch, _cle
 def test_catalog_key_empty_when_cli_store_absent(tmp_path, monkeypatch, _clean_copilot_env):
     from unittest.mock import patch as mock_patch
 
-    from hermes_cli import models as models_mod
+    from devbuddy_cli import models as models_mod
 
     monkeypatch.setenv("HOME", str(tmp_path))  # no ~/.copilot at all
 
     with mock_patch(
-        "hermes_cli.auth.resolve_api_key_provider_credentials",
+        "devbuddy_cli.auth.resolve_api_key_provider_credentials",
         side_effect=Exception("no env creds"),
     ), mock_patch(
-        "hermes_cli.auth.read_credential_pool", return_value=[]
+        "devbuddy_cli.auth.read_credential_pool", return_value=[]
     ):
         key = models_mod._resolve_copilot_catalog_api_key()
 

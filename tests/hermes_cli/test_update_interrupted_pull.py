@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import _early_recovery as er
-from hermes_cli import update_cmd
+from devbuddy_cli import _early_recovery as er
+from devbuddy_cli import update_cmd
 
 
 def _git(root: Path, *args: str) -> str:
@@ -28,15 +28,15 @@ _MULTI = "top = 1\nx = 0\ny = 0\nz = 0\nend = 1\n"
 
 
 # Runs an entry module with the repair replaced by a probe that lists the checkout modules imported so
-# far (the entry module, its package's __init__ and what hermes_bootstrap needs excluded: those run
+# far (the entry module, its package's __init__ and what devbuddy_bootstrap needs excluded: those run
 # before any code in the entry can), then stops.
 _ENTRY_SPY = """
 import importlib, json, os, sys
-import hermes_bootstrap
-from hermes_cli import _early_recovery as er
+import devbuddy_bootstrap
+from devbuddy_cli import _early_recovery as er
 
 venv, entry = os.path.realpath(sys.prefix), sys.argv[1]
-importlib.import_module(entry.rpartition(".")[0] or "hermes_cli")
+importlib.import_module(entry.rpartition(".")[0] or "devbuddy_cli")
 before = set(sys.modules)
 
 def probe():
@@ -78,7 +78,7 @@ def checkout(tmp_path, monkeypatch):
     root = tmp_path / "install"
     _git(tmp_path, "clone", "-q", str(origin), str(root))
     _git(root, "reset", "-q", "--hard", "HEAD~1")
-    monkeypatch.setattr("hermes_cli.main.PROJECT_ROOT", root)
+    monkeypatch.setattr("devbuddy_cli.main.PROJECT_ROOT", root)
     return root, _git(root, "rev-parse", "HEAD"), _git(root, "rev-parse", "origin/main")
 
 
@@ -149,9 +149,9 @@ def test_killed_pull_is_restored_on_next_launch_and_update_reruns(checkout, monk
     assert _git(root, "rev-parse", "HEAD") == b and not marker.exists()
 
     # Every console script (`hermes`, `hermes-agent`, `hermes-acp`) repairs before its entry module imports
-    # any other checkout module past hermes_bootstrap: any of them may be a half-written file.
+    # any other checkout module past devbuddy_bootstrap: any of them may be a half-written file.
     repo = os.path.realpath(Path(er.__file__).parent.parent)
-    for entry in ("hermes_cli.main", "agent.legacy_cli", "run_agent", "acp_adapter.entry"):
+    for entry in ("devbuddy_cli.main", "agent.legacy_cli", "run_agent", "acp_adapter.entry"):
         run = subprocess.run([sys.executable, "-c", _ENTRY_SPY, entry], cwd=repo, capture_output=True, text=True,
                              encoding="utf-8", env={**os.environ, "PYTHONPATH": repo}, timeout=120)
         assert run.stdout.strip().splitlines()[-1:] == ["[]"], (entry, run.stdout[-500:], run.stderr[-2000:])
@@ -217,7 +217,7 @@ def test_restore_never_touches_user_work_when_git_wrote_nothing(checkout, capsys
 _RACER = """
 import sys
 from pathlib import Path
-from hermes_cli import _early_recovery as er
+from devbuddy_cli import _early_recovery as er
 print("ready", flush=True)
 sys.stdin.readline()
 print(er.restore_interrupted_pull(Path(sys.argv[1])))

@@ -775,10 +775,10 @@ async def _standalone_send(pconfig, chat_id, message, *, thread_id=None, media_f
 
 def interactive_setup() -> None:
     """Configure DingTalk — QR scan (recommended) or manual credential entry."""
-    from hermes_cli.config import save_env_value
-    from hermes_cli.setup import prompt_choice
-    from hermes_cli.cli_output import prompt, print_header, print_success, print_warning
-    from hermes_cli.setup_platforms import declines_reconfigure
+    from devbuddy_cli.config import save_env_value
+    from devbuddy_cli.setup import prompt_choice
+    from devbuddy_cli.cli_output import prompt, print_header, print_success, print_warning
+    from devbuddy_cli.setup_platforms import declines_reconfigure
     print_header("DingTalk")
     if declines_reconfigure("DingTalk", "Reconfigure DingTalk?", "DINGTALK_CLIENT_ID"):
         return
@@ -786,7 +786,7 @@ def interactive_setup() -> None:
     result = None
     if prompt_choice("Choose setup method", choices, default=0) == 0:
         try:
-            from hermes_cli.dingtalk_auth import dingtalk_qr_auth
+            from devbuddy_cli.dingtalk_auth import dingtalk_qr_auth
             result = dingtalk_qr_auth()
             if result is None:
                 print_warning("QR auth incomplete, falling back to manual input.")
@@ -892,7 +892,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

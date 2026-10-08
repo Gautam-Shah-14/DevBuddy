@@ -1,6 +1,6 @@
 """Plugin data paths follow the active profile's HERMES_HOME, including the ContextVar override.
 
-Several plugins carried a ``~/.hermes`` fallback (guarding an ImportError of ``hermes_constants``
+Several plugins carried a ``~/.hermes`` fallback (guarding an ImportError of ``devbuddy_constants``
 that cannot happen for a bundled plugin) or resolved the home at import time. Both are wrong on
 Windows and under multiplex profile overrides. Every resolver below must land inside the override.
 """
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 
 
 def _a2a_conversation(home):

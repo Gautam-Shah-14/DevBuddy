@@ -11,7 +11,7 @@ import os
 from unittest.mock import patch
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 
 class TestConnectionsToolsetMigration:
@@ -19,7 +19,7 @@ class TestConnectionsToolsetMigration:
 
     @staticmethod
     def _run_ladder(tmp_path, current_ver=44):
-        from hermes_cli.config_migrations import run_migrations
+        from devbuddy_cli.config_migrations import run_migrations
 
         results = {"env_added": [], "config_added": [], "warnings": []}
         with patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}):
@@ -145,8 +145,8 @@ class TestConnectionsToolsetMigration:
 
     def test_full_migration_stamps_the_current_version(self, tmp_path):
         """A pre-45 config that takes this step ends at DEFAULT_CONFIG's version, never one short."""
-        from hermes_cli.config import migrate_config
-        from hermes_cli.config_defaults import DEFAULT_CONFIG
+        from devbuddy_cli.config import migrate_config
+        from devbuddy_cli.config_defaults import DEFAULT_CONFIG
 
         self._write_config(
             tmp_path,

@@ -109,7 +109,7 @@ _PERMISSIVE_CAPS = {"has_members_intent": True, "has_message_content": True, "de
 
 
 def _capability_disk_cache_path() -> Path:
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
     return get_hermes_home() / "cache" / "discord_capabilities.json"
 
 
@@ -427,7 +427,7 @@ def _load_allowed_actions_config() -> Optional[List[str]]:
     """``discord.server_actions`` allowlist (comma string or YAML list), or ``None`` when
     unrestricted. Unknown names are dropped with a warning."""
     try:
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
         cfg = load_config()
     except Exception as exc:
         logger.debug("discord: could not load config (%s); allowing all actions.", exc)

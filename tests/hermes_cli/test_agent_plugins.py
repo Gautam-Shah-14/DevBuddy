@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.agent_plugins import (
+from devbuddy_cli.agent_plugins import (
     MCP_SCHEMA_V1,
     PLUGIN_SCHEMA_V1,
     AgentPluginError,
@@ -31,7 +31,7 @@ def _write_skill(root: Path, directory: str = "summarize", **fields: object) -> 
     skill_dir.mkdir(parents=True)
     metadata = {"name": directory, "description": "Summarizes reports."}
     metadata.update(fields)
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
 
     (skill_dir / "SKILL.md").write_text(
         f"---\n{yaml.safe_dump(metadata, sort_keys=False)}---\nInstructions.\n",

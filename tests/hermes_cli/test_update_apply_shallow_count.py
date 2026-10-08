@@ -16,8 +16,8 @@ import subprocess
 
 import pytest
 
-import hermes_cli.main as cli_main
-from hermes_cli import source_check, update_cmd
+import devbuddy_cli.main as cli_main
+from devbuddy_cli import source_check, update_cmd
 
 
 def _git(cwd, *args):

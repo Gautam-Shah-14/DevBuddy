@@ -5,12 +5,12 @@ from unittest.mock import patch, mock_open
 
 import pytest
 
-import hermes_cli.gateway as gateway
-import hermes_constants
-from hermes_platform.host import runtime as host_runtime
+import devbuddy_cli.gateway as gateway
+import devbuddy_constants
+from devbuddy_platform.host import runtime as host_runtime
 
 # =============================================================================
-# is_wsl() in hermes_constants
+# is_wsl() in devbuddy_constants
 # =============================================================================
 
 class TestIsWsl:
@@ -26,11 +26,11 @@ class TestIsWsl:
             "(gcc (GCC) 11.2.0) #1 SMP Thu Jan 11 04:09:03 UTC 2024\n"
         )
         with patch("builtins.open", mock_open(read_data=fake_content)):
-            assert hermes_constants.is_wsl() is True
+            assert devbuddy_constants.is_wsl() is True
 
     def test_no_proc_version(self):
         with patch("builtins.open", side_effect=FileNotFoundError):
-            assert hermes_constants.is_wsl() is False
+            assert devbuddy_constants.is_wsl() is False
 
 # =============================================================================
 # supports_systemd_services() WSL integration

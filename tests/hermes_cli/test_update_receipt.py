@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.update_receipt — Phase 1 of the fleet-update plan (#91277).
+"""Tests for devbuddy_cli.update_receipt — Phase 1 of the fleet-update plan (#91277).
 
 Covers:
 - receipt lifecycle (begin → record → finalize → read back)
@@ -16,8 +16,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_cli.update_receipt as ur
-from hermes_cli import update_cmd, update_cmd_maint
+import devbuddy_cli.update_receipt as ur
+from devbuddy_cli import update_cmd, update_cmd_maint
 
 
 @pytest.fixture()
@@ -25,8 +25,8 @@ def receipt_home(tmp_path, monkeypatch):
     """Isolated HERMES_HOME for receipt writes."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    # ``_receipt_dir`` resolves through ``hermes_constants.get_hermes_home`` (env var), not
-    # ``hermes_cli.config`` — patch where production reads.
+    # ``_receipt_dir`` resolves through ``devbuddy_constants.get_hermes_home`` (env var), not
+    # ``devbuddy_cli.config`` — patch where production reads.
     monkeypatch.setenv("HERMES_HOME", str(home))
     # The open receipt is per-context; the scope isolates it from any enclosing receipt.
     with ur.update_receipt_scope():
@@ -190,7 +190,7 @@ class TestCommandBoundaryFinalization:
         singleton."""
         from types import SimpleNamespace
 
-        from hermes_cli import main as hermes_main
+        from devbuddy_cli import main as hermes_main
 
         def _fake_impl(args, gateway_mode):
             ur.begin_update_receipt()
@@ -220,7 +220,7 @@ class TestCommandBoundaryFinalization:
             def release(self):
                 pass
 
-        import hermes_cli.update_lock as update_lock_mod
+        import devbuddy_cli.update_lock as update_lock_mod
 
         monkeypatch.setattr(update_lock_mod, "UpdateLock", _FakeLock)
 
@@ -259,15 +259,15 @@ class TestFleetClassification:
             json.dumps(gateway_record), encoding="utf-8"
         )
         monkeypatch.setattr(
-            "hermes_cli.version_info.get_code_identity",
+            "devbuddy_cli.version_info.get_code_identity",
             lambda refresh=False: {"sha": expected_sha, "short_sha": expected_sha[:8],
                                    "version": "1.0", "source": "git"},
         )
         monkeypatch.setattr(
-            "hermes_cli.profiles._get_default_hermes_home", lambda: home
+            "devbuddy_cli.profiles._get_default_hermes_home", lambda: home
         )
         monkeypatch.setattr(
-            "hermes_cli.profiles._get_profiles_root",
+            "devbuddy_cli.profiles._get_profiles_root",
             lambda: tmp_path / "nonexistent_profiles_root",
         )
         monkeypatch.setattr(ur, "_socket_identity", lambda home: None)
@@ -285,15 +285,15 @@ class TestFleetClassification:
         home.mkdir()
         monkeypatch.setenv("HERMES_HOME", str(home))
         monkeypatch.setattr(
-            "hermes_cli.version_info.get_code_identity",
+            "devbuddy_cli.version_info.get_code_identity",
             lambda refresh=False: {"sha": "a" * 40, "short_sha": "a" * 8,
                                    "version": "1.0", "source": "git"},
         )
         monkeypatch.setattr(
-            "hermes_cli.profiles._get_default_hermes_home", lambda: home
+            "devbuddy_cli.profiles._get_default_hermes_home", lambda: home
         )
         monkeypatch.setattr(
-            "hermes_cli.profiles._get_profiles_root",
+            "devbuddy_cli.profiles._get_profiles_root",
             lambda: tmp_path / "nonexistent_profiles_root",
         )
 
@@ -357,10 +357,10 @@ class TestFleetClassification:
             json.dumps({"pid": 999999, "code_sha": "a" * 40}), encoding="utf-8"
         )
         monkeypatch.setattr(
-            "hermes_cli.profiles._get_default_hermes_home", lambda: home
+            "devbuddy_cli.profiles._get_default_hermes_home", lambda: home
         )
         monkeypatch.setattr(
-            "hermes_cli.profiles._get_profiles_root",
+            "devbuddy_cli.profiles._get_profiles_root",
             lambda: tmp_path / "nope",
         )
         monkeypatch.setattr("gateway.status._pid_exists", lambda pid: False)
@@ -424,7 +424,7 @@ class TestGatewayStatusStamping:
         import gateway.status as gs
 
         monkeypatch.setattr(
-            "hermes_cli.version_info.get_code_identity",
+            "devbuddy_cli.version_info.get_code_identity",
             lambda refresh=False: {"sha": "c" * 40, "short_sha": "c" * 8,
                                    "version": "2.0", "source": "git"},
         )
@@ -438,7 +438,7 @@ class TestGatewayStatusStamping:
         def _boom(refresh=False):
             raise RuntimeError("no build info")
 
-        monkeypatch.setattr("hermes_cli.version_info.get_code_identity", _boom)
+        monkeypatch.setattr("devbuddy_cli.version_info.get_code_identity", _boom)
         record = gs._build_runtime_status_record()
         # Must not raise, and must not stamp bogus values.
         assert "code_sha" not in record
@@ -448,7 +448,7 @@ class TestGatewayStatusStamping:
 class TestCodeIdentity:
 
     def test_get_code_identity_cached(self):
-        from hermes_cli.build_info import get_code_identity
+        from devbuddy_cli.build_info import get_code_identity
 
         first = get_code_identity(refresh=True)
         second = get_code_identity()

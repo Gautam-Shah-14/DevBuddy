@@ -100,7 +100,7 @@ def _load_catalog(lang: str) -> dict[str, str]:
         logger.debug("i18n catalog missing for %s at %s", lang, path)
         return _cache_catalog(lang, flat)
     try:
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
         with path.open("r", encoding="utf-8-sig") as f:
             _flatten_into(yaml.safe_load(f) or {}, "", flat)
     except Exception as exc:
@@ -124,7 +124,7 @@ def _config_language_cached(hermes_home: str) -> str | None:
     Keyed by home so a multiplexed gateway serving several profiles doesn't freeze the first
     profile's language for every other profile."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from devbuddy_cli.config import load_config_readonly
         lang = (load_config_readonly().get("display") or {}).get("language")
         return _normalize_lang(lang) if lang else None
     except Exception as exc:
@@ -133,7 +133,7 @@ def _config_language_cached(hermes_home: str) -> str | None:
 
 
 def _config_language() -> str | None:
-    from hermes_constants import get_hermes_home
+    from devbuddy_constants import get_hermes_home
     return _config_language_cached(str(get_hermes_home()))
 
 

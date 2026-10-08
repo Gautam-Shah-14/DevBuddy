@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from hermes_constants import (
+from devbuddy_constants import (
     hermes_home_key,
     reset_hermes_home_override,
     set_hermes_home_override,
@@ -40,7 +40,7 @@ def test_scoped_shutdown_releases_log_and_preserves_other_profile(tmp_path):
             handle.close()
 
 def test_rename_profile_releases_cached_log_handle(tmp_path, monkeypatch):
-    from hermes_cli import profiles
+    from devbuddy_cli import profiles
     from tools import mcp_tool_config
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)

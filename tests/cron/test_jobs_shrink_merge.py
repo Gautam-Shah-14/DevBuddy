@@ -23,10 +23,10 @@ def hermes_env(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(home))
 
     import importlib
-    import hermes_constants
+    import devbuddy_constants
     import cron.jobs
 
-    importlib.reload(hermes_constants)
+    importlib.reload(devbuddy_constants)
     importlib.reload(cron.jobs)
     return home
 

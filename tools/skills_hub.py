@@ -8,7 +8,7 @@ cache, lock file, taps and audit log. Install/uninstall/update live in
 ``skills_hub_search``, and the adapters in the other ``tools.skills_hub_*``
 siblings; import each name from its defining module.
 
-Used by hermes_cli/skills_hub.py for CLI commands and the /skills slash command.
+Used by devbuddy_cli/skills_hub.py for CLI commands and the /skills slash command.
 """
 
 import json
@@ -23,7 +23,7 @@ from urllib.parse import urljoin
 
 import httpx
 
-from hermes_constants import get_hermes_home
+from devbuddy_constants import get_hermes_home
 from tools.url_safety import is_safe_url
 from tools.url_safety import create_ssrf_safe_client
 from tools.website_policy import check_website_access
@@ -438,7 +438,7 @@ from urllib.parse import unquote  # noqa: F401,E402
 from urllib.parse import urlparse  # noqa: F401,E402
 from urllib.parse import urlsplit  # noqa: F401,E402
 from urllib.parse import urlunparse  # noqa: F401,E402
-import hermes_yaml as yaml  # noqa: F401,E402
+import devbuddy_yaml as yaml  # noqa: F401,E402
 
 
 _PLUGIN_COMPAT_LAZY = {
@@ -472,7 +472,7 @@ _PLUGIN_COMPAT_LAZY = {
     'source_url_for_bundle': ('tools.skills_hub_models', 'source_url_for_bundle'),
     'unified_search': ('tools.skills_hub_search', 'unified_search'),
     'uninstall_skill': ('tools.skills_hub_install', 'uninstall_skill'),
-    'windows_hide_flags': ('hermes_cli._subprocess_compat', 'windows_hide_flags'),
+    'windows_hide_flags': ('devbuddy_cli._subprocess_compat', 'windows_hide_flags'),
 }
 
 
@@ -481,7 +481,7 @@ def _plugin_compat_getattr(name):
     if target is None:
         return _plugin_compat_prev_getattr(name)
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 

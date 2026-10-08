@@ -37,7 +37,7 @@ def multiplex_home(tmp_path, monkeypatch):
 
 def _probe(seen: dict):
     def probe() -> int:
-        from hermes_cli.auth_nous import _nous_portal_env_override
+        from devbuddy_cli.auth_nous import _nous_portal_env_override
         seen["scope_installed"] = secret_scope._SECRET_SCOPE.get() is not None
         seen["portal_override"] = _nous_portal_env_override()
         return 1
@@ -58,7 +58,7 @@ def _run_warmup(monkeypatch, *, multiplex: bool) -> dict:
     async def drive() -> None:
         await _Runner(multiplex=multiplex)._warm_turn_prerequisites()
         # Same task as the warm-up (asyncio.run copies the context, so the caller's view proves nothing).
-        from hermes_constants import get_hermes_home_override
+        from devbuddy_constants import get_hermes_home_override
         seen["scope_after"] = secret_scope._SECRET_SCOPE.get()
         seen["home_override_after"] = get_hermes_home_override()
 

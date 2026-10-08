@@ -11,7 +11,7 @@ import time
 from contextvars import copy_context
 from pathlib import Path
 
-from hermes_constants import hermes_home_key
+from devbuddy_constants import hermes_home_key
 
 logger = logging.getLogger(__name__)
 _REPO = "sheeki03/tirith"
@@ -35,7 +35,7 @@ def _env_int(key: str, default: int) -> int:
 def _load_security_config() -> dict:
     """Security settings from config.yaml, with env var overrides."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from devbuddy_cli.config import load_config_readonly
         cfg = load_config_readonly().get("security", {}) or {}
     except Exception:
         cfg = {}

@@ -41,7 +41,7 @@ def two_homes(tmp_path, monkeypatch):
     from tui_gateway import launch_profile_policy as lpp
     monkeypatch.setattr(secret_scope, "_MULTIPLEX_ACTIVE", False)
     monkeypatch.setattr(lpp, "_snapshot", None)
-    from hermes_cli import config as cfg_mod
+    from devbuddy_cli import config as cfg_mod
     for attr in ("_CONFIG_CACHE", "_config_cache"):
         if hasattr(cfg_mod, attr):
             monkeypatch.setattr(cfg_mod, attr, None if not isinstance(getattr(cfg_mod, attr), dict) else {})
@@ -50,7 +50,7 @@ def two_homes(tmp_path, monkeypatch):
 
 @pytest.fixture
 def client(two_homes):
-    from hermes_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
+    from devbuddy_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
     c = TestClient(app)
     c.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
     return c
@@ -76,13 +76,13 @@ def test_get_config_for_named_profile_expands_only_its_own_secrets(client, two_h
 def test_console_send_for_named_profile_does_not_write_process_env(two_homes, monkeypatch):
     """``send`` loads the target profile's ``.env`` for the gateway config loader; inside a
     multi-profile host that must land in the request's scope, never ``os.environ``."""
-    from hermes_cli.web_routers.chat_ws import _execute_console_line
+    from devbuddy_cli.web_routers.chat_ws import _execute_console_line
 
     root, b = two_homes
     seen = {}
 
     def fake_send(args):
-        import hermes_cli.send_cmd as send_cmd
+        import devbuddy_cli.send_cmd as send_cmd
         from gateway.config import _getenv
         send_cmd._load_hermes_env()
         seen["loader_sees"] = _getenv("TELEGRAM_BOT_TOKEN")

@@ -14,11 +14,11 @@ from typing import Optional
 
 
 def _constants_path(getter_name: str) -> Path:
-    """Call ``hermes_constants.<getter_name>()`` (local import avoids cycles); ``~/.hermes`` on any failure."""
+    """Call ``devbuddy_constants.<getter_name>()`` (local import avoids cycles); ``~/.hermes`` on any failure."""
     try:
-        import hermes_constants
+        import devbuddy_constants
 
-        return getattr(hermes_constants, getter_name)()
+        return getattr(devbuddy_constants, getter_name)()
     except Exception:
         return Path(os.path.expanduser("~/.hermes"))
 
@@ -80,7 +80,7 @@ def _guard_homes(path: str = "") -> set[str]:
     account's home, which joins the set so ``~root/.ssh/authorized_keys`` stays denied."""
     homes = {os.path.expanduser("~")}
     with suppress(Exception):
-        from hermes_constants import get_real_home, get_subprocess_home, _profile_home_path
+        from devbuddy_constants import get_real_home, get_subprocess_home, _profile_home_path
 
         for candidate in (get_real_home(), get_subprocess_home(), _profile_home_path()):
             if candidate:
@@ -131,7 +131,7 @@ def _homes_and_resolved(path: str) -> tuple[set[str], str]:
 #   * ``\\\\?\\GLOBALROOT...`` — re-entry into the NT namespace.
 #
 # Plain drive-letter extended-length paths (``\\\\?\\C:\\...``) stay ALLOWED:
-# they are a routine local form (see hermes_cli/windows_ssh_runtime.py) and
+# they are a routine local form (see devbuddy_cli/windows_ssh_runtime.py) and
 # carry no remote-auth trigger. Plain UNC shares (``\\\\server\\share``) are
 # also unchanged here — blocking ordinary UNC reads is a policy question,
 # not part of this namespace-bypass guard.

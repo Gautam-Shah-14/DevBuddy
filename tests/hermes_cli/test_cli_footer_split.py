@@ -88,7 +88,7 @@ def test_footer_survives_a_row_appearing_between_measure_and_paint(monkeypatch):
 def test_footer_split_clips_from_the_top_when_minimums_overflow():
     from prompt_toolkit.application import DummyApplication, set_app
 
-    from hermes_cli.cli_footer_split import FooterSplit
+    from devbuddy_cli.cli_footer_split import FooterSplit
 
     top, middle, bottom = (Window(height=Dimension.exact(1)) for _ in range(3))
     split = FooterSplit([top, middle, bottom])

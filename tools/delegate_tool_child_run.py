@@ -172,7 +172,7 @@ def _dump_subagent_timeout_diagnostic(
     response", 0 API calls, nothing to inspect): ``~/.hermes/logs/subagent-timeout-<sid>-<ts>.log`` with the
     child's config, prompt/schema sizes, activity snapshot and worker stack. Path, or None on failure."""
     try:
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
         import datetime as _dt
         logs_dir = get_hermes_home() / "logs"
         try:
@@ -671,7 +671,7 @@ def _build_child_goal_message(goal: str, images: List[str], child) -> Any:
         from agent.image_routing import build_native_content_parts, decide_image_input_mode
         cfg = None
         with _quiet(None):
-            from hermes_cli.config import load_config_readonly
+            from devbuddy_cli.config import load_config_readonly
             cfg = load_config_readonly()
         mode = decide_image_input_mode(
             str(getattr(child, "provider", "") or ""), str(getattr(child, "model", "") or ""), cfg,

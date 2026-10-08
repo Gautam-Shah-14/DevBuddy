@@ -7,7 +7,7 @@ for profile namespaces under ``profiles/<name>/`` spawned by kanban
 workers — were landing as ``root:root`` and blocking subsequent
 uid-mapped worker invocations with ``PermissionError [Errno 13]``.
 
-The fix is a ``_chown_to_hermes_uid`` helper (``hermes_constants``, the single home of the
+The fix is a ``_chown_to_hermes_uid`` helper (``devbuddy_constants``, the single home of the
 managed/container/HERMES_UID policy) that reads the env vars and applies chown after
 ``mkdir``, invoked from ``_secure_dir`` via ``apply_secure_dir_policy`` (which already
 runs after every directory creation in the home-init path).
@@ -30,7 +30,7 @@ class TestResolveHermesUidGid:
     def test_returns_parsed_values_when_both_set(self, monkeypatch):
         monkeypatch.setenv("HERMES_UID", "1000")
         monkeypatch.setenv("HERMES_GID", "911")
-        from hermes_constants import _resolve_hermes_uid_gid
+        from devbuddy_constants import _resolve_hermes_uid_gid
         uid, gid = _resolve_hermes_uid_gid()
         assert uid == 1000
         assert gid == 911
@@ -44,7 +44,7 @@ class TestResolveHermesUidGid:
     def test_windows_returns_none_none(self, monkeypatch):
         monkeypatch.setenv("HERMES_UID", "1000")
         monkeypatch.setenv("HERMES_GID", "911")
-        from hermes_constants import _resolve_hermes_uid_gid
+        from devbuddy_constants import _resolve_hermes_uid_gid
         uid, gid = _resolve_hermes_uid_gid()
         assert uid is None
         assert gid is None
@@ -66,7 +66,7 @@ class TestChownToHermesUid:
         user anyway."""
         monkeypatch.setenv("HERMES_UID", "1000")
         monkeypatch.setenv("HERMES_GID", "911")
-        import hermes_constants as cfg
+        import devbuddy_constants as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()
@@ -90,7 +90,7 @@ class TestSecureDirChown:
     def test_secure_dir_invokes_chown_when_env_set(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HERMES_UID", "1000")
         monkeypatch.setenv("HERMES_GID", "911")
-        from hermes_cli import config as cfg
+        from devbuddy_cli import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()
@@ -103,7 +103,7 @@ class TestSecureDirChown:
     def test_secure_dir_no_chown_when_env_unset(self, tmp_path, monkeypatch):
         monkeypatch.delenv("HERMES_UID", raising=False)
         monkeypatch.delenv("HERMES_GID", raising=False)
-        from hermes_cli import config as cfg
+        from devbuddy_cli import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()

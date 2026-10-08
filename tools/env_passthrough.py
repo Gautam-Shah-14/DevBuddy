@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from contextvars import ContextVar
 from typing import Iterable
-from hermes_cli.config import cfg_get, read_raw_config
+from devbuddy_cli.config import cfg_get, read_raw_config
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ def _load_config_passthrough() -> frozenset[str]:
     """Load ``tools.env_passthrough`` from config.yaml (cached). Same credential
     filter as register_env_passthrough: operator config must not tunnel provider
     credentials into sandbox children either (GHSA-rhgp-j443-p4rf)."""
-    from hermes_constants import hermes_home_key
+    from devbuddy_constants import hermes_home_key
 
     try:
         home_key = hermes_home_key()

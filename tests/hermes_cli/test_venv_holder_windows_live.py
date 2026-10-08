@@ -54,7 +54,7 @@ def _spawn(args: list[str], cwd: Path | None = None, python: str | None = None) 
 
 
 def _detect() -> list[tuple[int, str, str]]:
-    from hermes_cli.update_cmd import _detect_venv_python_processes
+    from devbuddy_cli.update_cmd import _detect_venv_python_processes
 
     return _detect_venv_python_processes()
 
@@ -70,16 +70,16 @@ def _kill(*procs: subprocess.Popen) -> None:
 
 class TestDetection:
     def test_detects_hermes_argv_process(self):
-        """Baseline: a live process running `-m hermes_cli.main serve` with
+        """Baseline: a live process running `-m devbuddy_cli.main serve` with
         cwd under the install root is detected as a venv holder."""
-        proc = _spawn(["-m", "hermes_cli.main", "serve"])
+        proc = _spawn(["-m", "devbuddy_cli.main", "serve"])
         try:
             matches = _detect()
             pids = [pid for pid, _, _ in matches]
             assert proc.pid in pids, f"holder scan missed live process: {matches}"
             cmdline = next(c for p, _, c in matches if p == proc.pid)
             # Full cmdline, not a 120-char prefix (#78089 regression guard).
-            assert "hermes_cli.main" in cmdline
+            assert "devbuddy_cli.main" in cmdline
         finally:
             _kill(proc)
 
@@ -93,7 +93,7 @@ class TestDetection:
         interpreter the venv was created from is the foreign python."""
         import tempfile
 
-        from hermes_constants import project_venv_dir
+        from devbuddy_constants import project_venv_dir
 
         base = getattr(sys, "_base_executable", None) or sys.executable
         venv_dir = project_venv_dir(PROJECT_ROOT)
@@ -116,7 +116,7 @@ class TestDetection:
         see `gateway run` past the 120-char mark."""
         # Pad the argv front so `gateway run` sits beyond 120 chars.
         padding = os.path.join("C:\\", "Users", "x" * 90, ".hermes-runtime")
-        proc = _spawn([padding, "-m", "hermes_cli.main", "gateway", "run"])
+        proc = _spawn([padding, "-m", "devbuddy_cli.main", "gateway", "run"])
         try:
             matches = _detect()
             cmdline = next((c for p, _, c in matches if p == proc.pid), None)
@@ -138,12 +138,12 @@ class TestAncestorExclusion:
         # a child python that runs the REAL detection and reports whether it
         # can see its gateway parent. The child's code lives in a FILE so the
         # parent's cmdline stays realistic (a real gateway's argv is clean
-        # `... -m hermes_cli.main gateway run`, not a multi-line -c blob).
+        # `... -m devbuddy_cli.main gateway run`, not a multi-line -c blob).
         child_file = tmp_path / "child_scan.py"
         child_file.write_text(
             "import json, os, sys\n"
             f"sys.path.insert(0, {str(PROJECT_ROOT)!r})\n"
-            "from hermes_cli.update_cmd import _detect_venv_python_processes\n"
+            "from devbuddy_cli.update_cmd import _detect_venv_python_processes\n"
             "import psutil\n"
             "from gateway.status import looks_like_gateway_command_line\n"
             "# The venv shim makes every spawn a launcher/worker CHAIN, so the\n"
@@ -171,7 +171,7 @@ class TestAncestorExclusion:
                 "-c",
                 parent_oneliner,
                 "-m",
-                "hermes_cli.main",
+                "devbuddy_cli.main",
                 "gateway",
                 "run",
             ],

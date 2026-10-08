@@ -28,7 +28,7 @@ from agent.anthropic_message_convert import (
 )
 from agent.errors import EmptyStreamError
 
-from hermes_cli.version_info import get_version_info
+from devbuddy_cli.version_info import get_version_info
 
 
 # ``import anthropic`` is deliberately NOT at module top: the SDK costs ~220 ms of imports and
@@ -429,7 +429,7 @@ def _custom_provider_extra_headers(base_url) -> Dict[str, str]:
     if not base_url:
         return {}
     try:
-        from hermes_cli.config import get_custom_provider_extra_headers
+        from devbuddy_cli.config import get_custom_provider_extra_headers
         return get_custom_provider_extra_headers(str(base_url))
     except Exception:
         logger.debug("custom-provider extra_headers skipped for Anthropic client", exc_info=True)
@@ -869,7 +869,7 @@ _PLUGIN_COMPAT_LAZY = {
     'base_url_host_matches': ('utils', 'base_url_host_matches'),
     'base_url_hostname': ('utils', 'base_url_hostname'),
     'claude_code_credentials_path': ('agent.anthropic_credentials', 'claude_code_credentials_path'),
-    'get_hermes_home': ('hermes_constants', 'get_hermes_home'),
+    'get_hermes_home': ('devbuddy_constants', 'get_hermes_home'),
     'is_claude_code_token_valid': ('agent.anthropic_credentials', 'is_claude_code_token_valid'),
     'is_rotation_consumed_uncommitted': ('agent.anthropic_credentials', 'is_rotation_consumed_uncommitted'),
     'mark_rotation_consumed_uncommitted': ('agent.anthropic_credentials', 'mark_rotation_consumed_uncommitted'),
@@ -887,7 +887,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

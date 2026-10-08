@@ -12,8 +12,8 @@ import pytest
 
 @pytest.fixture
 def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
-    from hermes_constants import get_hermes_home
-    from hermes_cli import profiles
+    from devbuddy_constants import get_hermes_home
+    from devbuddy_cli import profiles
 
     default_home = get_hermes_home()
     profiles_root = default_home / "profiles"
@@ -35,11 +35,11 @@ def client(monkeypatch, isolated_profiles):
     except ImportError:
         pytest.skip("fastapi/starlette not installed")
 
-    import hermes_state
-    from hermes_constants import get_hermes_home
-    from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+    import devbuddy_state
+    from devbuddy_constants import get_hermes_home
+    from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(devbuddy_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
     c = TestClient(app)
     c.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
     return c
@@ -81,7 +81,7 @@ def test_active_acquires_and_warms(client, monkeypatch):
 
 
 def _write_tts_config(home, tts):
-    from hermes_cli.config import atomic_config_write
+    from devbuddy_cli.config import atomic_config_write
 
     atomic_config_write(home / "config.yaml", {"tts": tts})
 
@@ -194,7 +194,7 @@ def test_active_default_true(client, monkeypatch):
 
 def test_acquire_resolves_provider_inside_target_profile(client, isolated_profiles, monkeypatch):
     """Warm-up must read the REQUESTING profile's tts config, like /api/audio/speak."""
-    import hermes_yaml as yaml
+    import devbuddy_yaml as yaml
     from tools import tts_tool, tts_tool_lifecycle
 
     (isolated_profiles["worker_beta"] / "config.yaml").write_text(
@@ -203,7 +203,7 @@ def test_acquire_resolves_provider_inside_target_profile(client, isolated_profil
     seen = {}
 
     def _fake_warm(cfg=None, provider=None):
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
 
         seen["home"] = str(get_hermes_home())
         seen["provider"] = tts_tool._get_provider(tts_tool._load_tts_config())

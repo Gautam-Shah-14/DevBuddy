@@ -26,7 +26,7 @@ class TestCachedFetchApiModels:
         return {"fp": fp, "at": time.time() - age_seconds, "models": list(models)}
 
     def test_fresh_entry_served_without_live_fetch(self):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         cache = {"custom:https://gw.example.com/v1#fp": self._entry(["m1", "m2"], age_seconds=10)}
         with patch.object(mod, "_load_provider_models_cache", return_value=cache), \
@@ -42,7 +42,7 @@ class TestCachedFetchApiModels:
         """A saved entry for the lowercased/rstripped URL must be hit even
         when the caller passes a differently-cased URL with a trailing
         slash — config.yaml entries are not guaranteed to be normalized."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         cache = {"custom:https://gw.example.com/v1#fp": self._entry(["m1"], age_seconds=10)}
         with patch.object(mod, "_load_provider_models_cache", return_value=cache), \
@@ -53,7 +53,7 @@ class TestCachedFetchApiModels:
         live.assert_not_called()
 
     def test_expired_entry_triggers_live_fetch_and_is_persisted(self):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         # Beyond the stale-serve window, so the wrapper must block on a
         # live fetch (within the window it stale-serves + refreshes off
@@ -77,7 +77,7 @@ class TestCachedFetchApiModels:
         """A same-age entry with a DIFFERENT fingerprint (key rotated, or
         extra_headers edited) must not be served — it reflects the old
         credentials' catalog."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         cache = {"custom:https://gw.example.com/v1#old-fp": self._entry(["old-key-models"], 10, fp="old-fp")}
         with patch.object(mod, "_load_provider_models_cache", return_value=cache), \
@@ -89,7 +89,7 @@ class TestCachedFetchApiModels:
         live.assert_called_once()
 
     def test_force_refresh_bypasses_fresh_cache(self):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         cache = {"custom:https://gw.example.com/v1#fp": self._entry(["stale-but-fresh"], age_seconds=5)}
         with patch.object(mod, "_load_provider_models_cache", return_value=cache), \
@@ -106,7 +106,7 @@ class TestCachedFetchApiModels:
         """Stale data beats no data when the endpoint is flaky (#72762
         proposed-fix: 'same stale-beats-nothing fallback as
         cached_provider_model_ids')."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         cache = {"custom:https://gw.example.com/v1#fp": self._entry(["last-known-good"], age_seconds=99999, fp="fp")}
         with patch.object(mod, "_load_provider_models_cache", return_value=cache), \
@@ -118,7 +118,7 @@ class TestCachedFetchApiModels:
         save.assert_not_called()  # nothing new to persist
 
     def test_live_failure_with_no_matching_entry_returns_live_value(self):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         with patch.object(mod, "_load_provider_models_cache", return_value={}), \
              patch.object(mod, "_custom_endpoint_fingerprint", return_value="fp"), \
@@ -139,7 +139,7 @@ class TestCacheOnly:
         return {"fp": fp, "at": time.time() - age_seconds, "models": list(models)}
 
     def _call(self, cache, *, fp="fp", expect_revalidate=False, **kwargs):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         with patch.object(mod, "_load_provider_models_cache", return_value=cache), \
              patch.object(mod, "_custom_endpoint_fingerprint", return_value=fp), \
@@ -162,14 +162,14 @@ class TestCacheOnly:
         """The TTL governs when to *revalidate*, and cache_only cannot. Inside
         the stale-serve bound the entry is still the best answer available —
         collapsing to the config subset an hour in would reintroduce the bug."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         age = mod._PROVIDER_MODELS_CACHE_TTL + 60
         cache = {"custom:https://gw.example.com/v1#fp": self._entry(["m1", "m2"], age)}
         assert self._call(cache, expect_revalidate=True) == ["m1", "m2"]
 
     def test_entry_beyond_the_stale_window_is_a_miss(self):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         age = mod._PROVIDER_MODELS_STALE_SERVE_MAX + 60
         cache = {"custom:https://gw.example.com/v1#fp": self._entry(["ancient"], age)}
@@ -189,7 +189,7 @@ class TestCacheOnly:
         assert self._call(cache, force_refresh=True) is None
 
     def test_missing_base_url_is_a_miss_rather_than_a_live_fetch(self):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         with patch.object(mod, "fetch_api_models") as live:
             out = mod.cached_fetch_api_models("sk-key", "", cache_only=True)
@@ -199,7 +199,7 @@ class TestCacheOnly:
     def test_empty_live_result_is_not_persisted(self):
         """An empty list from a transient error must never pin an empty
         cache entry over real data on the next open."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         with patch.object(mod, "_load_provider_models_cache", return_value={}), \
              patch.object(mod, "_custom_endpoint_fingerprint", return_value="fp"), \
@@ -212,7 +212,7 @@ class TestCacheOnly:
     def test_blank_base_url_skips_cache_entirely(self):
         """No base_url means nothing to key the cache on — call straight
         through to fetch_api_models rather than caching under an empty key."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         with patch.object(mod, "_load_provider_models_cache") as load, \
              patch.object(mod, "fetch_api_models", return_value=["x"]) as live:
@@ -225,7 +225,7 @@ class TestCacheOnly:
         """Sanity check on the real (non-mocked) fingerprint helper: it must
         not vary with call-only params like timeout, but must vary with the
         actual credential/header inputs."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         fp_a = mod._custom_endpoint_fingerprint("sk-key", None, {"X-Tenant": "a"})
         fp_b = mod._custom_endpoint_fingerprint("sk-key", None, {"X-Tenant": "b"})
@@ -241,7 +241,7 @@ class TestCachedFetchApiModelsDiskRoundTrip:
     here even if the mocked unit tests above stayed green."""
 
     def test_second_call_within_ttl_hits_disk_cache_no_live_fetch(self, monkeypatch):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         calls = []
 
@@ -262,7 +262,7 @@ class TestCachedFetchApiModelsDiskRoundTrip:
         """A custom endpoint literally named e.g. 'openrouter' in its
         base_url must not read/write the same cache slot as the first-class
         'openrouter' provider slug used by cached_provider_model_ids()."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         monkeypatch.setattr(
             mod, "fetch_api_models", lambda *a, **k: ["custom-endpoint-model"]
@@ -282,7 +282,7 @@ class TestCachedFetchApiModelsDiskRoundTrip:
     def test_same_url_distinct_credentials_keep_separate_rows(self, tmp_path, monkeypatch):
         """N custom_providers rows sharing one proxy URL with different keys (#106184): a probe
         for key B must not evict key A's catalog, and a cache-only read for A must still hit."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         monkeypatch.setattr(mod, "fetch_api_models", lambda key, *a, **k: [f"models-for-{key}"])
@@ -307,7 +307,7 @@ class TestSalvageFollowups:
         """TTL-expired (but < stale-serve max) entries must be served
         immediately — the picker never blocks on a live round-trip — while a
         background refresh is spawned for the next open."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         cache = {"custom:https://gw.example.com/v1#fp": self._entry(["stale-ok"], age_seconds=7200)}
         with patch.object(mod, "_load_provider_models_cache", return_value=cache), \
@@ -323,7 +323,7 @@ class TestSalvageFollowups:
         assert spawn.call_args[0][0] == "custom:https://gw.example.com/v1#fp"
 
     def test_entry_beyond_stale_window_blocks_on_live_fetch(self):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         too_old = mod._PROVIDER_MODELS_STALE_SERVE_MAX + 60
         cache = {"custom:https://gw.example.com/v1#fp": self._entry(["ancient"], age_seconds=too_old)}
@@ -342,7 +342,7 @@ class TestSalvageFollowups:
         custom-endpoint entry via the shared inflight-dedupe machinery."""
         import threading as _threading
 
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         done = _threading.Event()
         saved = {}
@@ -364,7 +364,7 @@ class TestSalvageFollowups:
     def test_corrupt_at_field_degrades_to_live_fetch_instead_of_raising(self):
         """provider_models_cache.json is user-editable; a corrupted 'at' must
         be a cache miss (live fetch), never an exception out of the wrapper."""
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         cache = {
             "custom:https://gw.example.com/v1#fp": {
@@ -386,7 +386,7 @@ class TestProbeApiModelsNegativeCache:
 
     @pytest.fixture(autouse=True)
     def _clear_probe_neg_cache(self):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         mod._probe_neg_cache.clear()
         yield
@@ -396,7 +396,7 @@ class TestProbeApiModelsNegativeCache:
         raise TimeoutError("connect timed out")
 
     def test_repeat_failure_within_ttl_skips_network(self, monkeypatch):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         monkeypatch.setattr(mod, "_urlopen_model_catalog_request", self._fail)
         r1 = mod.probe_api_models("", "https://blackhole.invalid/v1", timeout=1.0)
@@ -413,7 +413,7 @@ class TestProbeApiModelsNegativeCache:
     def test_http_error_from_a_reachable_host_is_not_cached_as_unreachable(self, monkeypatch):
         import urllib.error
 
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         def _unauthorized(req, **kw):
             raise urllib.error.HTTPError(req.full_url, 401, "Unauthorized", {}, None)
@@ -424,7 +424,7 @@ class TestProbeApiModelsNegativeCache:
         assert "reachable.invalid:443" not in mod._probe_neg_cache
 
     def test_expired_entry_reprobes_and_success_clears_it(self, monkeypatch):
-        import hermes_cli.models as mod
+        import devbuddy_cli.models as mod
 
         key = "blackhole.invalid:443"
         old = time.monotonic() - mod._PROBE_NEG_TTL - 1

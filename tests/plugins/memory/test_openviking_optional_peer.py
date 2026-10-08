@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 import plugins.memory.openviking as ov
 
@@ -105,7 +105,7 @@ def test_new_setup_does_not_ask_for_or_save_peer(
     credential,
     stale_env,
 ):
-    from hermes_cli import memory_setup
+    from devbuddy_cli import memory_setup
 
     home = tmp_path / "hermes"
     home.mkdir()

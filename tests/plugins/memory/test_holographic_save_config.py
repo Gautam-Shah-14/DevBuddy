@@ -6,7 +6,7 @@ sections survive a provider save, and a managed install refuses the write.
 """
 from __future__ import annotations
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 from plugins.memory.holographic import HolographicMemoryProvider
 
@@ -31,8 +31,8 @@ def test_save_config_respects_managed_mode(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     before = "model:\n  default: managed\n"
     (tmp_path / "config.yaml").write_text(before)
-    monkeypatch.setattr("hermes_cli.config.is_managed", lambda: True)
-    monkeypatch.setattr("hermes_cli.config.managed_error", lambda *_a, **_k: None)
+    monkeypatch.setattr("devbuddy_cli.config.is_managed", lambda: True)
+    monkeypatch.setattr("devbuddy_cli.config.managed_error", lambda *_a, **_k: None)
 
     _provider().save_config({"db_path": "custom.db"}, str(tmp_path))
 

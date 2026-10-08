@@ -44,7 +44,7 @@ def _chat_args(**overrides):
 
 @pytest.fixture
 def main_mod(monkeypatch):
-    import hermes_cli.main as mod
+    import devbuddy_cli.main as mod
 
     monkeypatch.setattr(mod, "_has_any_provider_configured", lambda: True)
     monkeypatch.setattr(mod, "_sync_bundled_skills_for_startup", lambda: None)
@@ -68,7 +68,7 @@ def fake_cli(monkeypatch):
 @pytest.fixture
 def codex_config(monkeypatch):
     monkeypatch.setattr(
-        "hermes_cli.config.load_config",
+        "devbuddy_cli.config.load_config",
         lambda: {
             "model": {
                 "provider": "openai-codex",
@@ -90,7 +90,7 @@ def _set_startup_config(
         config["security"] = {
             "allow_data_training_tiers_noninteractive": ack,
         }
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: config)
+    monkeypatch.setattr("devbuddy_cli.config.load_config", lambda: config)
 
 
 def test_cmd_chat_rejects_noninteractive_gpt55_pro_startup_override(
@@ -255,7 +255,7 @@ def test_cmd_chat_rejects_noninteractive_provider_only_override_when_default_is_
 ):
     monkeypatch.setattr(sys, "stdin", _NonInteractiveStdin())
     monkeypatch.setattr(
-        "hermes_cli.config.load_config",
+        "devbuddy_cli.config.load_config",
         lambda: {"model": {"provider": "openai-codex", "default": "openai/gpt-5.5-pro"}},
     )
 
@@ -272,7 +272,7 @@ def test_cmd_chat_allows_noninteractive_safe_codex_startup_override(
 ):
     monkeypatch.setattr(sys, "stdin", _NonInteractiveStdin())
     monkeypatch.setattr(
-        "hermes_cli.config.load_config",
+        "devbuddy_cli.config.load_config",
         lambda: {"model": {"provider": "openai-codex", "default": "gpt-5.5"}},
     )
 

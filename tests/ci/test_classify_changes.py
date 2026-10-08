@@ -145,7 +145,7 @@ CASES = {
     "nix + python → both": (["nix/checks.nix", "agent/x.py"], _lanes(python=True, scan=True)),
     # Nine checks run the built binary, so product Python is a nix input even
     # when the diff touches no file under nix/.
-    "product python → nix": (["hermes_cli/config.py"], _lanes(python=True, scan=True)),
+    "product python → nix": (["devbuddy_cli/config.py"], _lanes(python=True, scan=True)),
     # tests/ is not packaged, so the built binary cannot change.
     "tests-only → no nix": (
         ["tests/agent/test_foo.py"],
@@ -160,7 +160,7 @@ CASES = {
     # The Windows desktop-update hand-off is a PowerShell integration surface:
     # its tests spawn the real script and poll its loopback server. They run
     # when the script, the Electron side that launches it, or their own test
-    # files change — not on every hermes_state.py PR.
+    # files change — not on every devbuddy_state.py PR.
     "windows.ps1 → desktop_updater": (
         ["scripts/desktop-update/windows.ps1"],
         _lanes(python=True, desktop_updater=True),
@@ -179,7 +179,7 @@ CASES = {
         ["apps/desktop/electron/updater-process.ts"],
         _lanes(frontend=True, desktop_updater=True),
     ),
-    "python source alone → no desktop_updater lane": (["hermes_state.py"], _lanes(python=True, scan=True)),
+    "python source alone → no desktop_updater lane": (["devbuddy_state.py"], _lanes(python=True, scan=True)),
     # `.rs` lives under apps/, so it matches `frontend` too. That lane builds
     # TypeScript and cannot notice a Rust error — before `rust` existed it was
     # the ONLY lane a Rust change ran, and the crate's tests never executed.
@@ -240,7 +240,7 @@ CASES = {
         _lanes(python=True, mcp_catalog=True),
     ),
     "mcp_catalog.py → mcp_catalog": (
-        ["hermes_cli/mcp_catalog.py"],
+        ["devbuddy_cli/mcp_catalog.py"],
         _lanes(python=True, scan=True, mcp_catalog=True),
     ),
     # CI-sensitive files require explicit review label.
@@ -316,7 +316,7 @@ _REPO = Path(__file__).resolve().parents[2]
 
 
 def _yaml(rel: str) -> dict:
-    yaml = pytest.importorskip("hermes_yaml")
+    yaml = pytest.importorskip("devbuddy_yaml")
     return yaml.safe_load((_REPO / rel).read_text(encoding="utf-8"))
 
 

@@ -56,7 +56,7 @@ def test_windows_managed_node_root_prefers_cmd_launchers(tmp_path):
 def test_node_fallback_uses_active_profile_home(tmp_path, monkeypatch):
     """The managed-Node lookup follows ``get_hermes_home()`` (context override), not raw ``HERMES_HOME``:
     a multiplexed profile whose home differs from the launch env must find ITS managed Node."""
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 
     profile_home = tmp_path / "profile"
     npx_path = profile_home / "node" / "bin" / "npx"

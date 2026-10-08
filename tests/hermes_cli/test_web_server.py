@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.web_server and related config utilities."""
+"""Tests for devbuddy_cli.web_server and related config utilities."""
 
 import asyncio
 import os
@@ -12,25 +12,25 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-from hermes_cli.config import (
+from devbuddy_cli.config import (
     reload_env,
     redact_key,
     OPTIONAL_ENV_VARS,
 )
 import gateway.status as _gw_status
-import hermes_cli.config as _cfg_mod
-import hermes_cli.web_routers.chat_ws as _rt_chat_ws
-import hermes_cli.web_server_chat as _web_server_chat
-import hermes_cli.web_server_config as _web_server_config
-import hermes_cli.web_server_dashboard as _web_server_dashboard
-import hermes_cli.web_server_files as _web_server_files
-import hermes_cli.web_server_gateway as _web_server_gateway
-import hermes_cli.web_server_lifecycle as _web_server_lifecycle
-import hermes_cli.web_server_memory as _web_server_memory
-import hermes_cli.web_server_messaging as _web_server_messaging
-import hermes_cli.web_server_sessions as _web_server_sessions
+import devbuddy_cli.config as _cfg_mod
+import devbuddy_cli.web_routers.chat_ws as _rt_chat_ws
+import devbuddy_cli.web_server_chat as _web_server_chat
+import devbuddy_cli.web_server_config as _web_server_config
+import devbuddy_cli.web_server_dashboard as _web_server_dashboard
+import devbuddy_cli.web_server_files as _web_server_files
+import devbuddy_cli.web_server_gateway as _web_server_gateway
+import devbuddy_cli.web_server_lifecycle as _web_server_lifecycle
+import devbuddy_cli.web_server_memory as _web_server_memory
+import devbuddy_cli.web_server_messaging as _web_server_messaging
+import devbuddy_cli.web_server_sessions as _web_server_sessions
 
 
 # ---------------------------------------------------------------------------
@@ -69,8 +69,8 @@ def _install_example_plugin(_isolate_hermes_home):
     all). User plugins are first in the discovery search order, so
     laying down the fixture here is enough.
     """
-    from hermes_constants import get_hermes_home
-    from hermes_cli import web_server
+    from devbuddy_constants import get_hermes_home
+    from devbuddy_cli import web_server
 
     user_plugins_dir = get_hermes_home() / "plugins"
     user_plugins_dir.mkdir(parents=True, exist_ok=True)
@@ -86,7 +86,7 @@ def _install_example_plugin(_isolate_hermes_home):
     # fixtures exist to exercise the *serving* paths, so opt the example
     # plugin in exactly as a real operator would with `hermes plugins
     # enable example`.
-    from hermes_cli.config import load_config, save_config
+    from devbuddy_cli.config import load_config, save_config
     _cfg = load_config()
     _plugins_cfg = _cfg.setdefault("plugins", {})
     _enabled = _plugins_cfg.get("enabled")
@@ -199,7 +199,7 @@ class TestSessionTokenInjection:
     """
 
     def test_honors_injected_token(self, monkeypatch):
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         original_app = ws.app
         original_token = ws._SESSION_TOKEN
@@ -211,7 +211,7 @@ class TestSessionTokenInjection:
 
 
     def test_session_token_resolution_preserves_loaded_app_auth(self, monkeypatch):
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
         from starlette.testclient import TestClient
 
         original_app = ws.app
@@ -247,11 +247,11 @@ class TestWebServerEndpoints:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        import devbuddy_state
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-        monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+        monkeypatch.setattr(devbuddy_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
 
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
@@ -261,8 +261,8 @@ class TestWebServerEndpoints:
         """Repeated GET-only polls must not checkpoint another writer's WAL."""
         import sqlite3
 
-        from hermes_constants import get_hermes_home
-        from hermes_state import SessionDB
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_state import SessionDB
 
         _web_server_sessions._last_auto_archive_check.clear()
         db_path = get_hermes_home() / "state.db"
@@ -338,9 +338,9 @@ class TestWebServerEndpoints:
 
 
     def test_get_sessions_auto_archive_uses_maintenance_writer(self):
-        from hermes_cli.config import load_config, save_config
-        from hermes_constants import get_hermes_home
-        from hermes_state import SessionDB
+        from devbuddy_cli.config import load_config, save_config
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_state import SessionDB
 
         db_path = get_hermes_home() / "state.db"
         seed = SessionDB(db_path=db_path)
@@ -389,8 +389,8 @@ class TestWebServerEndpoints:
     def test_get_sessions_heals_stale_schema_store(self, missing_column):
         import sqlite3
 
-        from hermes_constants import get_hermes_home
-        from hermes_state import SessionDB
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_state import SessionDB
 
         db_path = get_hermes_home() / "state.db"
         seed = SessionDB(db_path=db_path)
@@ -435,8 +435,8 @@ class TestWebServerEndpoints:
         """
         import sqlite3
 
-        from hermes_constants import get_hermes_home
-        from hermes_state import SessionDB
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_state import SessionDB
 
         db_path = get_hermes_home() / "state.db"
         seed = SessionDB(db_path=db_path)
@@ -477,8 +477,8 @@ class TestWebServerEndpoints:
         """
         import sqlite3
 
-        from hermes_constants import get_hermes_home
-        from hermes_state import SessionDB
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_state import SessionDB
 
         db_path = get_hermes_home() / "state.db"
         seed = SessionDB(db_path=db_path)
@@ -520,9 +520,9 @@ class TestWebServerEndpoints:
         dashboard (close-time checkpoint, possible FTS rebuild) is the
         two-writer corruption vector. Only the stale-schema heal may write.
         """
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        from hermes_state import SessionDB
+        import devbuddy_state
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_state import SessionDB
 
         SessionDB(db_path=get_hermes_home() / "state.db").close()
 
@@ -534,7 +534,7 @@ class TestWebServerEndpoints:
                 writable_opens.append(kwargs)
             return real_init(self, *args, **kwargs)
 
-        monkeypatch.setattr(hermes_state.SessionDB, "__init__", spy)
+        monkeypatch.setattr(devbuddy_state.SessionDB, "__init__", spy)
         _web_server_lifecycle._eager_reconcile_own_session_db()
 
         assert writable_opens == []
@@ -543,13 +543,13 @@ class TestWebServerEndpoints:
         """A store the eager reconcile cannot open must not break startup."""
         import sqlite3 as sqlite3_module
 
-        import hermes_state
+        import devbuddy_state
 
 
         def boom(*args, **kwargs):
             raise sqlite3_module.OperationalError("database is locked")
 
-        monkeypatch.setattr(hermes_state, "SessionDB", boom)
+        monkeypatch.setattr(devbuddy_state, "SessionDB", boom)
         # Must swallow — reads fall back to the per-poll probe heal.
         _web_server_lifecycle._eager_reconcile_own_session_db()
 
@@ -562,8 +562,8 @@ class TestWebServerEndpoints:
         would hammer the DB for nothing: serve reads probe-less instead, warn
         once, and never pay the writable open for that store again.
         """
-        from hermes_constants import get_hermes_home
-        from hermes_state import SessionDB
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_state import SessionDB
 
         db_path = get_hermes_home() / "state.db"
         seed = SessionDB(db_path=db_path)
@@ -584,9 +584,9 @@ class TestWebServerEndpoints:
 
         writable_opens = []
 
-        import hermes_state
+        import devbuddy_state
 
-        original_init = hermes_state.SessionDB.__init__
+        original_init = devbuddy_state.SessionDB.__init__
 
         def counting_init(self, *args, **kwargs):
             if not kwargs.get("read_only", False):
@@ -594,8 +594,8 @@ class TestWebServerEndpoints:
             return original_init(self, *args, **kwargs)
 
         # web_server imports SessionDB inside the function body, so patching
-        # the class on hermes_state covers every open the helper makes.
-        monkeypatch.setattr(hermes_state.SessionDB, "__init__", counting_init)
+        # the class on devbuddy_state covers every open the helper makes.
+        monkeypatch.setattr(devbuddy_state.SessionDB, "__init__", counting_init)
 
         # First open: probe fails -> one writable heal -> re-probe fails ->
         # exhausted. Still returns a usable read-only handle.
@@ -621,7 +621,7 @@ class TestWebServerEndpoints:
         """Unscoped SQLITE_CORRUPT must not escalate a dashboard read to writes."""
         import sqlite3
 
-        import hermes_state
+        import devbuddy_state
 
         db_path = tmp_path / "state.db"
         db_path.write_bytes(b"not-empty")
@@ -631,7 +631,7 @@ class TestWebServerEndpoints:
             opens.append(kwargs.get("read_only", False))
             raise sqlite3.DatabaseError("database disk image is malformed")
 
-        monkeypatch.setattr(hermes_state, "SessionDB", corrupt_open)
+        monkeypatch.setattr(devbuddy_state, "SessionDB", corrupt_open)
 
         with pytest.raises(sqlite3.DatabaseError, match="disk image is malformed"):
             _web_server_sessions._open_session_db_at_path(db_path, read_only=True)
@@ -642,7 +642,7 @@ class TestWebServerEndpoints:
         """UnicodeDecodeError — pysqlite failing to decode SQLite's own error
         message over corrupt file bytes (#98924) — must route through the
         same one-writable-open heal as malformed schema."""
-        import hermes_state
+        import devbuddy_state
 
         db_path = tmp_path / "state.db"
         db_path.write_bytes(b"not-empty")
@@ -660,7 +660,7 @@ class TestWebServerEndpoints:
                 raise UnicodeDecodeError("utf-8", b"\x81", 0, 1, "invalid start byte")
             return _OkDB()
 
-        monkeypatch.setattr(hermes_state, "SessionDB", scripted_open)
+        monkeypatch.setattr(devbuddy_state, "SessionDB", scripted_open)
 
         db = _web_server_sessions._open_session_db_at_path(db_path, read_only=True)
 
@@ -668,7 +668,7 @@ class TestWebServerEndpoints:
         assert opens == [True, False, True]
 
     def test_get_sessions_zero_byte_store_returns_empty_list(self):
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
 
         db_path = get_hermes_home() / "state.db"
         db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -706,8 +706,8 @@ class TestWebServerEndpoints:
         DIFFERENT profile's gateway as this profile's, which hides a real
         outage behind a false "connected" (issue #71211).
         """
-        import hermes_cli.web_server as web_server
-        from hermes_cli import profiles as profiles_mod
+        import devbuddy_cli.web_server as web_server
+        from devbuddy_cli import profiles as profiles_mod
 
         worker_home = profiles_mod.get_profile_dir("worker")
         worker_home.mkdir(parents=True)
@@ -754,7 +754,7 @@ class TestWebServerEndpoints:
 
 
     def test_openviking_dashboard_persists_typed_recall_values(self):
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
 
         resp = self.client.put(
             "/api/memory/providers/openviking/config",
@@ -796,7 +796,7 @@ class TestWebServerEndpoints:
         assert resp.status_code == 400
 
     def test_openviking_dashboard_rejects_blocked_endpoint_before_saving(self):
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
 
         resp = self.client.put(
             "/api/memory/providers/openviking/config",
@@ -871,7 +871,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 """
 
     def _install_flatprov(self):
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
 
         plugin_dir = get_hermes_home() / "plugins" / "flatprov"
         plugin_dir.mkdir(parents=True, exist_ok=True)
@@ -880,8 +880,8 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         return plugin_dir
 
     def test_declared_surface_put_writes_config_and_secret(self):
-        from hermes_constants import get_hermes_home
-        from hermes_cli.config import load_env
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.config import load_env
 
         self._install_flatprov()
         resp = self.client.put(
@@ -910,8 +910,8 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """Dashboard dependency setup publishes through PM, never direct pip."""
         import subprocess as _subprocess
 
-        import hermes_cli.web_server as web_server
-        from hermes_cli import memory_setup
+        import devbuddy_cli.web_server as web_server
+        from devbuddy_cli import memory_setup
 
         prepared = []
         monkeypatch.setattr(
@@ -943,8 +943,8 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
 
     def test_put_memory_provider_config_writes_config_and_secret(self):
-        from hermes_constants import get_hermes_home
-        from hermes_cli.config import load_config, load_env
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.config import load_config, load_env
 
         self._install_flatprov()
         resp = self.client.put(
@@ -1005,7 +1005,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
     def _isolate_honcho_config(self):
         # Honcho tests write the suite-wide HERMES_HOME honcho.json; snapshot and
         # restore it so provider status/config state never leaks across tests.
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
 
         path = get_hermes_home() / "honcho.json"
         before = path.read_bytes() if path.exists() else None
@@ -1017,7 +1017,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
     @staticmethod
     def _seed_local_honcho(cfg=None):
-        from hermes_constants import get_hermes_home
+        from devbuddy_constants import get_hermes_home
 
         path = get_hermes_home() / "honcho.json"
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -1030,8 +1030,8 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         monkeypatch.setenv("HONCHO_API_KEY", "guard")
         monkeypatch.delenv("HONCHO_API_KEY")
         self._seed_local_honcho()
-        from hermes_constants import get_hermes_home
-        from hermes_cli.config import load_config, load_env
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.config import load_config, load_env
 
         resp = self.client.put(
             "/api/memory/providers/honcho/config?surface=declared",
@@ -1089,7 +1089,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
 
     def test_get_media_requires_auth(self):
-        from hermes_cli.web_server import _SESSION_HEADER_NAME
+        from devbuddy_cli.web_server import _SESSION_HEADER_NAME
 
         resp = self.client.get(
             "/api/media",
@@ -1105,7 +1105,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
 
     def test_import_sessions_endpoint_imports_exported_json(self):
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         payload = {
             "id": "imported-web-session",
@@ -1155,7 +1155,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """Regression for the #39140 CTE salvage: a corrupted parent chain
         that loops (a -> b -> a) must terminate (UNION dedup) instead of
         recursing forever like UNION ALL would."""
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -1179,7 +1179,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         subagent run (``_delegate_from``) or a /branch fork (``_branched_from``) is its own conversation and
         never listed as a continuation, so following it parks the user's chat in a hidden row; only
         compression continuations are followed."""
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -1214,9 +1214,9 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         # Bypass the managed-externally gate so we reach the docker install check.
         monkeypatch.setattr(_web_server_files, "_dashboard_local_update_managed_externally", lambda: False)
         # The shared admission gate (#91277 Phase 3) resolves the install
-        # method through hermes_cli.config directly.
+        # method through devbuddy_cli.config directly.
         monkeypatch.setattr(
-            "hermes_cli.config.detect_install_method", lambda *_a, **_k: "docker"
+            "devbuddy_cli.config.detect_install_method", lambda *_a, **_k: "docker"
         )
         monkeypatch.setattr(_cfg_mod, "detect_install_method", lambda _root: "docker")
         monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", fail_spawn)
@@ -1251,10 +1251,10 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
         monkeypatch.setattr(_web_server_files, "_dashboard_local_update_managed_externally", lambda: False)
         # The shared admission gate (#91277 Phase 3) resolves the install
-        # method through hermes_cli.config directly, so patch it there (the
+        # method through devbuddy_cli.config directly, so patch it there (the
         # web_server module alias only feeds the /update/check endpoint).
         monkeypatch.setattr(
-            "hermes_cli.config.detect_install_method", lambda *_a, **_k: "apt"
+            "devbuddy_cli.config.detect_install_method", lambda *_a, **_k: "apt"
         )
         monkeypatch.setattr(_cfg_mod, "detect_install_method", lambda _root: "apt")
         monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", fail_spawn)
@@ -1308,7 +1308,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         assert f"=== hermes-update completed {action_id} ===" in data["lines"]
 
     def test_update_hermes_spawns_with_action_id(self, monkeypatch):
-        import hermes_cli.web_server as web_server
+        import devbuddy_cli.web_server as web_server
 
         class Proc:
             pid = 12345
@@ -1378,10 +1378,10 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         a Hermes provider — keep the user's aggregator instead of writing a
         provider that can never resolve credentials."""
         monkeypatch.setattr(
-            "hermes_cli.model_cost_guard.expensive_model_warning",
+            "devbuddy_cli.model_cost_guard.expensive_model_warning",
             lambda *_args, **_kwargs: None,
         )
-        from hermes_cli.config import load_config, save_config
+        from devbuddy_cli.config import load_config, save_config
         cfg = load_config()
         cfg["model"] = {"provider": "openrouter", "default": "openai/gpt-5.5"}
         save_config(cfg)
@@ -1406,10 +1406,10 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         (``provider_configured: false`` since a failed boot-time mint) must follow at once, with
         the ``setup.ready`` broadcast, or the web chat stays gated on "need setup" until a restart
         (setup.status answers from the record)."""
-        from hermes_cli import free_tier_bootstrap as fb
+        from devbuddy_cli import free_tier_bootstrap as fb
 
         fb.reset_for_tests()
-        monkeypatch.setattr("hermes_cli.model_cost_guard.expensive_model_warning", lambda *_a, **_k: None)
+        monkeypatch.setattr("devbuddy_cli.model_cost_guard.expensive_model_warning", lambda *_a, **_k: None)
         monkeypatch.setattr("agent.bedrock_adapter.has_aws_credentials", lambda: False)
         broadcasts = []
         monkeypatch.setattr(fb, "_broadcast", broadcasts.append)
@@ -1435,8 +1435,8 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
     def test_reveal_env_var(self, tmp_path):
         """POST /api/env/reveal should return the real unredacted value."""
-        from hermes_cli.config import save_env_value
-        from hermes_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN
+        from devbuddy_cli.config import save_env_value
+        from devbuddy_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN
         save_env_value("TEST_REVEAL_KEY", "super-secret-value-12345")
         resp = self.client.post(
             "/api/env/reveal",
@@ -1451,8 +1451,8 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
     def test_reveal_env_var_custom_session_header_ignores_proxy_authorization(self, tmp_path):
         """A valid dashboard session header should coexist with proxy auth."""
-        from hermes_cli.config import save_env_value
-        from hermes_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN
+        from devbuddy_cli.config import save_env_value
+        from devbuddy_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         save_env_value("TEST_REVEAL_PROXY_AUTH", "secret-value")
         resp = self.client.post(
@@ -1469,8 +1469,8 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
     def test_reveal_env_var_legacy_authorization_header_still_works(self, tmp_path):
         """Keep old dashboard bundles working while the new header rolls out."""
-        from hermes_cli.config import save_env_value
-        from hermes_cli.web_server import _SESSION_TOKEN
+        from devbuddy_cli.config import save_env_value
+        from devbuddy_cli.web_server import _SESSION_TOKEN
 
         save_env_value("TEST_REVEAL_LEGACY_AUTH", "secret-value")
         resp = self.client.post(
@@ -1522,7 +1522,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
     def test_telegram_onboarding_apply_reports_restart_failure_after_save(
         self, monkeypatch
     ):
-        from hermes_cli.config import load_config, load_env
+        from devbuddy_cli.config import load_config, load_env
 
         with _web_server_messaging._telegram_onboarding_lock:
             _web_server_messaging._telegram_onboarding_pairings.clear()
@@ -1584,7 +1584,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
     def test_unauthenticated_api_blocked(self):
         """API requests without the session token should be rejected."""
         from starlette.testclient import TestClient
-        from hermes_cli.web_server import app
+        from devbuddy_cli.web_server import app
         # Create a client WITHOUT the dashboard session header
         unauth_client = TestClient(app)
         resp = unauth_client.get("/api/env")
@@ -1605,7 +1605,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
     def test_parse_model_ids_handles_openai_and_bare_shapes(self):
         """Model discovery must tolerate the common /v1/models shapes and
         never raise (so a slightly non-standard local endpoint still works)."""
-        from hermes_cli.web_server_profiles import _parse_model_ids
+        from devbuddy_cli.web_server_profiles import _parse_model_ids
 
         class FakeResp:
             def __init__(self, payload, ok=True):
@@ -1637,7 +1637,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         endpoint reappears as a ready row in the picker — matching the
         ``hermes model`` custom flow. Regression for the desktop loop where a
         keyed custom endpoint could never be configured from the GUI."""
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
 
         resp = self.client.post(
             "/api/model/set",
@@ -1680,7 +1680,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         authenticating to the deleted host, and the credential the operator
         just removed through the dashboard survives the delete.
         """
-        from hermes_cli.config import custom_endpoint_key_env, get_env_value, load_config
+        from devbuddy_cli.config import custom_endpoint_key_env, get_env_value, load_config
 
         self.client.post(
             "/api/providers/custom-endpoints",
@@ -1721,7 +1721,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         PyYAML loads unquoted 2070 as int; string lookup then 404ed, so
         Desktop could list the endpoint but not assign or delete it.
         """
-        from hermes_cli.config import get_config_path, load_config
+        from devbuddy_cli.config import get_config_path, load_config
 
         get_config_path().write_text(
             "model:\n"
@@ -1763,7 +1763,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """
         from urllib.parse import quote
 
-        from hermes_cli.config import get_config_path, load_config
+        from devbuddy_cli.config import get_config_path, load_config
 
         get_config_path().write_text(
             "model:\n"
@@ -1813,7 +1813,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
     def test_unslugged_display_name_still_resolves_to_its_slug_key(self):
         """Compatibility fallback: a caller sending the display name reaches the
         dashboard-minted slug key; an unknown id is still a 404."""
-        from hermes_cli.config import get_config_path, load_config
+        from devbuddy_cli.config import get_config_path, load_config
 
         get_config_path().write_text(
             "providers:\n"
@@ -1838,9 +1838,9 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         so every custom provider silently landed in the default profile and
         never appeared for the profile the user was actually configuring.
         """
-        from hermes_cli import profiles as profiles_mod
-        from hermes_cli.config import custom_endpoint_key_env
-        from hermes_constants import get_hermes_home
+        from devbuddy_cli import profiles as profiles_mod
+        from devbuddy_cli.config import custom_endpoint_key_env
+        from devbuddy_constants import get_hermes_home
 
         default_home = get_hermes_home()
         worker_home = profiles_mod.get_profile_dir("worker")
@@ -1883,7 +1883,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
     def test_custom_endpoint_save_keeps_the_api_key_out_of_config(self):
         """The key belongs in .env behind key_env, never in config.yaml (#69449)."""
-        from hermes_cli.config import custom_endpoint_key_env, get_env_value, load_config
+        from devbuddy_cli.config import custom_endpoint_key_env, get_env_value, load_config
 
         self.client.post(
             "/api/providers/custom-endpoints",
@@ -1915,7 +1915,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         alias resolves to its canonical model + ``agent.reasoning_overrides`` instead of being
         saved as a literal upstream model id.
         """
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
 
         response = self.client.post(
             "/api/providers/custom-endpoints",
@@ -1960,7 +1960,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         the ``canonical_model`` / ``reasoning_effort`` a gateway advertises (#93622)."""
         import contextlib
 
-        from hermes_cli.web_routers import config_env
+        from devbuddy_cli.web_routers import config_env
 
         class FakeResp:
             status_code = 200
@@ -1999,7 +1999,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         POST /chat/completions — the #93622 reporter's host."""
         import contextlib
 
-        from hermes_cli.web_routers import config_env
+        from devbuddy_cli.web_routers import config_env
 
         class Resp:
             def __init__(self, status):
@@ -2054,9 +2054,9 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         secret by the time Save sees it. Migrating it would duplicate the
         user's secret into a second env var they never asked for.
         """
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
 
-        from hermes_cli.config import custom_endpoint_key_env, get_config_path, get_env_value
+        from devbuddy_cli.config import custom_endpoint_key_env, get_config_path, get_env_value
 
         monkeypatch.setenv("MY_PROXY_KEY", "sk-user-managed")
         get_config_path().write_text(
@@ -2095,7 +2095,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         and ``:8001`` onto one name, so saving the second silently overwrites
         the first's key.
         """
-        from hermes_cli.config import custom_endpoint_key_env, get_env_value
+        from devbuddy_cli.config import custom_endpoint_key_env, get_env_value
 
         for port, key in ((8000, "sk-first"), (8001, "sk-second")):
             self.client.post(
@@ -2136,7 +2136,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
     def test_env_rejects_its_redacted_preview(self):
         """Invariant: a GET preview (sentinel or legacy bare mask) never gains write
         authority, even after another actor rotates the secret behind it."""
-        from hermes_cli.config import load_env, save_env_value
+        from devbuddy_cli.config import load_env, save_env_value
 
         key = "OPENAI_API_KEY"
         real = "sk-live-secret-abcdef1234567890"
@@ -2159,7 +2159,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """Invariant: preview rejection runs before any mutation (messaging clear+set),
         and custom-endpoint display strings (``${KEY_ENV}`` / legacy plaintext preview)
         are refused even after the entry rotated underneath them."""
-        from hermes_cli.config import load_config, load_env, save_config, save_env_value
+        from devbuddy_cli.config import load_config, load_env, save_config, save_env_value
 
         key = "DISCORD_BOT_TOKEN"
         real = "discord-live-secret-abcdef1234567890"
@@ -2202,7 +2202,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
     def test_activating_an_endpoint_carries_its_credential_either_way(self):
         """Activate must work for both key_env and pre-#69449 plaintext entries."""
-        from hermes_cli.config import load_config, save_config
+        from devbuddy_cli.config import load_config, save_config
 
         cfg = load_config()
         cfg["providers"] = {
@@ -2236,7 +2236,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """A post-migration ``custom_providers:`` list entry is still routed by the
         runtime (``get_compatible_custom_providers``), so Custom Endpoints must show
         it — and Delete must remove it from the legacy list, not 404 (#114471)."""
-        from hermes_cli.config import load_config, save_config
+        from devbuddy_cli.config import load_config, save_config
 
         cfg = load_config()
         cfg["providers"] = {
@@ -2263,7 +2263,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
     def test_activating_a_legacy_custom_providers_entry_promotes_it(self):
         """Use on a legacy row moves the entry under ``providers:`` (the v12+ shape the
         main slot names by key) instead of 404ing on a row the list just rendered."""
-        from hermes_cli.config import load_config, save_config
+        from devbuddy_cli.config import load_config, save_config
 
         cfg = load_config()
         cfg["custom_providers"] = [
@@ -2287,7 +2287,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
 
     def test_get_sessions_positive_limit_still_works(self):
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -2311,7 +2311,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
 
     def test_profiles_sessions_positive_limit_still_works(self):
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -2330,7 +2330,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
     def test_get_session_messages_rejects_negative_limit(self):
         """limit=-1 previously bypassed the documented 500-row clamp because
         min(-1, 500) == -1, which SQLite treats as 'no limit'."""
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -2350,7 +2350,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """A limit above the documented 500-row cap is silently clamped
         (existing ``min(limit, 500)`` behaviour), not rejected — the request
         still succeeds."""
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -2370,7 +2370,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         Guards the #80680 contract — display reads opt into compacted history
         explicitly; the dashboard default view stays as it was.
         """
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -2402,7 +2402,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """include_compacted=true returns the full display history: archived
         (active=0, compacted=1) rows plus live rows, in insertion order.
         """
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -2440,7 +2440,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             _MERGED_SUMMARY_DELIMITER,
             _SUMMARY_END_MARKER,
         )
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         handoff = (
             f"{SUMMARY_PREFIX}\n{HISTORICAL_TASK_HEADING}\nold task\n\n"
@@ -2502,7 +2502,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         order=latest + include_compacted=true) pages back from the newest
         message and returns the window in chronological order.
         """
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -2538,7 +2538,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
     def test_get_session_messages_omitted_limit_defaults_to_500(self):
         """The dashboard must never load an entire unbounded transcript."""
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -2586,7 +2586,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         ]
 
     def test_export_session_streams_bounded_message_pages(self, monkeypatch):
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -2637,7 +2637,7 @@ class TestBuildSchemaFromConfig:
         blank entry server-side (the clear item is client-side via
         ``clearable``), and never empty even without tzdata (UTC fallback).
         """
-        from hermes_cli.web_server_config import CONFIG_SCHEMA, _timezone_options
+        from devbuddy_cli.web_server_config import CONFIG_SCHEMA, _timezone_options
 
         entry = CONFIG_SCHEMA["timezone"]
         assert entry["type"] == "select"
@@ -2688,7 +2688,7 @@ class TestConfigRoundTrip:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
@@ -2698,7 +2698,7 @@ class TestConfigRoundTrip:
         round-trip. Deep-merge is required — a shallow merge would drop
         ``agent.<custom_key>`` when the frontend sends a partial ``agent``
         dict containing only schema-known sub-fields."""
-        from hermes_cli.config import read_raw_config, save_config
+        from devbuddy_cli.config import read_raw_config, save_config
 
         # Seed config with a key under `agent` that isn't in the schema.
         # Use a sentinel name to avoid colliding with future schema fields.
@@ -2760,7 +2760,7 @@ class TestConfigRoundTrip:
 
     def test_desktop_terminal_font_round_trip_preserves_terminal_config(self):
         """The Appearance picker persists a font without replacing sibling settings."""
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
 
         web_config = self.client.get("/api/config").json()
         terminal_before = dict(web_config.get("terminal", {}))
@@ -2794,11 +2794,11 @@ class TestNewEndpoints:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        import devbuddy_state
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-        monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+        monkeypatch.setattr(devbuddy_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
 
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
@@ -2813,8 +2813,8 @@ class TestNewEndpoints:
     def test_profiles_create_builder_mcp_auth_is_profile_scoped(
         self, monkeypatch
     ):
-        from hermes_constants import get_hermes_home
-        import hermes_cli.profiles as profiles_mod
+        from devbuddy_constants import get_hermes_home
+        import devbuddy_cli.profiles as profiles_mod
 
         monkeypatch.setattr(profiles_mod, "create_wrapper_script", lambda name: None)
 
@@ -2897,7 +2897,7 @@ class TestNewEndpoints:
 
     def test_discord_toolsets_read_and_write_discord_platform(self):
         """Platform-restricted toolsets must not be saved as successful CLI no-ops."""
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
 
         listing = {t["name"]: t for t in self.client.get("/api/tools/toolsets").json()}
         assert listing["discord"]["platform"] == "discord"
@@ -2973,18 +2973,18 @@ class TestNewEndpoints:
         never-installed KittenTTS/Piper. The endpoint now reports the honest
         state so keyless ≠ ready.
         """
-        import hermes_cli.tools_config as tools_config
-        from hermes_cli.nous_account import NousPortalAccountInfo
+        import devbuddy_cli.tools_config as tools_config
+        from devbuddy_cli.nous_account import NousPortalAccountInfo
 
         # Logged out of Nous Portal → managed subscription rows need sign-in.
         monkeypatch.setattr(
-            "hermes_cli.nous_subscription.get_nous_portal_account_info",
+            "devbuddy_cli.nous_subscription.get_nous_portal_account_info",
             lambda *a, **k: NousPortalAccountInfo(
                 logged_in=False, source="none", fresh=False, paid_service_access=None
             ),
         )
         # No xAI credentials → the Grok OAuth-backed row needs sign-in.
-        import hermes_cli.tools_config_post_setup as tools_config_post_setup
+        import devbuddy_cli.tools_config_post_setup as tools_config_post_setup
 
         monkeypatch.setattr(tools_config, "_xai_credentials_present", lambda: False)
         # Local TTS engines not installed → their rows need setup.
@@ -3018,10 +3018,10 @@ class TestNewEndpoints:
         told the user to sign in. The endpoint now reports the entitlement
         gap so the client can drive the existing Nous OAuth flow.
         """
-        from hermes_cli.nous_account import NousPortalAccountInfo
+        from devbuddy_cli.nous_account import NousPortalAccountInfo
 
         monkeypatch.setattr(
-            "hermes_cli.nous_subscription.get_nous_portal_account_info",
+            "devbuddy_cli.nous_subscription.get_nous_portal_account_info",
             lambda *a, **k: NousPortalAccountInfo(
                 logged_in=False, source="none", fresh=False, paid_service_access=None
             ),
@@ -3039,7 +3039,7 @@ class TestNewEndpoints:
         # The selection is still persisted — activation is what's gated.
         # Managed rows store the single 'nous' provider string (the runtime
         # maps it to the Browser Use cloud through the Nous Tool Gateway).
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
         cfg = load_config()
         assert cfg["browser"]["cloud_provider"] == "nous"
         assert "use_gateway" not in cfg["browser"]
@@ -3072,7 +3072,7 @@ class TestNewEndpoints:
         assert body["ok"] is True
         assert body["capability"] == "search"
 
-        from hermes_cli.config import load_config
+        from devbuddy_cli.config import load_config
         cfg = load_config()
         assert cfg["web"]["search_backend"] == "searxng"
         # The shared backend selected first must be preserved for extract.
@@ -3094,7 +3094,7 @@ class TestNewEndpoints:
 
     def test_terminal_ssh_probe_ready_when_configured(self, monkeypatch):
         """SSH host + user in config.yaml -> ready."""
-        from hermes_cli.config import load_config, save_config
+        from devbuddy_cli.config import load_config, save_config
 
         monkeypatch.setattr(shutil, "which", lambda name: None)
         config = load_config()
@@ -3110,7 +3110,7 @@ class TestNewEndpoints:
 
 
     def test_analytics_usage_includes_skill_breakdown(self):
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -3175,7 +3175,7 @@ class TestDesktopLoopbackAuthExemption:
     """``_desktop_loopback_auth_exempt`` decides the #96490 exemption."""
 
     def test_exempt_with_desktop_env_and_session_token_on_loopback(self, monkeypatch):
-        import hermes_cli.web_server as web_server
+        import devbuddy_cli.web_server as web_server
 
         monkeypatch.setenv("HERMES_DESKTOP", "1")
         monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-minted")
@@ -3183,7 +3183,7 @@ class TestDesktopLoopbackAuthExemption:
         assert web_server._desktop_loopback_auth_exempt("::1") is True
 
     def test_exempt_via_ssh_spawn_credentials_without_env_token(self, monkeypatch):
-        import hermes_cli.web_server as web_server
+        import devbuddy_cli.web_server as web_server
 
         monkeypatch.setenv("HERMES_DESKTOP", "1")
         monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
@@ -3195,14 +3195,14 @@ class TestDesktopLoopbackAuthExemption:
         )
 
     def test_not_exempt_without_desktop_env(self, monkeypatch):
-        import hermes_cli.web_server as web_server
+        import devbuddy_cli.web_server as web_server
 
         monkeypatch.delenv("HERMES_DESKTOP", raising=False)
         monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "tok")
         assert web_server._desktop_loopback_auth_exempt("127.0.0.1") is False
 
     def test_not_exempt_without_any_credential(self, monkeypatch):
-        import hermes_cli.web_server as web_server
+        import devbuddy_cli.web_server as web_server
 
         # HERMES_DESKTOP=1 alone is not enough: a plain serve with the env var
         # exported must stay gated.
@@ -3211,7 +3211,7 @@ class TestDesktopLoopbackAuthExemption:
         assert web_server._desktop_loopback_auth_exempt("127.0.0.1") is False
 
     def test_not_exempt_on_non_loopback_bind(self, monkeypatch):
-        import hermes_cli.web_server as web_server
+        import devbuddy_cli.web_server as web_server
 
         monkeypatch.setenv("HERMES_DESKTOP", "1")
         monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "tok")
@@ -3219,7 +3219,7 @@ class TestDesktopLoopbackAuthExemption:
         assert web_server._desktop_loopback_auth_exempt("192.168.1.10") is False
 
     def test_public_url_engages_gate_for_non_desktop_loopback(self, monkeypatch):
-        import hermes_cli.web_server as web_server
+        import devbuddy_cli.web_server as web_server
 
         # Sanity: the base behaviour is untouched — a non-Desktop loopback
         # serve with a public_url configured stays ticket-gated.
@@ -3239,9 +3239,9 @@ class TestDesktopHostRendezvousIsolation:
         import io
         import urllib.request
         from gateway import host_rendezvous as hr
-        import hermes_cli.web_server as web_server
-        from hermes_cli.main_dashboard import _host_backend_attachment
-        from hermes_cli.plugins_activation import notify_serve_backend
+        import devbuddy_cli.web_server as web_server
+        from devbuddy_cli.main_dashboard import _host_backend_attachment
+        from devbuddy_cli.plugins_activation import notify_serve_backend
 
         monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         monkeypatch.setenv("HERMES_DESKTOP", "1")
@@ -3280,7 +3280,7 @@ class TestDesktopHostRendezvousIsolation:
         """The Desktop exclusion must not alter standalone dashboard discovery — including a
         supervised service whose shell merely inherited HERMES_DESKTOP=1 without the token."""
         from gateway import host_rendezvous as hr
-        import hermes_cli.web_server as web_server
+        import devbuddy_cli.web_server as web_server
 
         monkeypatch.setenv("HERMES_DESKTOP", "1")
         monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
@@ -3312,7 +3312,7 @@ class TestModelContextLength:
 
     def test_normalize_extracts_context_length_from_dict(self):
         """normalize should surface context_length from model dict."""
-        from hermes_cli.web_server_config import _normalize_config_for_web
+        from devbuddy_cli.web_server_config import _normalize_config_for_web
 
         cfg = {
             "model": {
@@ -3327,7 +3327,7 @@ class TestModelContextLength:
 
     def test_normalize_bare_string_model_yields_zero(self):
         """normalize should set model_context_length=0 for bare string model."""
-        from hermes_cli.web_server_config import _normalize_config_for_web
+        from devbuddy_cli.web_server_config import _normalize_config_for_web
 
         result = _normalize_config_for_web({"model": "anthropic/claude-sonnet-4"})
         assert result["model"] == "anthropic/claude-sonnet-4"
@@ -3336,8 +3336,8 @@ class TestModelContextLength:
 
     def test_denormalize_writes_context_length_into_model_dict(self):
         """denormalize should write model_context_length back into model dict."""
-        from hermes_cli.web_server_config import _denormalize_config_from_web
-        from hermes_cli.config import save_config
+        from devbuddy_cli.web_server_config import _denormalize_config_from_web
+        from devbuddy_cli.config import save_config
 
         # Set up disk config with model as a dict
         save_config({
@@ -3356,8 +3356,8 @@ class TestModelContextLength:
         """The Settings autosave now sends a diff, not the full draft: editing
         only the Context Window control must not omit ``model`` and thereby
         drop the context_length edit on the floor (#89597 review)."""
-        from hermes_cli.web_server_config import _denormalize_config_from_web
-        from hermes_cli.config import save_config
+        from devbuddy_cli.web_server_config import _denormalize_config_from_web
+        from devbuddy_cli.config import save_config
 
         save_config({
             "model": {"default": "anthropic/claude-sonnet-4", "provider": "anthropic",
@@ -3378,8 +3378,8 @@ class TestModelContextLength:
         to the diff-omission bug rather than the separate, pre-existing (and
         intentional, see ``_apply_main_model_assignment``) behavior where a
         real provider switch drops the context_length override."""
-        from hermes_cli.web_server_config import _denormalize_config_from_web
-        from hermes_cli.config import save_config
+        from devbuddy_cli.web_server_config import _denormalize_config_from_web
+        from devbuddy_cli.config import save_config
 
         save_config({
             "model": {"default": "anthropic/claude-sonnet-4", "context_length": 150000}
@@ -3398,9 +3398,9 @@ class TestDenormalizeProviderSwitch:
     def test_vendor_slug_switches_off_non_aggregator_provider(self):
         """ollama-local + a vendor/model slug → switch to openrouter and drop
         the stale local base_url (the issue's exact repro)."""
-        from hermes_cli.web_server_config import _denormalize_config_from_web
+        from devbuddy_cli.web_server_config import _denormalize_config_from_web
         from unittest.mock import patch as _patch
-        from hermes_cli.config import save_config
+        from devbuddy_cli.config import save_config
 
         save_config({
             "model": {
@@ -3411,7 +3411,7 @@ class TestDenormalizeProviderSwitch:
             }
         })
 
-        with _patch("hermes_cli.models_detect.provider_has_credentials", lambda p: p == "openrouter"):
+        with _patch("devbuddy_cli.models_detect.provider_has_credentials", lambda p: p == "openrouter"):
             result = _denormalize_config_from_web({"model": "google/gemini-2.5-flash"})
         model = result["model"]
         assert model["provider"] == "openrouter"
@@ -3424,13 +3424,13 @@ class TestDenormalizeProviderSwitch:
     def test_context_length_override_survives_provider_switch(self):
         """An explicit context-length override must persist alongside a
         provider switch."""
-        from hermes_cli.web_server_config import _denormalize_config_from_web
+        from devbuddy_cli.web_server_config import _denormalize_config_from_web
         from unittest.mock import patch as _patch
-        from hermes_cli.config import save_config
+        from devbuddy_cli.config import save_config
 
         save_config({"model": {"default": "llama3.2", "provider": "ollama-local"}})
 
-        with _patch("hermes_cli.models_detect.provider_has_credentials", lambda p: p == "openrouter"):
+        with _patch("devbuddy_cli.models_detect.provider_has_credentials", lambda p: p == "openrouter"):
             result = _denormalize_config_from_web({
                 "model": "google/gemini-2.5-flash",
                 "model_context_length": 128000,
@@ -3444,9 +3444,9 @@ class TestDenormalizeProviderSwitch:
         ``PUT /api/config`` — not fall back to the flat string, which the deep-merge would
         write OVER the on-disk ``model:`` dict (provider/base_url/api_mode/slots destroyed)."""
         from starlette.testclient import TestClient
-        from hermes_constants import get_hermes_home
-        from hermes_cli.model_switch import ModelSwitchResult
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.model_switch import ModelSwitchResult
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         cfg_path = get_hermes_home() / "config.yaml"
         cfg_path.write_text(
@@ -3460,8 +3460,8 @@ class TestDenormalizeProviderSwitch:
             "    fast: qwen3\n",
             encoding="utf-8")
         before = cfg_path.read_bytes()
-        monkeypatch.setattr("hermes_cli.models_detect.provider_has_credentials", lambda p: p == "openrouter")
-        monkeypatch.setattr("hermes_cli.model_switch.switch_model",
+        monkeypatch.setattr("devbuddy_cli.models_detect.provider_has_credentials", lambda p: p == "openrouter")
+        monkeypatch.setattr("devbuddy_cli.model_switch.switch_model",
                             lambda **_kw: ModelSwitchResult(success=False, error_message="models.dev offline"))
 
         client = TestClient(app)
@@ -3481,7 +3481,7 @@ class TestModelInfoEndpoint:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
-        from hermes_cli.web_server import app
+        from devbuddy_cli.web_server import app
         self.client = TestClient(app)
 
 
@@ -3532,7 +3532,7 @@ class TestProbeGatewayHealth:
 
     def test_probe_uses_configured_short_timeout(self, monkeypatch):
         """The HTTP probe must not fall through to the OS TCP timeout."""
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         monkeypatch.setattr(ws, "_GATEWAY_HEALTH_URL", "http://gw:8642")
         monkeypatch.setattr(ws, "_GATEWAY_HEALTH_TIMEOUT", 0.75)
@@ -3553,7 +3553,7 @@ class TestProbeGatewayHealth:
 
     def test_detailed_fails_falls_back_to_simple_health(self, monkeypatch):
         """If /health/detailed fails, falls back to /health."""
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
         monkeypatch.setattr(ws, "_GATEWAY_HEALTH_URL", "http://gw:8642")
         monkeypatch.setattr(ws, "_GATEWAY_HEALTH_TIMEOUT", 1)
 
@@ -3587,13 +3587,13 @@ class TestStatusRemoteGateway:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
     def test_status_falls_back_to_remote_probe(self, monkeypatch):
         """When local PID check fails and remote probe succeeds, gateway shows running."""
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         monkeypatch.setattr(_gw_status, "get_running_pid_cached", lambda: None)
         monkeypatch.setattr(_gw_status, "read_runtime_status", lambda: None)
@@ -3616,7 +3616,7 @@ class TestStatusRemoteGateway:
 
     def test_status_remote_running_null_pid(self, monkeypatch):
         """Remote gateway running but PID not in response — pid should be None."""
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         monkeypatch.setattr(_gw_status, "get_running_pid_cached", lambda: None)
         monkeypatch.setattr(_gw_status, "read_runtime_status", lambda: None)
@@ -3650,8 +3650,8 @@ class TestStatusInstallId:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_cli.web_server as ws
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        import devbuddy_cli.web_server as ws
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         # Fresh process cache per test: the cache is process-global by design
         # (stability), so tests must not observe a previous test's id.
@@ -3660,7 +3660,7 @@ class TestStatusInstallId:
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
     def test_status_reports_persistent_install_id(self, monkeypatch):
-        from hermes_constants import get_default_hermes_root
+        from devbuddy_constants import get_default_hermes_root
 
         monkeypatch.setattr(_gw_status, "get_running_pid_cached", lambda: None)
         monkeypatch.setattr(_gw_status, "read_runtime_status", lambda: None)
@@ -3682,7 +3682,7 @@ class TestStatusInstallId:
 
     def test_install_id_survives_process_cache_reset(self, monkeypatch):
         """A restart (fresh cache) re-reads the SAME persisted id."""
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         first = ws.get_install_id()
         assert first
@@ -3692,7 +3692,7 @@ class TestStatusInstallId:
     def test_all_profiles_of_one_install_share_the_id(self, monkeypatch, tmp_path):
         """HERMES_HOME=<root> and HERMES_HOME=<root>/profiles/<name> resolve to
         the same id file — profiles share one physical install identity."""
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         root = tmp_path / "hermes-root"
         profile_home = root / "profiles" / "research"
@@ -3711,7 +3711,7 @@ class TestStatusInstallId:
         assert not (profile_home / "install_id").exists()
 
     def test_corrupt_id_file_is_replaced_not_propagated(self, monkeypatch, tmp_path):
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         root = tmp_path / "hermes-root"
         root.mkdir()
@@ -3740,7 +3740,7 @@ class TestGatewayBusyReadout:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
@@ -3788,7 +3788,7 @@ class TestStatusMemoryBlock:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
@@ -3837,7 +3837,7 @@ class TestGatewayUpdatedAtContract:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
@@ -3878,7 +3878,7 @@ class TestGatewayUpdatedAtContract:
         """Cross-container path: the remote /health/detailed body is the
         runtime source, and a numeric updated_at from an older gateway build
         must still come out as string|null."""
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         monkeypatch.setattr(_gw_status, "get_running_pid_cached", lambda: None)
         monkeypatch.setattr(_gw_status, "read_runtime_status", lambda: None)
@@ -3910,14 +3910,14 @@ class TestNormaliseThemeDefinition:
 
 
     def test_rejects_non_dict(self):
-        from hermes_cli.web_server_dashboard import _normalise_theme_definition
+        from devbuddy_cli.web_server_dashboard import _normalise_theme_definition
         assert _normalise_theme_definition("string") is None
         assert _normalise_theme_definition(None) is None
         assert _normalise_theme_definition([1, 2, 3]) is None
 
     def test_loose_colors_shorthand(self):
         """Bare hex strings under `colors` parse as {hex, alpha=1.0}."""
-        from hermes_cli.web_server_dashboard import _normalise_theme_definition
+        from devbuddy_cli.web_server_dashboard import _normalise_theme_definition
         result = _normalise_theme_definition({
             "name": "loose",
             "colors": {"background": "#000000", "midground": "#ffffff"},
@@ -3970,7 +3970,7 @@ class TestDiscoverUserThemes:
         other = tmp_path / "other-profile"
         other.mkdir()
 
-        from hermes_constants import (
+        from devbuddy_constants import (
             reset_hermes_home_override,
             set_hermes_home_override,
         )
@@ -4012,7 +4012,7 @@ class TestThemeBootstrapCSS:
     def _mount_spa_client(tmp_path, monkeypatch):
         from fastapi import FastAPI
         from starlette.testclient import TestClient
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         dist = tmp_path / "web_dist"
         (dist / "assets").mkdir(parents=True)
@@ -4048,7 +4048,7 @@ class TestNormaliseThemeExtensions:
 
 
     def test_custom_css_passthrough_and_capped(self):
-        from hermes_cli.web_server_dashboard import _normalise_theme_definition
+        from devbuddy_cli.web_server_dashboard import _normalise_theme_definition
         # Small CSS passes through verbatim.
         r = _normalise_theme_definition({
             "name": "t",
@@ -4063,7 +4063,7 @@ class TestNormaliseThemeExtensions:
 
 
     def test_component_styles_per_bucket(self):
-        from hermes_cli.web_server_dashboard import _normalise_theme_definition
+        from devbuddy_cli.web_server_dashboard import _normalise_theme_definition
         r = _normalise_theme_definition({
             "name": "t",
             "componentStyles": {
@@ -4103,12 +4103,12 @@ class TestDeleteSessionEndpoint:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        import devbuddy_state
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         monkeypatch.setattr(
-            hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            devbuddy_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
         )
 
         self.auth_client = TestClient(app)
@@ -4131,7 +4131,7 @@ class TestBulkDeleteSessionsEndpoint:
 
     1. Route-ordering: ``/api/sessions/bulk-delete`` must shadow the
        templated ``/api/sessions/{session_id}`` route below it (see
-       the block comment in ``hermes_cli/web_server.py``).
+       the block comment in ``devbuddy_cli/web_server.py``).
     2. Behaviour parity with :meth:`SessionDB.delete_sessions` — real
        deleted count, archive/active sessions deleted on explicit
        selection.
@@ -4146,12 +4146,12 @@ class TestBulkDeleteSessionsEndpoint:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        import devbuddy_state
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         monkeypatch.setattr(
-            hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            devbuddy_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
         )
 
         self.client = TestClient(app)
@@ -4159,7 +4159,7 @@ class TestBulkDeleteSessionsEndpoint:
         self.auth_client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
     def _seed(self, ids):
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -4170,7 +4170,7 @@ class TestBulkDeleteSessionsEndpoint:
 
 
     def test_deletes_listed_sessions_only(self):
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         self._seed(["a", "b", "c"])
         resp = self.auth_client.post(
@@ -4213,14 +4213,14 @@ class TestDeleteEmptySessionsEndpoint:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        import devbuddy_state
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         # Pin the SessionDB to the isolated HERMES_HOME so each test
         # starts with a clean state.db.
         monkeypatch.setattr(
-            hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            devbuddy_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
         )
 
         self.client = TestClient(app)
@@ -4235,7 +4235,7 @@ class TestDeleteEmptySessionsEndpoint:
         * ``live``    — un-ended, empty → must survive (active)
         * ``archived``— ended, empty, archived → must survive
         """
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -4271,7 +4271,7 @@ class TestDeleteEmptySessionsEndpoint:
         """DELETE returns the deleted count and removes only the
         empty-ended-unarchived rows — same shape contract as the
         DB-level method's unit tests."""
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         self._seed()
         resp = self.auth_client.delete("/api/sessions/empty")
@@ -4310,11 +4310,11 @@ class TestPluginAPIAuth:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        import devbuddy_state
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-        monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+        monkeypatch.setattr(devbuddy_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
 
         self.client = TestClient(app)
         self.auth_client = TestClient(app)
@@ -4392,7 +4392,7 @@ class TestDashboardPluginManifestExtensions:
             "slots": ["sidebar", "header-left"],
             "entry": "dist/index.js",
         })
-        from hermes_cli import web_server
+        from devbuddy_cli import web_server
         # Bust the process-level cache so the test plugin is picked up.
         web_server._dashboard_plugins_cache = None
         plugins = web_server._get_dashboard_plugins(force_rescan=True)
@@ -4405,7 +4405,7 @@ class TestDashboardPluginManifestExtensions:
         """Regression: user dashboard extensions are a dashboard-owned asset
         (like theme YAML), so they must stay visible after a context-local
         HERMES_HOME override scopes a request to another profile."""
-        from hermes_constants import (
+        from devbuddy_constants import (
             reset_hermes_home_override,
             set_hermes_home_override,
         )
@@ -4487,7 +4487,7 @@ class TestDashboardPluginManifestExtensions:
         (denied_plugin / "dashboard").mkdir(parents=True)
         (denied_plugin / "dashboard" / "manifest.json").write_text("{}", encoding="utf-8")
 
-        from hermes_cli import web_server_dashboard
+        from devbuddy_cli import web_server_dashboard
         original_search_dirs = web_server_dashboard._dashboard_plugin_search_dirs
         original_scandir = web_server_dashboard.os.scandir
         original_exists = Path.exists
@@ -4524,7 +4524,7 @@ class TestDashboardPluginManifestExtensions:
 # monkeypatch that hook.
 # ---------------------------------------------------------------------------
 
-from hermes_cli import main_tui_launch
+from devbuddy_cli import main_tui_launch
 
 
 skip_on_windows = pytest.mark.skipif(
@@ -4538,7 +4538,7 @@ class TestPtyWebSocket:
     def _setup(self, monkeypatch, _isolate_hermes_home):
         from starlette.testclient import TestClient
 
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         # Avoid exec'ing the actual TUI in tests: every test below installs
         # its own fake argv via ``web_server_chat._resolve_chat_argv``.
@@ -4580,7 +4580,7 @@ class TestPtyWebSocket:
 
 
     def test_unavailable_platform_closes_with_message(self, monkeypatch):
-        from hermes_cli.pty_bridge import PtyUnavailableError
+        from devbuddy_cli.pty_bridge import PtyUnavailableError
 
         def _raise(argv, **kwargs):
             raise PtyUnavailableError("pty missing for tests")
@@ -4614,7 +4614,7 @@ class TestPtyWebSocket:
         asserting the exact fan-out contract.
         """
         import asyncio
-        from hermes_cli import web_server as ws_mod
+        from devbuddy_cli import web_server as ws_mod
 
         class _FakeSub:
             def __init__(self):
@@ -4658,8 +4658,8 @@ class TestPtyWebSocket:
 
 
 def test_resolve_chat_argv_injects_gateway_ws_url(monkeypatch):
-    import hermes_cli.main_tui_launch as tui_launch
-    import hermes_cli.web_server as ws
+    import devbuddy_cli.main_tui_launch as tui_launch
+    import devbuddy_cli.web_server as ws
 
     monkeypatch.setenv("PATH", "/run/current-system/sw/bin:/usr/bin")
     monkeypatch.setattr(
@@ -4707,7 +4707,7 @@ class TestDashboardPluginStaticAssetAllowlist:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        from hermes_cli.web_server import app
+        from devbuddy_cli.web_server import app
 
         self.client = TestClient(app)
 
@@ -4781,7 +4781,7 @@ class TestValidateProviderCredential:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
@@ -4956,7 +4956,7 @@ class TestDesktopCronTicker:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
-        from hermes_cli.web_server import app
+        from devbuddy_cli.web_server import app
 
         return TestClient(app)
 
@@ -4982,7 +4982,7 @@ class TestServeIndexMissingIndex:
     def _client_with_dist(tmp_path, monkeypatch, *, write_index: bool):
         from fastapi import FastAPI
         from starlette.testclient import TestClient
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         dist = tmp_path / "web_dist"
         (dist / "assets").mkdir(parents=True)
@@ -5025,7 +5025,7 @@ class TestServeIndexMissingIndex:
     def test_index_uses_ssh_token_applied_after_spa_mount(
         self, tmp_path, monkeypatch
     ):
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         monkeypatch.setattr(ws, "_SESSION_TOKEN", "before-mount")
         client, _dist = self._client_with_dist(
@@ -5055,7 +5055,7 @@ class TestHeadlessServeTokenPage:
     def _headless_client(monkeypatch, *, gated: bool):
         from fastapi import FastAPI
         from starlette.testclient import TestClient
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         monkeypatch.setenv("HERMES_SERVE_HEADLESS", "1")
         spa_app = FastAPI()
@@ -5087,7 +5087,7 @@ class TestHeadlessServeTokenPage:
         import json
         import re
 
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         monkeypatch.setattr(ws, "_SESSION_TOKEN", "before-mount")
         client, ws = self._headless_client(monkeypatch, gated=False)
@@ -5127,7 +5127,7 @@ class TestHashedAssetCacheHeaders:
     def _client(tmp_path, monkeypatch):
         from fastapi import FastAPI
         from starlette.testclient import TestClient
-        import hermes_cli.web_server as ws
+        import devbuddy_cli.web_server as ws
 
         dist = tmp_path / "web_dist"
         (dist / "assets").mkdir(parents=True)
@@ -5201,11 +5201,11 @@ class TestDashboardComponentHealth:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        import hermes_cli.web_server as ws
+        import devbuddy_state
+        from devbuddy_constants import get_hermes_home
+        import devbuddy_cli.web_server as ws
 
-        monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+        monkeypatch.setattr(devbuddy_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
         # Fresh state holder per test so counters don't leak across tests.
         monkeypatch.setattr(ws, "DASHBOARD_HEALTH", ws.DashboardHealth())
         self.ws = ws
@@ -5268,19 +5268,19 @@ class TestSessionPatchUnread:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        import devbuddy_state
+        from devbuddy_constants import get_hermes_home
+        from devbuddy_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         monkeypatch.setattr(
-            hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            devbuddy_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
         )
 
         self.client = TestClient(app)
         self.auth_client = TestClient(app)
         self.auth_client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
-        from hermes_state import SessionDB
+        from devbuddy_state import SessionDB
 
         db = SessionDB()
         try:
@@ -5333,7 +5333,7 @@ class TestSessionPatchUnread:
 def test_mount_spa_dynamic_web_dist_recheck(tmp_path, monkeypatch):
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
-    from hermes_cli import web_server
+    from devbuddy_cli import web_server
 
     app = FastAPI()
     dist = tmp_path / "web_dist"
@@ -5362,14 +5362,14 @@ class TestSubmittedCustomEndpointSurvivesAssignment:
     replace what the user typed and had persisted."""
 
     def test_submitted_custom_endpoint_wins_over_an_env_endpoint(self, monkeypatch):
-        from hermes_cli.web_server_config import _apply_main_model_assignment, _validated_main_model_selection
+        from devbuddy_cli.web_server_config import _apply_main_model_assignment, _validated_main_model_selection
 
         monkeypatch.setenv("CUSTOM_BASE_URL", "http://127.0.0.1:9999/v1")
         monkeypatch.setattr(
-            "hermes_cli.models_validate.validate_requested_model",
+            "devbuddy_cli.models_validate.validate_requested_model",
             lambda *a, **k: {"accepted": True, "persist": True, "recognized": True, "message": None})
-        monkeypatch.setattr("hermes_cli.model_switch.get_model_info", lambda *a, **k: None)
-        monkeypatch.setattr("hermes_cli.model_switch.get_model_capabilities", lambda *a, **k: None)
+        monkeypatch.setattr("devbuddy_cli.model_switch.get_model_info", lambda *a, **k: None)
+        monkeypatch.setattr("devbuddy_cli.model_switch.get_model_capabilities", lambda *a, **k: None)
 
         cfg = {"model": {"provider": "openrouter", "default": "m"}}
         result = _validated_main_model_selection(

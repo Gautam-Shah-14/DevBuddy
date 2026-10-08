@@ -11,7 +11,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from hermes_cli.auth import AuthError
+from devbuddy_cli.auth import AuthError
 
 
 # =============================================================================
@@ -25,7 +25,7 @@ class TestResolveVerifyFallback:
 
     def test_missing_ca_bundle_in_auth_state_falls_back(self):
         import ssl
-        from hermes_cli.auth import _resolve_verify
+        from devbuddy_cli.auth import _resolve_verify
 
         result = _resolve_verify(auth_state={
             "tls": {"insecure": False, "ca_bundle": "/nonexistent/ca-bundle.pem"},
@@ -45,7 +45,7 @@ class TestResolveVerifyFallback:
         import certifi
         from truststore._ssl_constants import _original_SSLContext
 
-        from hermes_cli.auth import _resolve_verify
+        from devbuddy_cli.auth import _resolve_verify
 
         result = _resolve_verify(auth_state={
             "tls": {"insecure": False, "ca_bundle": certifi.where()},
@@ -61,7 +61,7 @@ class TestResolveVerifyFallback:
         assert result.verify_mode == ssl.CERT_REQUIRED
 
     def test_insecure_takes_precedence_over_missing_ca(self):
-        from hermes_cli.auth import _resolve_verify
+        from devbuddy_cli.auth import _resolve_verify
 
         result = _resolve_verify(
             insecure=True,
@@ -71,14 +71,14 @@ class TestResolveVerifyFallback:
 
     def test_string_false_in_auth_state_does_not_disable_tls_verify(self):
         import ssl
-        from hermes_cli.auth import _resolve_verify
+        from devbuddy_cli.auth import _resolve_verify
 
         result = _resolve_verify(auth_state={"tls": {"insecure": "false"}})
         assert result is not False
         assert result is True or isinstance(result, ssl.SSLContext)
 
     def test_string_true_in_auth_state_disables_tls_verify(self):
-        from hermes_cli.auth import _resolve_verify
+        from devbuddy_cli.auth import _resolve_verify
 
         result = _resolve_verify(auth_state={"tls": {"insecure": "true"}})
         assert result is False
@@ -143,7 +143,7 @@ def test_resolve_nous_runtime_credentials_prefers_invoke_jwt_and_mirrors(
     tmp_path,
     monkeypatch,
 ):
-    import hermes_cli.auth as auth_mod
+    import devbuddy_cli.auth as auth_mod
 
     hermes_home = tmp_path / "hermes"
     token = _invoke_jwt(seconds=3600)
@@ -176,8 +176,8 @@ def test_resolve_nous_runtime_credentials_invoke_jwt_is_idempotent(
     tmp_path,
     monkeypatch,
 ):
-    import hermes_cli.auth as auth_mod
-    import hermes_cli.auth_nous as auth_nous
+    import devbuddy_cli.auth as auth_mod
+    import devbuddy_cli.auth_nous as auth_nous
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -255,7 +255,7 @@ def test_resolve_nous_runtime_credentials_reauths_when_invoke_scope_missing(
     tmp_path,
     monkeypatch,
 ):
-    import hermes_cli.auth as auth_mod
+    import devbuddy_cli.auth as auth_mod
 
     hermes_home = tmp_path / "hermes"
     token = _jwt_with_claims({
@@ -289,8 +289,8 @@ def test_nous_inference_auth_logs_do_not_include_secret_values(
     monkeypatch,
     caplog,
 ):
-    import hermes_cli.auth as auth_mod
-    import hermes_cli.auth_nous as auth_nous
+    import devbuddy_cli.auth as auth_mod
+    import devbuddy_cli.auth_nous as auth_nous
 
     hermes_home = tmp_path / "hermes"
     token = _invoke_jwt(seconds=3600)
@@ -319,7 +319,7 @@ def test_nous_inference_auth_logs_do_not_include_secret_values(
     monkeypatch.setattr(auth_mod, "_refresh_access_token", _fake_refresh_access_token)
     monkeypatch.setattr(auth_nous, "_refresh_access_token", _fake_refresh_access_token)
 
-    caplog.set_level(logging.DEBUG, logger="hermes_cli.auth")
+    caplog.set_level(logging.DEBUG, logger="devbuddy_cli.auth")
     auth_mod.resolve_nous_runtime_credentials(
         force_refresh=True,
     )
@@ -341,7 +341,7 @@ def test_get_nous_auth_status_checks_credential_pool(tmp_path, monkeypatch):
     case when login happened via the dashboard device-code flow which
     saves to the pool only.
     """
-    from hermes_cli.auth import get_nous_auth_status
+    from devbuddy_cli.auth import get_nous_auth_status
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -379,7 +379,7 @@ def test_get_nous_auth_status_empty_returns_not_logged_in(tmp_path, monkeypatch)
     """get_nous_auth_status() returns logged_in=False when both pool
     and auth store are empty.
     """
-    from hermes_cli.auth import get_nous_auth_status
+    from devbuddy_cli.auth import get_nous_auth_status
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -408,7 +408,7 @@ class TestLoginNousSkipKeepsCurrent:
     """
 
     def _setup_home_with_openrouter(self, tmp_path, monkeypatch):
-        import hermes_yaml as yaml
+        import devbuddy_yaml as yaml
         hermes_home = tmp_path / "hermes"
         hermes_home.mkdir(parents=True, exist_ok=True)
         monkeypatch.setenv("HERMES_HOME", str(hermes_home))
@@ -431,11 +431,11 @@ class TestLoginNousSkipKeepsCurrent:
 
     def _patch_login_internals(self, monkeypatch, *, prompt_returns):
         """Patch OAuth + model-list + prompt so _login_nous doesn't hit network."""
-        import hermes_cli.auth as auth_mod
-        import hermes_cli.auth_nous as auth_nous
-        import hermes_cli.models as models_mod
-        from hermes_cli import models_pricing
-        import hermes_cli.nous_subscription as ns
+        import devbuddy_cli.auth as auth_mod
+        import devbuddy_cli.auth_nous as auth_nous
+        import devbuddy_cli.models as models_mod
+        from devbuddy_cli import models_pricing
+        import devbuddy_cli.nous_subscription as ns
 
         fake_auth_state = {
             "access_token": "fake-nous-token",
@@ -475,8 +475,8 @@ class TestLoginNousSkipKeepsCurrent:
     def test_skip_keep_current_preserves_provider_and_model(self, tmp_path, monkeypatch):
         """User picks Skip → config.yaml untouched, Nous creds still saved."""
         import argparse
-        import hermes_yaml as yaml
-        from hermes_cli.auth import PROVIDER_REGISTRY, _login_nous
+        import devbuddy_yaml as yaml
+        from devbuddy_cli.auth import PROVIDER_REGISTRY, _login_nous
 
         hermes_home, config_path, auth_path = self._setup_home_with_openrouter(
             tmp_path, monkeypatch,
@@ -506,8 +506,8 @@ class TestLoginNousSkipKeepsCurrent:
     def test_picking_model_switches_to_nous(self, tmp_path, monkeypatch):
         """User picks a Nous model → provider flips to nous with that model."""
         import argparse
-        import hermes_yaml as yaml
-        from hermes_cli.auth import PROVIDER_REGISTRY, _login_nous
+        import devbuddy_yaml as yaml
+        from devbuddy_cli.auth import PROVIDER_REGISTRY, _login_nous
 
         hermes_home, config_path, auth_path = self._setup_home_with_openrouter(
             tmp_path, monkeypatch,
@@ -533,8 +533,8 @@ class TestLoginNousSkipKeepsCurrent:
         """Fresh install (no prior active_provider) → Skip clears active_provider
         instead of leaving it as nous."""
         import argparse
-        import hermes_yaml as yaml
-        from hermes_cli.auth import PROVIDER_REGISTRY, _login_nous
+        import devbuddy_yaml as yaml
+        from devbuddy_cli.auth import PROVIDER_REGISTRY, _login_nous
 
         hermes_home = tmp_path / "hermes"
         hermes_home.mkdir(parents=True, exist_ok=True)
@@ -600,7 +600,7 @@ def test_persist_nous_credentials_idempotent_no_duplicate_pool_entries(tmp_path,
     materialise the pool entry under the canonical ``device_code`` source, so
     two persists still leave the pool with exactly one row.
     """
-    from hermes_cli.auth import persist_nous_credentials, NOUS_DEVICE_CODE_SOURCE
+    from devbuddy_cli.auth import persist_nous_credentials, NOUS_DEVICE_CODE_SOURCE
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -646,7 +646,7 @@ def test_refresh_token_reuse_detection_surfaces_actionable_message():
     bug when the true cause is external RT consumption (monitoring scripts,
     custom self-heal hooks).
     """
-    from hermes_cli.auth import _refresh_access_token
+    from devbuddy_cli.auth import _refresh_access_token
 
     class _FakeResponse:
         status_code = 400
@@ -703,7 +703,7 @@ def test_refresh_token_exchange_error_classification(
     non-5xx body that carries no OAuth ``error`` code must not be treated as a dead grant --
     except a 401/403, which always means the refresh token itself was rejected, unless the
     403/429 carries ``x-vercel-mitigated`` (the edge firewall answered, not the Portal; #120602)."""
-    from hermes_cli.auth import _is_terminal_nous_refresh_error, _refresh_access_token
+    from devbuddy_cli.auth import _is_terminal_nous_refresh_error, _refresh_access_token
 
     class _FakeResponse:
         def __init__(self):
@@ -753,8 +753,8 @@ def test_runtime_refresh_503_preserves_nous_oauth_credentials(
     """The real runtime resolver must not quarantine a still-valid refresh token or demand a
     re-login during a Portal outage (#120976) or a Vercel Security Checkpoint deny/challenge on
     the token endpoint (#120602)."""
-    import hermes_cli.auth as auth_mod
-    import hermes_cli.auth_nous as auth_nous
+    import devbuddy_cli.auth as auth_mod
+    import devbuddy_cli.auth_nous as auth_nous
 
     hermes_home = tmp_path / "hermes"
     access_token = _invoke_jwt(seconds=3600)
@@ -806,7 +806,7 @@ def test_refresh_token_exchange_sends_refresh_token_header():
     """Nous refresh tokens must be sent in a header so sandbox proxies can
     substitute placeholder credentials without parsing form bodies.
     """
-    from hermes_cli.auth import _refresh_access_token
+    from devbuddy_cli.auth import _refresh_access_token
 
     class _FakeResponse:
         status_code = 200
@@ -867,7 +867,7 @@ def test_shared_store_seat_belt_refuses_real_home_under_pytest(monkeypatch):
     redirect this store in a test must fail loudly instead of silently
     writing to the user's real ``~/.hermes/shared/`` across CI runs.
     """
-    from hermes_cli.auth import _nous_shared_store_path
+    from devbuddy_cli.auth import _nous_shared_store_path
 
     monkeypatch.delenv("HERMES_SHARED_AUTH_DIR", raising=False)
 
@@ -877,7 +877,7 @@ def test_shared_store_seat_belt_refuses_real_home_under_pytest(monkeypatch):
 @pytest.mark.platforms("linux")
 def test_shared_store_write_and_read_roundtrip(shared_store_env):
     """Write → read must preserve refresh_token + OAuth URLs."""
-    from hermes_cli.auth import (
+    from devbuddy_cli.auth import (
         _nous_shared_store_path,
         _read_shared_nous_state,
         _write_shared_nous_state,
@@ -911,7 +911,7 @@ def test_persist_nous_credentials_mirrors_to_shared_store(
     AND the shared store, so a future profile's `hermes auth add nous
     --type oauth` can one-tap import instead of redoing device-code.
     """
-    from hermes_cli.auth import (
+    from devbuddy_cli.auth import (
         _nous_shared_store_path,
         _read_shared_nous_state,
         persist_nous_credentials,
@@ -943,8 +943,8 @@ def test_try_import_shared_rehydrates_on_success(shared_store_env, monkeypatch):
     returns a fresh access_token JWT, and the returned dict has
     every field persist_nous_credentials() needs.
     """
-    from hermes_cli import auth as auth_mod
-    import hermes_cli.auth_nous as auth_nous
+    from devbuddy_cli import auth as auth_mod
+    import devbuddy_cli.auth_nous as auth_nous
 
     auth_mod._write_shared_nous_state(_full_state_fixture())
     fresh_jwt = _invoke_jwt(seconds=7200)
@@ -977,7 +977,7 @@ class TestStalePortalBaseUrlMigration:
     """_migrate_stale_nous_portal_url auto-corrects stale portal_base_url on load."""
 
     def test_migrates_stale_portal_url_on_load(self, tmp_path, monkeypatch):
-        from hermes_cli.auth import _load_auth_store, DEFAULT_NOUS_PORTAL_URL
+        from devbuddy_cli.auth import _load_auth_store, DEFAULT_NOUS_PORTAL_URL
 
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         auth_file = tmp_path / "auth.json"
@@ -1001,8 +1001,8 @@ class TestStalePortalBaseUrlMigration:
         self, tmp_path, monkeypatch,
     ):
         """An allowlisted production host is still unsafe over plain HTTP."""
-        from hermes_cli import auth as auth_mod
-        import hermes_cli.auth_nous as auth_nous
+        from devbuddy_cli import auth as auth_mod
+        import devbuddy_cli.auth_nous as auth_nous
 
         hermes_home = tmp_path / "hermes"
         monkeypatch.setenv("HERMES_HOME", str(hermes_home))
@@ -1056,7 +1056,7 @@ def test_poll_for_token_timeout_raises_actionable_message():
     which surfaces str(e) to the UI) inherit it."""
     import pytest
 
-    import hermes_cli.auth as auth_mod
+    import devbuddy_cli.auth as auth_mod
 
     class _PendingClient:
         def post(self, url, data=None):

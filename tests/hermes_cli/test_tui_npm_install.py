@@ -6,8 +6,8 @@ import shutil
 import subprocess
 
 import pytest
-from hermes_cli import main_tui_launch
-from tests.hermes_cli.test_source_build import source_checkout, source_products, _events  # noqa: F401
+from devbuddy_cli import main_tui_launch
+from tests.devbuddy_cli.test_source_build import source_checkout, source_products, _events  # noqa: F401
 
 
 def _touch_tui_entry(root: Path) -> None:
@@ -75,7 +75,7 @@ def test_source_compile_failure_stops_launch_without_reinstall(tui_source):
 def test_fresh_bundle_does_not_prepare_or_compile(tui_source, monkeypatch, termux):
     root, acquired = tui_source
     _touch_tui_entry(root / "ui-tui")
-    from tests.hermes_cli.test_source_build import stamp_product
+    from tests.devbuddy_cli.test_source_build import stamp_product
     stamp_product(root, "tui", root / "ui-tui/dist")
     if termux:
         monkeypatch.setenv("TERMUX_VERSION", "test")
@@ -150,7 +150,7 @@ def test_runtime_node_comes_from_pm_without_legacy_repair(tmp_path, monkeypatch)
 
 @pytest.mark.platforms("linux")
 def test_tui_rebuild_preserves_the_prepared_desktop_and_web_union(tui_source):
-    from hermes_cli.source_build import build_update_products
+    from devbuddy_cli.source_build import build_update_products
 
     root, acquired = tui_source
     build_update_products(root, desktop=True)

@@ -3,7 +3,7 @@
 The known-provider gate, the binary, the argv and the env var names used to be
 spelled out for one vendor, so a profile registered from a plugin died with
 "Unknown provider" before any client was built. This registers a provider the
-way a standalone package does — before importing ``hermes_cli`` — and walks the
+way a standalone package does — before importing ``devbuddy_cli`` — and walks the
 real resolution path, asserting ``copilot-acp`` is unchanged alongside it.
 """
 
@@ -55,8 +55,8 @@ def fake_cli(tmp_path, monkeypatch):
 
 
 def test_an_out_of_tree_external_process_provider_resolves_end_to_end(fake_cli, monkeypatch):
-    from hermes_cli.auth import PROVIDER_REGISTRY, resolve_external_process_provider_credentials, resolve_provider
-    from hermes_cli.runtime_provider import resolve_runtime_provider
+    from devbuddy_cli.auth import PROVIDER_REGISTRY, resolve_external_process_provider_credentials, resolve_provider
+    from devbuddy_cli.runtime_provider import resolve_runtime_provider
 
     assert PROVIDER_REGISTRY["acme"] is PROVIDER_REGISTRY["acme-acp"]
     assert PROVIDER_REGISTRY["acme-acp"].auth_type == "external_process"
@@ -76,8 +76,8 @@ def test_an_out_of_tree_external_process_provider_resolves_end_to_end(fake_cli, 
 
 
 def test_copilot_acp_launch_details_are_unchanged(fake_cli, monkeypatch):
-    from hermes_cli.auth import resolve_external_process_provider_credentials
-    from hermes_cli.runtime_provider import resolve_runtime_provider
+    from devbuddy_cli.auth import resolve_external_process_provider_credentials
+    from devbuddy_cli.runtime_provider import resolve_runtime_provider
 
     creds = resolve_external_process_provider_credentials("copilot-acp")
     assert Path(creds["command"]) == fake_cli / ("copilot.exe" if os.name == "nt" else "copilot")

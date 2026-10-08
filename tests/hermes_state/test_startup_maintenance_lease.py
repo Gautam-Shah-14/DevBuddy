@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import time
 
-import hermes_startup_watchdog as sw
-from hermes_state import SessionDB
+import devbuddy_startup_watchdog as sw
+from devbuddy_state import SessionDB
 
 
 def test_maintenance_steps_renew_the_armed_watchdog_lease(tmp_path, monkeypatch):

@@ -8,21 +8,21 @@ Usage::
     python -m acp_adapter.entry   # or: hermes acp / hermes-acp
 """
 
-# IMPORTANT: hermes_bootstrap must be the very first import — UTF-8 stdio
-# on Windows.  No-op on POSIX.  See hermes_bootstrap.py for full rationale.
+# IMPORTANT: devbuddy_bootstrap must be the very first import — UTF-8 stdio
+# on Windows.  No-op on POSIX.  See devbuddy_bootstrap.py for full rationale.
 try:
-    import hermes_bootstrap  # noqa: F401
+    import devbuddy_bootstrap  # noqa: F401
 except ModuleNotFoundError as exc:
     # Partial ``hermes update`` (git-reset landed, ``uv pip install -e .`` did not).
-    if exc.name != "hermes_bootstrap":
+    if exc.name != "devbuddy_bootstrap":
         raise  # the bootstrap exists but cannot load: skipping it would skip PM activation
 else:
     # Stop a ``utils/``/``proxy/``/``ui/`` package in the launch cwd from shadowing Hermes modules.
-    hermes_bootstrap.harden_import_path()
+    devbuddy_bootstrap.harden_import_path()
 
-# `hermes-acp` runs without hermes_cli.main: repair a `hermes update` killed mid-pull here, before
+# `hermes-acp` runs without devbuddy_cli.main: repair a `hermes update` killed mid-pull here, before
 # importing anything else from the checkout (a no-op under `hermes acp`, which already did).
-from hermes_cli import _early_recovery
+from devbuddy_cli import _early_recovery
 
 if _early_recovery.restore_interrupted_pull():
     _early_recovery.relaunch_after_restore()
@@ -33,7 +33,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from hermes_constants import get_hermes_home
+from devbuddy_constants import get_hermes_home
 
 
 # Liveness-probe methods outside the ACP schema. The router correctly answers JSON-RPC -32601
@@ -80,7 +80,7 @@ def _setup_logging() -> None:
 
 def _load_env() -> None:
     """Load .env from HERMES_HOME (default ``~/.hermes``)."""
-    from hermes_cli.env_loader import load_hermes_dotenv
+    from devbuddy_cli.env_loader import load_hermes_dotenv
 
     hermes_home = get_hermes_home()
     loaded = load_hermes_dotenv(hermes_home=hermes_home)
@@ -105,7 +105,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def _print_version() -> None:
-    from hermes_cli.version_info import get_version_info
+    from devbuddy_cli.version_info import get_version_info
 
     print(get_version_info().derived_version)
 
@@ -118,7 +118,7 @@ def _run_check() -> None:
 
 
 def _run_setup() -> None:
-    from hermes_cli.main import main as hermes_main
+    from devbuddy_cli.main import main as hermes_main
 
     old_argv = sys.argv[:]
     try:
@@ -184,7 +184,7 @@ def main(argv: list[str] | None = None) -> None:
 
     # One TLS authority: trust the OS store before any outbound call (bare
     # requests/urllib included) resolves a CA bundle — see agent/ssl_verify.py.
-    # This console script bypasses hermes_cli.main, which does the same.
+    # This console script bypasses devbuddy_cli.main, which does the same.
     from agent.ssl_verify import install_truststore
 
     install_truststore()
@@ -193,7 +193,7 @@ def main(argv: list[str] | None = None) -> None:
     from .server import HermesACPAgent
 
     # Windows: import the configured memory provider (and numpy) on the main thread before
-    # the MCP-discovery and ACP stdin-reader threads start (hermes_cli's ~150 ms
+    # the MCP-discovery and ACP stdin-reader threads start (devbuddy_cli's ~150 ms
     # plugin-discovery thread is the only one already running). A first-time
     # native-extension import (numpy via holographic / mnemosyne / hindsight) racing another
     # thread's import chain deadlocked in create_module and session/new never answered
@@ -209,7 +209,7 @@ def main(argv: list[str] | None = None) -> None:
     # model_tools.py module scope to avoid freezing the gateway's loop on lazy import (#16856).
     if os.environ.get("HERMES_ACP_SKIP_CONFIGURED_MCP", "").strip() != "1":
         try:
-            from hermes_cli.mcp_startup import start_background_mcp_discovery
+            from devbuddy_cli.mcp_startup import start_background_mcp_discovery
 
             start_background_mcp_discovery(logger=logger, thread_name="acp-mcp-discovery")
         except Exception:

@@ -11,8 +11,8 @@ import json
 
 import pytest
 
-from hermes_cli import main as cli_main
-from hermes_cli import update_cmd_windows
+from devbuddy_cli import main as cli_main
+from devbuddy_cli import update_cmd_windows
 
 
 def _args(**overrides):
@@ -23,16 +23,16 @@ def _args(**overrides):
 
 @pytest.fixture
 def _quiet_preflight(monkeypatch):
-    monkeypatch.setattr("hermes_cli.config.is_managed", lambda: False)
+    monkeypatch.setattr("devbuddy_cli.config.is_managed", lambda: False)
     # No live psutil lookups: the fixture tuple IS the process table.
     monkeypatch.setattr(update_cmd_windows, "_psutil", lambda: None)
 
 
 def test_list_venv_holders_json_and_exit_3_when_holders_present(monkeypatch, capsys, _quiet_preflight):
     holders = [
-        (4242, "python.exe", r"C:\hermes\venv\Scripts\python.exe -m hermes_cli.main serve --port 8642"),
-        (4343, "python.exe", r"C:\hermes\venv\Scripts\python.exe -m hermes_cli.main gateway run"),
-        (4444, "python.exe", r"C:\hermes\venv\Scripts\python.exe -m hermes_cli.main -p work kanban list"),
+        (4242, "python.exe", r"C:\hermes\venv\Scripts\python.exe -m devbuddy_cli.main serve --port 8642"),
+        (4343, "python.exe", r"C:\hermes\venv\Scripts\python.exe -m devbuddy_cli.main gateway run"),
+        (4444, "python.exe", r"C:\hermes\venv\Scripts\python.exe -m devbuddy_cli.main -p work kanban list"),
         (4545, "python.exe", r"C:\hermes\venv\Scripts\python.exe some_script.py"),
     ]
     monkeypatch.setattr(cli_main, "_detect_venv_python_processes", lambda: holders)
@@ -54,7 +54,7 @@ def test_list_venv_holders_empty_list_exits_zero_without_updating(monkeypatch, c
     def _boom(*_a, **_k):  # the mutating update body must never run behind the read-only flag
         raise AssertionError("update body ran")
 
-    monkeypatch.setattr("hermes_cli.update_cmd._cmd_update_impl", _boom)
+    monkeypatch.setattr("devbuddy_cli.update_cmd._cmd_update_impl", _boom)
 
     assert cli_main.cmd_update(_args()) is None
     assert json.loads(capsys.readouterr().out) == []

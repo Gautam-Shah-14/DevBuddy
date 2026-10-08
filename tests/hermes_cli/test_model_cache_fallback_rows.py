@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import pytest
 
-import hermes_cli.models as mod
+import devbuddy_cli.models as mod
 
 
 @pytest.fixture(autouse=True)

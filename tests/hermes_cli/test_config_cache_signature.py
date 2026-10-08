@@ -5,7 +5,7 @@ import os
 import shutil
 from unittest.mock import patch
 
-from hermes_cli import config as config_mod
+from devbuddy_cli import config as config_mod
 
 
 def _replace_pinning_mtime(path, content: str) -> None:

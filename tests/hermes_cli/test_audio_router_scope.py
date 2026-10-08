@@ -35,7 +35,7 @@ class _ExplodingScope(dict):
 @pytest.mark.asyncio
 async def test_voices_route_scope_failure_never_borrows_env(tmp_path, monkeypatch):
     from agent import secret_scope as ss
-    from hermes_cli.web_routers.audio import get_elevenlabs_voices
+    from devbuddy_cli.web_routers.audio import get_elevenlabs_voices
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
     (tmp_path / ".hermes").mkdir()

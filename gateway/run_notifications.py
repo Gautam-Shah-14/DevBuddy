@@ -920,8 +920,8 @@ class GatewayNotificationsMixin:
             # is only consulted when a free-tier identity already exists and its own free-tier rung
             # (which may mint on a fresh install, NS-829) answers from that identity without a network
             # call. No token refresh at boot either way.
-            from hermes_cli.auth import resolve_provider
-            from hermes_cli.anon_auth import guest_carries_inference
+            from devbuddy_cli.auth import resolve_provider
+            from devbuddy_cli.anon_auth import guest_carries_inference
             if not guest_carries_inference():
                 return None
             if resolve_provider("auto") != "nous":
@@ -1040,8 +1040,8 @@ class GatewayNotificationsMixin:
             if not error:
                 logger.info("state.db recovered before the home-channel warning went out; not broadcasting")
                 return
-        from hermes_constants import get_default_hermes_root, profile_cli_selector
-        from hermes_state import _default_db_path, classify_persistence_error
+        from devbuddy_constants import get_default_hermes_root, profile_cli_selector
+        from devbuddy_state import _default_db_path, classify_persistence_error
         cause = classify_persistence_error(error)
         # Copy-pasteable, so name the real store and pin the profile: a bare `hermes` follows
         # active_profile, which may be a different database (#105887).
@@ -1074,7 +1074,7 @@ class GatewayNotificationsMixin:
                 f"recovery tools or restore a backup unless `hermes {profile_arg}doctor` confirms damage."
             )
         else:
-            from hermes_state_user_copy import describe_storage_failure
+            from devbuddy_state_user_copy import describe_storage_failure
             failure = describe_storage_failure(error)
             # The cause table owns the remedy: for a held retired-WAL generation a bare `doctor --fix`
             # is the second-writer trap this notice used to send users into (#110054). Its copy is
@@ -1553,7 +1553,7 @@ class GatewayNotificationsMixin:
         the ROOT scope, so a secondary profile's completion was looked up in the DEFAULT profile's
         state.db — classified ``terminal`` and dropped, its ledger row stranded ``pending`` forever."""
         from gateway.run import _async_profile_runtime_scope
-        from hermes_constants import get_hermes_home_override
+        from devbuddy_constants import get_hermes_home_override
         source = self._build_process_event_source(evt)
         if source is None or not getattr(source, "profile", None):
             # No routed profile: the launch profile's own completion. Bind ITS scope once the

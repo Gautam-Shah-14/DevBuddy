@@ -13,7 +13,7 @@ import sqlite3
 
 import pytest
 
-from hermes_cli.observability.shared_metrics import SharedMetricsStore
+from devbuddy_cli.observability.shared_metrics import SharedMetricsStore
 
 SEND_COLUMNS = {
     "sent_at",

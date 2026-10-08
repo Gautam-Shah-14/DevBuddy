@@ -10,7 +10,7 @@ def test_preflight_captures_committed_wal_without_application_imports(tmp_path):
     home = tmp_path / "home"
     home.mkdir()
     db = home / "state.db"
-    script = Path(__file__).resolve().parents[2] / "hermes_cli" / "backup_sqlite.py"
+    script = Path(__file__).resolve().parents[2] / "devbuddy_cli" / "backup_sqlite.py"
     runner = """
 import runpy, sys
 class NoApplicationImports:

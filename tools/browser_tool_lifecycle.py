@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-from hermes_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+from devbuddy_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
 from tools.browser_tool_origin import origin as _bt
 from tools import browser_tool_cdp as _cdp
 from tools import browser_tool_cloud as _cloud
@@ -119,7 +119,7 @@ def _session_owner_scope(task_id: str):
         return
 
     from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
-    from hermes_cli.env_loader import hydrate_profile_secret_sources
+    from devbuddy_cli.env_loader import hydrate_profile_secret_sources
 
     home_token = set_hermes_home_override(owner_home)
     try:

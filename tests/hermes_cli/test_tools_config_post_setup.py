@@ -10,7 +10,7 @@ from unittest.mock import patch
 import pm
 import pytest
 
-from hermes_cli.tools_config_post_setup import _run_post_setup
+from devbuddy_cli.tools_config_post_setup import _run_post_setup
 
 
 @pytest.mark.platforms('linux')
@@ -53,8 +53,8 @@ def test_browser_setup_respects_provider_and_native_owner(monkeypatch, capsys, p
 
 @pytest.mark.parametrize("status", [200, 503])
 def test_camofox_setup_leaves_external_server_and_config_owned_by_user(monkeypatch, capsys, status):
-    from hermes_cli.config import get_hermes_home
-    from hermes_cli.tools_config_post_setup import _POST_SETUP_READY
+    from devbuddy_cli.config import get_hermes_home
+    from devbuddy_cli.tools_config_post_setup import _POST_SETUP_READY
 
     class Health(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -75,7 +75,7 @@ def test_camofox_setup_leaves_external_server_and_config_owned_by_user(monkeypat
         monkeypatch.setenv("CAMOFOX_URL", f"http://127.0.0.1:{server.server_port}")
         try:
             with (
-                patch("hermes_constants.find_node_executable", return_value="/external/npm"),
+                patch("devbuddy_constants.find_node_executable", return_value="/external/npm"),
                 patch("subprocess.run") as run,
                 patch("pm.ensure") as ensure,
             ):
@@ -120,7 +120,7 @@ def test_importable_sdk_does_not_bypass_pm_constraints(monkeypatch, capsys, key,
 def test_langfuse_setup_uses_plugin_admission_and_preserves_config_on_refusal(
     monkeypatch, tmp_path, capsys, failure,
 ):
-    from hermes_cli.config import get_hermes_home, read_raw_config
+    from devbuddy_cli.config import get_hermes_home, read_raw_config
 
     monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "runtime"))
     monkeypatch.setitem(sys.modules, "langfuse", ModuleType("langfuse"))
@@ -139,7 +139,7 @@ def test_langfuse_setup_uses_plugin_admission_and_preserves_config_on_refusal(
         # The real admission publisher must commit both lists, not a second UI writer.
         from pm.publication import PluginSelection
         from pm.paths import repo_root
-        from hermes_cli.runtime_state import runtime_lock, finish_publication
+        from devbuddy_cli.runtime_state import runtime_lock, finish_publication
         with runtime_lock(repo_root()):
             PluginSelection(dict(kwargs["plugins"].data)).publish(repo_root())
             finish_publication(repo_root())

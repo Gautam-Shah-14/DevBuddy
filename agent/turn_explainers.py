@@ -114,7 +114,7 @@ _PERSISTENCE_CAUSE_EXPLANATIONS: Dict[str, str] = {
         "please send it again in a moment."
     ),
     # The forensic runbook for both (WAL generations, manifest.json, sidecars) lives in the
-    # logger.error at hermes_state.py::_raise_if_db_replaced — never in the chat reply.
+    # logger.error at devbuddy_state.py::_raise_if_db_replaced — never in the chat reply.
     "replaced": (
         "the session database file was replaced while Hermes was running, so this "
         "message was not saved (a copy is kept in {home}/sessions/). Stop Hermes "
@@ -200,7 +200,7 @@ def _display_flag_enabled(agent, *, env_var: str, config_key: str, cache_attr: s
 
     ``env_var`` overrides on every call and is never cached. Reads the persisted config.yaml
     so gateway and CLI share the setting; ``load_config`` is imported lazily (startup cycle,
-    and tests patch it at ``hermes_cli.config``). Any failure → True (safe default: on)."""
+    and tests patch it at ``devbuddy_cli.config``). Any failure → True (safe default: on)."""
     try:
         env = os.environ.get(env_var)
         if env is not None:
@@ -209,7 +209,7 @@ def _display_flag_enabled(agent, *, env_var: str, config_key: str, cache_attr: s
         if cached is not None:
             return cached
         try:
-            from hermes_cli.config import load_config as _load_config
+            from devbuddy_cli.config import load_config as _load_config
             _cfg = _load_config() or {}
         except Exception:
             _cfg = {}
@@ -373,8 +373,8 @@ class TurnExplainersMixin:
         if body is not None and "{model}" in body:
             body = body.format(model=model or "The model")
         if body is None and reason == "session_persistence_failed":
-            from hermes_constants import display_hermes_home, profile_cli_selector
-            from hermes_state_errors import STORAGE_RECOVERY_DOCS_URL
+            from devbuddy_constants import display_hermes_home, profile_cli_selector
+            from devbuddy_state_errors import STORAGE_RECOVERY_DOCS_URL
 
             # Copy-pasteable, so pin every `hermes` command to the profile whose store failed:
             # a multi-profile backend (Desktop serve) hosts sessions whose state.db is NOT the
@@ -388,8 +388,8 @@ class TurnExplainersMixin:
                 .replace("{recovery_docs}", STORAGE_RECOVERY_DOCS_URL)
             )
             if persistence_cause in ("corrupt", "fts_index"):
-                from hermes_constants import get_default_hermes_root
-                from hermes_state import _default_db_path
+                from devbuddy_constants import get_default_hermes_root
+                from devbuddy_state import _default_db_path
 
                 body = body.replace("{db_path}", str(db_path or _default_db_path()))
                 body = body.replace(

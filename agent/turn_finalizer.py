@@ -56,9 +56,9 @@ def _record_kanban_budget_exhausted(
     from multiple exit paths.
     """
     try:
-        from hermes_cli import kanban_db as _kb
-        from hermes_cli import kanban_db_connect as _kbc
-        from hermes_cli import kanban_db_dispatch as _kbd
+        from devbuddy_cli import kanban_db as _kb
+        from devbuddy_cli import kanban_db_connect as _kbc
+        from devbuddy_cli import kanban_db_dispatch as _kbd
         _conn = _kbc.connect()
         try:
             _kbd._record_task_failure(
@@ -102,7 +102,7 @@ def _clone_background_review_messages(messages):
 def _invoke_hook_safely(name: str, logger: logging.Logger, **kwargs) -> list:
     """Fire a lifecycle plugin hook; a failing hook is logged, never fatal."""
     try:
-        from hermes_cli.lifecycle import invoke_hook
+        from devbuddy_cli.lifecycle import invoke_hook
         return invoke_hook(name, **kwargs)
     except Exception as exc:
         logger.warning("%s hook failed: %s", name, exc)
@@ -650,7 +650,7 @@ def finalize_turn(
     # surfaces status="error" (desktop can toast) instead of a quiet complete frame, plus
     # the machine-readable cause 'session_persistence_failed:<locked|compression|...>'.
     if failed and str(_turn_exit_reason) == "session_persistence_failed":
-        from hermes_constants import profile_cli_selector
+        from devbuddy_constants import profile_cli_selector
 
         # Never rebind final_response here: the memory sync and the background-review gate
         # below must still see an empty response on a persistence-failed turn.

@@ -7,8 +7,8 @@ import threading
 
 
 def test_side_workers_hold_admission_through_cleanup_and_preserve_profile_scope(tmp_path, monkeypatch):
-    from hermes_cli import backend_retirement
-    from hermes_constants import get_hermes_home
+    from devbuddy_cli import backend_retirement
+    from devbuddy_constants import get_hermes_home
     from agent.secret_scope import get_secret, set_multiplex_active
     from tui_gateway import server
 

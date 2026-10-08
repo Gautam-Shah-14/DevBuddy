@@ -8,9 +8,9 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from devbuddy_constants import reset_hermes_home_override, set_hermes_home_override
 
 
 @pytest.fixture
@@ -114,7 +114,7 @@ def test_media_policy_reads_routed_profile_config_not_env(two_homes, monkeypatch
     # Gateway startup bridges the LAUNCH profile's policy into the process env.
     for var in ("HERMES_MEDIA_DELIVERY_STRICT", "HERMES_MEDIA_ALLOW_DIRS"):
         monkeypatch.delenv(var, raising=False)
-    from hermes_cli.config import load_config
+    from devbuddy_cli.config import load_config
     media_policy.apply_media_policy_env(load_config())
     assert media_policy.media_delivery_strict() is True
     assert media_policy.media_delivery_allow_dirs() == "/srv/a"

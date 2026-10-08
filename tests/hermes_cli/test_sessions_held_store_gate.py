@@ -13,7 +13,7 @@ from argparse import Namespace
 
 import pytest
 
-import hermes_cli.sessions_cmd as sessions_cmd
+import devbuddy_cli.sessions_cmd as sessions_cmd
 
 pytestmark = pytest.mark.platforms("posix")  # holder scan is unavailable on Windows
 
@@ -29,11 +29,11 @@ _HOLDER = (
 
 @pytest.fixture
 def state_db(monkeypatch, tmp_path):
-    import hermes_state
-    from hermes_state import SessionDB
+    import devbuddy_state
+    from devbuddy_state import SessionDB
 
     db_path = tmp_path / "state.db"
-    monkeypatch.setattr(hermes_state, "_default_db_path", lambda: db_path)
+    monkeypatch.setattr(devbuddy_state, "_default_db_path", lambda: db_path)
     seed = SessionDB(db_path=db_path)
     seed.create_session("seed", "cli")
     seed.append_message("seed", "user", "hello")
@@ -69,7 +69,7 @@ def _args(action, force):
 
 def _sessions_subparsers():
     parser = argparse.ArgumentParser()
-    from hermes_cli.subcommands.sessions import build_sessions_parser
+    from devbuddy_cli.subcommands.sessions import build_sessions_parser
 
     build_sessions_parser(parser.add_subparsers(dest="command"), cmd_sessions=sessions_cmd.cmd_sessions)
     subparsers = [a for a in parser._actions if isinstance(a, argparse._SubParsersAction)][0]

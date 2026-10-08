@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import linux_desktop_entry as lde
+from devbuddy_cli import linux_desktop_entry as lde
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def _stub_install(tmp_path, monkeypatch) -> None:
     hermes_bin.parent.mkdir(exist_ok=True)
     hermes_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -71,7 +71,7 @@ def test_install_writes_entry_with_absolute_exec_and_icon(
     hermes_bin.parent.mkdir()
     hermes_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
     # Keep the icon install out of the way: this test pins the
@@ -106,7 +106,7 @@ def test_install_prefers_themed_icon_from_hicolor(tmp_path, xdg_home, monkeypatc
     hermes_bin.parent.mkdir()
     hermes_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -132,7 +132,7 @@ def test_install_icon_copy_failure_falls_back_to_absolute(
     hermes_bin.parent.mkdir()
     hermes_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -155,7 +155,7 @@ def test_install_icon_copy_failure_falls_back_to_absolute(
 def test_installed_entry_is_executable(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes"
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes"
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -166,13 +166,13 @@ def test_installed_entry_is_executable(tmp_path, xdg_home, monkeypatch):
 
 def test_exec_falls_back_to_interpreter_module(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", lambda: None)
+    monkeypatch.setattr("devbuddy_cli.relaunch.resolve_hermes_bin", lambda: None)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
     exec_line = _parse(entry.read_text(encoding="utf-8"))["Exec"]
 
-    assert exec_line.endswith("-m hermes_cli.main desktop")
+    assert exec_line.endswith("-m devbuddy_cli.main desktop")
     assert Path(exec_line.split(" ")[0]).is_absolute()
 
 
@@ -190,11 +190,11 @@ def test_exec_prefixes_interpreter_for_env_shebang_python_script(
     hermes_bin = tmp_path / "bin" / "hermes"
     hermes_bin.parent.mkdir()
     hermes_bin.write_text(
-        "#!/usr/bin/env python3\nimport hermes_cli\n", encoding="utf-8"
+        "#!/usr/bin/env python3\nimport devbuddy_cli\n", encoding="utf-8"
     )
     hermes_bin.chmod(0o755)
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -216,7 +216,7 @@ def test_exec_leaves_shell_wrapper_launchers_alone(tmp_path, xdg_home, monkeypat
     )
     hermes_bin.chmod(0o755)
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -234,10 +234,10 @@ def test_exec_leaves_venv_shebang_scripts_alone(tmp_path, xdg_home, monkeypatch)
     hermes_bin = tmp_path / "bin" / "hermes"
     hermes_bin.parent.mkdir()
     interpreter = os.path.abspath(sys.executable)
-    hermes_bin.write_text(f"#!{interpreter}\nimport hermes_cli\n", encoding="utf-8")
+    hermes_bin.write_text(f"#!{interpreter}\nimport devbuddy_cli\n", encoding="utf-8")
     hermes_bin.chmod(0o755)
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -274,7 +274,7 @@ def test_exec_converges_from_repo_script_argv0_to_installed_wrapper(
     root = _make_project(tmp_path)
     repo_script = root / "hermes"  # checkout-internal launcher candidate
     repo_script.write_text(
-        "#!/usr/bin/env python3\nimport hermes_cli\n", encoding="utf-8"
+        "#!/usr/bin/env python3\nimport devbuddy_cli\n", encoding="utf-8"
     )
     repo_script.chmod(0o755)
     wrapper = tmp_path / "installed" / "bin" / "hermes"
@@ -300,7 +300,7 @@ def test_exec_converges_from_repo_script_argv0_to_installed_wrapper(
 def test_exec_never_persists_a_bare_interpreter_command(
     tmp_path, xdg_home, monkeypatch
 ):
-    """The `python -m hermes_cli.main` relaunch context must not write
+    """The `python -m devbuddy_cli.main` relaunch context must not write
     `Exec=<python> desktop` — a command line no DE can run."""
 
     root = _make_project(tmp_path)
@@ -340,7 +340,7 @@ def test_exec_keeps_resolver_fallback_when_no_wrapper_on_path(
 
     With argv[0] checkout-internal and PATH + known locations both empty,
     the resolver returns None and resolve_exec_command emits the runnable
-    `sys.executable -m hermes_cli.main desktop` fallback. Persisting the
+    `sys.executable -m devbuddy_cli.main desktop` fallback. Persisting the
     interpreter itself (`<python> desktop`) would be unrunnable by any DE;
     persisting the repo script alone dies on its env shebang.
     """
@@ -349,7 +349,7 @@ def test_exec_keeps_resolver_fallback_when_no_wrapper_on_path(
     root = _make_project(tmp_path)
     repo_script = root / "hermes"
     repo_script.write_text(
-        "#!/usr/bin/env python3\nimport hermes_cli\n", encoding="utf-8"
+        "#!/usr/bin/env python3\nimport devbuddy_cli\n", encoding="utf-8"
     )
     repo_script.chmod(0o755)
 
@@ -361,14 +361,14 @@ def test_exec_keeps_resolver_fallback_when_no_wrapper_on_path(
         # Mirror resolve_hermes_bin's chain: argv[0] → relative → PATH → None.
         return sys.argv[0] if sys.argv[0] else None
 
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("devbuddy_cli.relaunch.resolve_hermes_bin", fake_resolve)
 
     entry = lde.install_desktop_entry(root)
     exec_line = _parse(entry.read_text(encoding="utf-8"))["Exec"]
 
     # The runnable module fallback — NOT the bare repo script (its env
     # shebang would escape the venv under a DE) and NOT `<python> desktop`.
-    assert exec_line.endswith("-m hermes_cli.main desktop")
+    assert exec_line.endswith("-m devbuddy_cli.main desktop")
     assert Path(exec_line.split(" ")[0].strip('"')).is_absolute()
     assert str(repo_script) not in exec_line
 
@@ -388,7 +388,7 @@ def test_exec_uses_known_wrapper_when_path_lookup_misses(
     root = _make_project(tmp_path)
     repo_script = root / "hermes"
     repo_script.write_text(
-        "#!/usr/bin/env python3\nimport hermes_cli\n", encoding="utf-8"
+        "#!/usr/bin/env python3\nimport devbuddy_cli\n", encoding="utf-8"
     )
     repo_script.chmod(0o755)
 
@@ -411,7 +411,7 @@ def test_exec_uses_known_wrapper_when_path_lookup_misses(
     def fake_resolve():
         return sys.argv[0] if sys.argv[0] else None
 
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("devbuddy_cli.relaunch.resolve_hermes_bin", fake_resolve)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -457,7 +457,7 @@ def test_exec_never_persists_a_checkout_internal_path_hit(tmp_path, xdg_home, mo
     def fake_resolve():
         return sys.argv[0] or str(venv_script)
 
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("devbuddy_cli.relaunch.resolve_hermes_bin", fake_resolve)
     _argv0_context(monkeypatch, str(venv_script))
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -485,7 +485,7 @@ def test_exec_finds_known_wrapper_when_resolver_has_no_candidate(
     `python -m`, and PATH has no `hermes`) makes resolve_hermes_bin return
     None outright. The early `return primary` that used to fire here skipped
     the durable-wrapper probe, so the persisted Exec flipped to the bare
-    `<python> -m hermes_cli.main desktop` module form. Each flip between the
+    `<python> -m devbuddy_cli.main desktop` module form. Each flip between the
     wrapper and module forms rewrites hermes.desktop on the next launch; any
     rewrite that lands while gnome-shell's ShellApp for the entry is still
     STARTING crashes the shell (shell_app_dispose `state == STOPPED`
@@ -507,7 +507,7 @@ def test_exec_finds_known_wrapper_when_resolver_has_no_candidate(
     # yields None with or without argv[0].
     _argv0_context(monkeypatch, "-c")
     monkeypatch.setattr("shutil.which", lambda name: None)
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", lambda: None)
+    monkeypatch.setattr("devbuddy_cli.relaunch.resolve_hermes_bin", lambda: None)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -540,7 +540,7 @@ def test_exec_rejects_known_wrapper_from_another_checkout(
     root = _make_project(tmp_path)
     repo_script = root / "hermes"
     repo_script.write_text(
-        "#!/usr/bin/env python3\nimport hermes_cli\n", encoding="utf-8"
+        "#!/usr/bin/env python3\nimport devbuddy_cli\n", encoding="utf-8"
     )
     repo_script.chmod(0o755)
 
@@ -563,7 +563,7 @@ def test_exec_rejects_known_wrapper_from_another_checkout(
     def fake_resolve():
         return sys.argv[0] if sys.argv[0] else None
 
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("devbuddy_cli.relaunch.resolve_hermes_bin", fake_resolve)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -571,7 +571,7 @@ def test_exec_rejects_known_wrapper_from_another_checkout(
 
     # The foreign wrapper was rejected; the runnable module fallback won.
     assert str(foreign_wrapper) not in exec_line
-    assert exec_line.endswith("-m hermes_cli.main desktop")
+    assert exec_line.endswith("-m devbuddy_cli.main desktop")
 
 
 @pytest.mark.parametrize(
@@ -642,7 +642,7 @@ def test_known_wrapper_candidates_cover_installer_layouts(
 def test_install_is_idempotent_and_skips_cache_refresh(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes"
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes"
     )
     calls: list[Path] = []
     monkeypatch.setattr(
@@ -661,7 +661,7 @@ def test_install_without_source_icon_uses_themed_name(tmp_path, xdg_home, monkey
     root = tmp_path / "hermes-agent"
     root.mkdir()
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes"
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes"
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -798,7 +798,7 @@ def test_exec_falls_back_to_running_interpreter_when_probe_fails(
     def fake_resolve():
         return _s.argv[0] if _s.argv[0] else None
 
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("devbuddy_cli.relaunch.resolve_hermes_bin", fake_resolve)
     # Force the probe to fail for whatever interpreter gets chosen first.
     monkeypatch.setattr(lde, "_can_import_hermes_cli", lambda p: False)
     # And the fallback interpreter must itself pass (it always should).
@@ -813,7 +813,7 @@ def test_exec_falls_back_to_running_interpreter_when_probe_fails(
 
     # Runnable module form under the RUNNING interpreter - never the
     # unprobeable ELF fake, never a bare "<python> desktop".
-    assert exec_line.endswith("-m hermes_cli.main desktop")
+    assert exec_line.endswith("-m devbuddy_cli.main desktop")
     first = exec_line.split(" ")[0].strip('"')
     assert first == os.path.abspath(sys.executable)
     assert str(interpreter) not in exec_line
@@ -898,7 +898,7 @@ def test_needs_interpreter_case_insensitive_match(tmp_path, monkeypatch):
     interpreter.write_text("", encoding="utf-8")
 
     console_script = venv_bin / "hermes"
-    console_script.write_text(f"#!{interpreter}\nimport hermes_cli\n", encoding="utf-8")
+    console_script.write_text(f"#!{interpreter}\nimport devbuddy_cli\n", encoding="utf-8")
     monkeypatch.setattr(lde.sys, "executable", str(interpreter))
 
     assert lde._needs_interpreter(console_script) is False
@@ -920,7 +920,7 @@ def test_needs_interpreter_rejects_sibling_directory(tmp_path, monkeypatch):
 
     sibling_script = tmp_path / "sibling"
     sibling_script.write_text(
-        f"#!{tmp_path}/venv/bin-extra/python\nimport hermes_cli\n",
+        f"#!{tmp_path}/venv/bin-extra/python\nimport devbuddy_cli\n",
         encoding="utf-8",
     )
     assert lde._needs_interpreter(sibling_script) is True
@@ -935,7 +935,7 @@ def test_needs_interpreter_strips_flags_before_comparing(tmp_path, monkeypatch):
     monkeypatch.setattr(lde.sys, "executable", str(interp))
 
     flagged = tmp_path / "flagged"
-    flagged.write_text(f"#!{interp} -S\nimport hermes_cli\n", encoding="utf-8")
+    flagged.write_text(f"#!{interp} -S\nimport devbuddy_cli\n", encoding="utf-8")
     assert lde._needs_interpreter(flagged) is False
 
 
@@ -951,14 +951,14 @@ def test_needs_interpreter_env_shebang_always_escapes(tmp_path, monkeypatch):
     # pass), the PATH resolution semantics mean the shebang escapes.
     env_script = tmp_path / "envscript"
     env_script.write_text(
-        f"#!{venv_bin}/env python3\nimport hermes_cli\n", encoding="utf-8"
+        f"#!{venv_bin}/env python3\nimport devbuddy_cli\n", encoding="utf-8"
     )
     assert lde._needs_interpreter(env_script) is True
 
     # ...unless env carries an absolute venv interpreter after -S.
     env_abs = tmp_path / "envabs"
     env_abs.write_text(
-        f"#!/usr/bin/env -S {interp}\nimport hermes_cli\n", encoding="utf-8"
+        f"#!/usr/bin/env -S {interp}\nimport devbuddy_cli\n", encoding="utf-8"
     )
     assert lde._needs_interpreter(env_abs) is False
 
@@ -977,7 +977,7 @@ def test_probe_skips_wrapper_with_escaping_python_shebang(
     root = _make_project(tmp_path)
     repo_script = root / "hermes"
     repo_script.write_text(
-        "#!/usr/bin/env python3\nimport hermes_cli\n", encoding="utf-8"
+        "#!/usr/bin/env python3\nimport devbuddy_cli\n", encoding="utf-8"
     )
     repo_script.chmod(0o755)
 
@@ -985,7 +985,7 @@ def test_probe_skips_wrapper_with_escaping_python_shebang(
     broken_wrapper = xdg_home / ".local" / "bin" / "hermes"
     broken_wrapper.parent.mkdir(parents=True)
     broken_wrapper.write_text(
-        f"#!/usr/bin/env python3\n# launcher for {root}\nimport hermes_cli\n",
+        f"#!/usr/bin/env python3\n# launcher for {root}\nimport devbuddy_cli\n",
         encoding="utf-8",
     )
     broken_wrapper.chmod(0o755)
@@ -996,14 +996,14 @@ def test_probe_skips_wrapper_with_escaping_python_shebang(
     def fake_resolve():
         return sys.argv[0] if sys.argv[0] else None
 
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("devbuddy_cli.relaunch.resolve_hermes_bin", fake_resolve)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
     exec_line = _parse(entry.read_text(encoding="utf-8"))["Exec"]
 
     assert str(broken_wrapper) not in exec_line
-    assert exec_line.endswith("-m hermes_cli.main desktop")
+    assert exec_line.endswith("-m devbuddy_cli.main desktop")
 
 
 def test_probe_accepts_shell_launcher_wrapper(tmp_path, xdg_home, monkeypatch):
@@ -1011,7 +1011,7 @@ def test_probe_accepts_shell_launcher_wrapper(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
     repo_script = root / "hermes"
     repo_script.write_text(
-        "#!/usr/bin/env python3\nimport hermes_cli\n", encoding="utf-8"
+        "#!/usr/bin/env python3\nimport devbuddy_cli\n", encoding="utf-8"
     )
     repo_script.chmod(0o755)
 
@@ -1030,7 +1030,7 @@ def test_probe_accepts_shell_launcher_wrapper(tmp_path, xdg_home, monkeypatch):
     def fake_resolve():
         return sys.argv[0] if sys.argv[0] else None
 
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("devbuddy_cli.relaunch.resolve_hermes_bin", fake_resolve)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -1051,7 +1051,7 @@ def test_install_icon_handles_truncated_png_header(tmp_path, xdg_home, monkeypat
     hermes_bin.parent.mkdir()
     hermes_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "devbuddy_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 

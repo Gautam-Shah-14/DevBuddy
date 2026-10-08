@@ -93,7 +93,7 @@ def _fetch_live_models(creds: Optional[Dict[str, Any]] = None) -> Dict[str, Dict
 def _live_models() -> Dict[str, Dict[str, Any]]:
     """Cached live catalog (``{}`` when unreachable)."""
     global _LIVE_CACHE
-    from hermes_constants import get_hermes_home_override
+    from devbuddy_constants import get_hermes_home_override
 
     if get_hermes_home_override() is None:
         if _LIVE_CACHE is not None and time.monotonic() - _LIVE_CACHE[1] < _LIVE_CACHE_TTL:
@@ -365,7 +365,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from devbuddy_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from tools.thread_context import propagate_context_to_thread
 from tools.registry import registry, tool_error
 
-from hermes_time import get_timezone_name
+from devbuddy_time import get_timezone_name
 from tools.code_execution_env import _resolve_child_cwd, _resolve_child_python
 from tools.code_execution_rpc import _rpc_poll_loop
 from tools.tool_output_truncate import head_tail_split, truncation_notice
@@ -85,7 +85,7 @@ def _spill_full_stdout(stdout_text: str) -> Optional[str]:
     reruns coalesce; the dir rides the cache/web remote bind-mount list (credential_files)."""
     try:
         import hashlib
-        from hermes_constants import get_hermes_dir
+        from devbuddy_constants import get_hermes_dir
         from tools.spill_safety import write_text_exclusive
         if len(stdout_text) > MAX_SPILLED_STDOUT_BYTES:
             stdout_text = (stdout_text[:MAX_SPILLED_STDOUT_BYTES]
@@ -785,7 +785,7 @@ def _load_config() -> dict:
     """Effective ``code_execution`` section (defaults + user file + managed overlay) — runs while the
     module-level schema is built at tool discovery, so it must not import ``cli``."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from devbuddy_cli.config import load_config_readonly
         cfg = load_config_readonly().get("code_execution", {})
         return cfg if isinstance(cfg, dict) else {}
     except Exception:

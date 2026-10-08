@@ -6,7 +6,7 @@ a per-profile fleet's unit into one that can never start (#119467). Refresh reti
 and only that file: a drop-in the operator wrote is theirs.
 """
 
-import hermes_cli.gateway as gateway_cli
+import devbuddy_cli.gateway as gateway_cli
 
 HERMES_DROPIN = (
     "# Added to end the gateway respawn storm: a stray lock-holder used to make the\n"
@@ -15,7 +15,7 @@ HERMES_DROPIN = (
     "# crash-looping. Remove this file (and daemon-reload) to revert.\n"
     "[Service]\n"
     "ExecStart=\n"
-    "ExecStart=/usr/bin/python -m hermes_cli.main gateway run --replace\n"
+    "ExecStart=/usr/bin/python -m devbuddy_cli.main gateway run --replace\n"
 )
 
 

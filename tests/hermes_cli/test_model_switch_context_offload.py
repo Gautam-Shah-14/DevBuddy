@@ -17,7 +17,7 @@ import time
 import pytest
 
 import agent.model_metadata as model_meta_mod
-from hermes_cli import model_switch
+from devbuddy_cli import model_switch
 
 PROBE_SECONDS = 0.05
 

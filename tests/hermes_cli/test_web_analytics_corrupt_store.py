@@ -8,8 +8,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from hermes_cli.web_routers import _common, analytics
-from hermes_state import SessionDB
+from devbuddy_cli.web_routers import _common, analytics
+from devbuddy_state import SessionDB
 
 
 def _malformed_state_db(home: Path) -> Path:
@@ -29,26 +29,26 @@ def _malformed_state_db(home: Path) -> Path:
 
 def test_corrupt_store_polls_return_status_and_warn_once_per_interval(tmp_path, monkeypatch, caplog):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    import hermes_state
+    import devbuddy_state
     db_path = _malformed_state_db(tmp_path)
-    monkeypatch.setattr(hermes_state, "_default_db_path", lambda: db_path)
+    monkeypatch.setattr(devbuddy_state, "_default_db_path", lambda: db_path)
     monkeypatch.setattr(_common, "_corrupt_store_warned_at", {})
     app = FastAPI()
     app.include_router(analytics.router)
     client = TestClient(app)
 
-    with caplog.at_level(logging.DEBUG, logger="hermes_cli.web_server"):
+    with caplog.at_level(logging.DEBUG, logger="devbuddy_cli.web_server"):
         first = client.get("/api/analytics/usage?days=7")
         second = client.get("/api/analytics/usage?days=7")
         third = client.get("/api/analytics/models?days=7")
     for resp in (first, second, third):
         assert resp.status_code == 503
         assert resp.json()["detail"]["error"] == "state_db_corrupt"
-    # Only the dashboard's own warning counts: hermes_state logs an unrelated
+    # Only the dashboard's own warning counts: devbuddy_state logs an unrelated
     # once-per-process SQLite-version advisory on some interpreters (CI's 3.50.4).
     warnings = [
         r for r in caplog.records
-        if r.levelno >= logging.WARNING and r.name.startswith("hermes_cli.web_server")
+        if r.levelno >= logging.WARNING and r.name.startswith("devbuddy_cli.web_server")
     ]
     assert len(warnings) == 1, [r.getMessage() for r in warnings]
     assert not any(r.exc_info for r in caplog.records), "no tracebacks for a known corrupt store"
@@ -57,10 +57,10 @@ def test_corrupt_store_polls_return_status_and_warn_once_per_interval(tmp_path, 
     # The gate re-arms once the interval has elapsed (aged, not slept).
     _common._corrupt_store_warned_at[str(db_path)] -= _common._CORRUPT_STORE_WARN_INTERVAL_S + 1
     caplog.clear()
-    with caplog.at_level(logging.WARNING, logger="hermes_cli.web_server"):
+    with caplog.at_level(logging.WARNING, logger="devbuddy_cli.web_server"):
         assert client.get("/api/analytics/usage?days=7").status_code == 503
     assert sum(
-        r.levelno >= logging.WARNING and r.name.startswith("hermes_cli.web_server")
+        r.levelno >= logging.WARNING and r.name.startswith("devbuddy_cli.web_server")
         for r in caplog.records
     ) == 1
 
@@ -70,7 +70,7 @@ def test_corrupt_store_as_status_maps_replaced_store_errors_to_503_without_fix_n
     must come back as a structured 503 like the corrupt case, and the guidance must never tell the
     user to run `doctor --fix` while a holder is live (#110054). Busy/locked still propagates."""
     from fastapi import HTTPException
-    from hermes_state_errors import DeletedWalGenerationError, StateDbReplacedError
+    from devbuddy_state_errors import DeletedWalGenerationError, StateDbReplacedError
 
     monkeypatch.setattr(_common, "_corrupt_store_warned_at", {})
     db_path = tmp_path / "state.db"
@@ -93,7 +93,7 @@ def test_corrupt_store_as_status_maps_replaced_store_errors_to_503_without_fix_n
 
     # Sibling route: GET /api/sessions and the session-id resolver used to let the same
     # RuntimeError family fall through to a generic 500.
-    from hermes_cli.web_routers import sessions
+    from devbuddy_cli.web_routers import sessions
 
     class _RetiredDb:
         db_path = str(tmp_path / "state.db")

@@ -6,8 +6,8 @@ import logging
 
 import pytest
 
-from hermes_cli.config import DEFAULT_CONFIG
-from hermes_cli.observability.shared_metrics_send_config import (
+from devbuddy_cli.config import DEFAULT_CONFIG
+from devbuddy_cli.observability.shared_metrics_send_config import (
     DEFAULT_ENDPOINT,
     resolve_send_config,
     reset_warning_latch_for_tests,

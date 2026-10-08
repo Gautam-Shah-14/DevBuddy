@@ -90,7 +90,7 @@ jobs:
           import shlex
           import sys
 
-          import hermes_yaml as yaml
+          import devbuddy_yaml as yaml
 
           with open(sys.argv[1], encoding="utf-8") as fh:
               data = yaml.safe_load(fh) or {}

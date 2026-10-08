@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 from tests.fakes.fake_llm_provider import FakeLLMServer, Text, ToolCall, write_hermes_home
 
@@ -106,7 +106,7 @@ class ParityHome:
             "PARITY_TREE_TAG": self.tag,
             # The child's HOME is the fixture home, so its ``~/.hermes/state.db`` IS
             # the tmp HERMES_HOME's db; under a pytest ancestor the live-DB guard
-            # (hermes_state_guard) would refuse it. This is the guard's documented
+            # (devbuddy_state_guard) would refuse it. This is the guard's documented
             # child-process escape hatch; the path is tmp_path by construction.
             "HERMES_STATE_DB_GUARD_BYPASS": "1",
         })
@@ -442,7 +442,7 @@ def kill_tagged(ph: ParityHome) -> None:
 
 
 def hermes_argv(*args: str) -> list[str]:
-    return [sys.executable, "-m", "hermes_cli.main", *args]
+    return [sys.executable, "-m", "devbuddy_cli.main", *args]
 
 
 def terminate(proc: subprocess.Popen, timeout: float = 30.0) -> int | None:

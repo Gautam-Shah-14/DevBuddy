@@ -8,7 +8,7 @@ import json
 
 import pytest
 
-from hermes_cli.subcommands import computer_use_screen
+from devbuddy_cli.subcommands import computer_use_screen
 from tools.bot_desktop import lease, runtime
 
 

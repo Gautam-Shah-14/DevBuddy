@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from hermes_cli.web_routers import memory_providers as mp
+from devbuddy_cli.web_routers import memory_providers as mp
 from plugins.memory.honcho.config_schema import CONFIG_SCHEMA
 
 
