@@ -1330,7 +1330,7 @@ FIRST_PARTY_MODULE_ROOTS = frozenset({
 def is_first_party_module(name: str | None) -> bool:
     """True when *name* ships with Hermes (exact first segment; ``startswith`` would claim ``agentops``)."""
     root = str(name).split(".")[0] if name else ""
-    return bool(root) and (root in FIRST_PARTY_MODULE_ROOTS or root.startswith("hermes_"))
+    return bool(root) and (root in FIRST_PARTY_MODULE_ROOTS or root.startswith("devbuddy_"))
 
 
 def partial_update_hint(exc: BaseException) -> list[str]:
