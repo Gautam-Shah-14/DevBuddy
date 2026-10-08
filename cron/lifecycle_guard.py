@@ -126,8 +126,8 @@ def _is_interpreter_image(value: str, *, substring: bool = False) -> bool:
 def _pattern_reaches_host_interpreter(pattern: str, *, full_cmdline: bool, exact: bool) -> bool:
     """pkill/pgrep/killall operand semantics: an ERE against the process NAME (or, with `-f`, the full
     command line). `python -m devbuddy_cli.main …` is the gateway's own cmdline, so a `-f` pattern
-    that names the interpreter and then only wildcards or a `hermes` token reaches it, while
-    `python mt_add.py` (a specific script) does not."""
+    that names the interpreter and then only wildcards or a gateway token (`devbuddy_cli`/`hermes`)
+    reaches it, while `python mt_add.py` (a specific script) does not."""
     core = pattern.strip().strip("\"'").lstrip("^")
     if core.endswith("$"):
         core = core[:-1]
@@ -140,7 +140,7 @@ def _pattern_reaches_host_interpreter(pattern: str, *, full_cmdline: bool, exact
         head = head[: match.start()]
     if not _is_interpreter_image(head, substring=not exact):
         return full_cmdline and bool(_GATEWAY_CMDLINE_TOKEN_RE.search(core))
-    return not rest.strip() or bool(_ERE_WILDCARD_ONLY.match(rest)) or "hermes" in rest.lower()
+    return not rest.strip() or bool(_ERE_WILDCARD_ONLY.match(rest)) or bool(_GATEWAY_CMDLINE_TOKEN_RE.search(rest))
 
 
 def _killer_targets_host_interpreter(name: str, args: list[str]) -> bool:
