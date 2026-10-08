@@ -7,9 +7,6 @@
 <p align="center">
   <a href="https://github.com/Gautam-Shah-14/DevBuddy/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
   <a href="https://github.com/Gautam-Shah-14/DevBuddy"><img src="https://img.shields.io/badge/Built%20by-TokenBurners-blueviolet?style=for-the-badge" alt="Built by TokenBurners"></a>
-  <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/Lang-中文-red?style=for-the-badge" alt="中文"></a>
-  <a href="README.ur-pk.md"><img src="https://img.shields.io/badge/Lang-اردو-green?style=for-the-badge" alt="اردو"></a>
-  <a href="README.es.md"><img src="https://img.shields.io/badge/Lang-Español-orange?style=for-the-badge" alt="Español"></a>
 </p>
 
 **DevBuddy is a self-improving local-first AI agent, by TokenBurners**, built on top of
