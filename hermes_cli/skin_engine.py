@@ -338,10 +338,54 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
 [#F29C38]⠀⠀⠀⠀⠀⠀⠀⠀⣰⡿⢿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
 [#F29C38]⠀⠀⠀⠀⠀⠀⠀⣼⡟⠀⠀⢻⣧⠀⠀⠀⠀⠀⠀⠀⠀[/]
 [dim #7A3511]⠀⠀⠀⠀⠀⠀⠀tail flame lit⠀⠀⠀⠀⠀⠀⠀⠀[/]""",
+    },
+    "devbuddy": {
+        "name": "devbuddy", "description": "DevBuddy — local-first blue, by TokenBurners",
+        "colors": {
+            "banner_border": "#3b82f6", "banner_title": "#8fe1ff", "banner_accent": "#5b9dfb",
+            "banner_dim": "#5b21b6", "banner_text": "#dce9ff", "ui_accent": "#5b9dfb",
+            "ui_label": "#8fe1ff", "ui_ok": "#4caf50", "ui_error": "#ef5350", "ui_warn": "#ffa726",
+            "prompt": "#dce9ff", "input_rule": "#3b82f6", "response_border": "#8fe1ff",
+            "status_bar_bg": "#0f1b33", "status_bar_text": "#c9d1d9",
+            "status_bar_strong": "#8fe1ff", "status_bar_dim": "#4a5aa0",
+            "status_bar_good": "#63D0A6", "status_bar_warn": "#e6a855", "status_bar_bad": "#F7A072",
+            "status_bar_critical": "#FF7A7A", "session_label": "#8fe1ff",
+            "session_border": "#4a5aa0", "completion_menu_bg": "#0f1b33",
+            "completion_menu_current_bg": "#243869", "selection_bg": "#2c4079",
+            "shell_dollar": "#5b9dfb", "voice_status_bg": "#0f1b33"},
+        "spinner": {},
+        "branding": {
+            "agent_name": "DevBuddy Agent",
+            "welcome": "Welcome to DevBuddy Agent! Type your message or /help for commands.",
+            "goodbye": "Goodbye! 🔥", "response_label": " 🔥 DevBuddy ", "prompt_symbol": "❯",
+            "help_header": "(🔥) Available Commands"},
+        "tool_prefix": "┊",
+        "banner_logo": """[bold #8fe1ff]██████╗ ███████╗██╗   ██╗██████╗ ██╗   ██╗██████╗ ██████╗ ██╗   ██╗     █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
+[bold #6dbbfb]██╔══██╗██╔════╝██║   ██║██╔══██╗██║   ██║██╔══██╗██╔══██╗╚██╗ ██╔╝    ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
+[#4c95f8]██║  ██║█████╗  ██║   ██║██████╔╝██║   ██║██║  ██║██║  ██║ ╚████╔╝     ███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║   [/]
+[#416fe9]██║  ██║██╔══╝  ╚██╗ ██╔╝██╔══██╗██║   ██║██║  ██║██║  ██║  ╚██╔╝      ██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║   [/]
+[#4e48d0]██████╔╝███████╗ ╚████╔╝ ██████╔╝╚██████╔╝██████╔╝██████╔╝   ██║       ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║   [/]
+[#5b21b6]╚═════╝ ╚══════╝  ╚═══╝  ╚═════╝  ╚═════╝ ╚═════╝ ╚═════╝    ╚═╝       ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝   [/]""",
+        "banner_hero": """             [#59a2f8 on #55a2fa]▀[/][#529cf8 on #59a8fb]▀[/]       
+             [#529df8 on #519bf8]▀[/][#5aacff on #529fff]▀[/][#4d98fa on #4d99ff]▀[/][#468ff8]▄[/]     
+       [#63b2fc]▄[/][#5facfb]▄[/]    [#4f98f8 on #4b94f7]▀[/][#4f9cff on #4a94fc]▀[/][#468ef6 on #448df6]▀[/][#4896ff on #418af8]▀[/][#4086f5 on #3f88fc]▀[/][#3a81f2]▄[/]   
+     [#62aef8]▄[/][#63aef9 on #68b9ff]▀[/][#6dc3ff on #5eaafb]▀[/][#5ca8f9 on #59a4f8]▀[/]   [#4d97fa on #4993f7]▀[/][#4c97fd on #4c9aff]▀[/][#458ef6 on #428af6]▀[/][#4189f6 on #3f86f7]▀[/][#3d85f6 on #3c82f6]▀[/][#3e86fc on #3b7cf2]▀[/][#3d7df2 on #4382ff]▀[/][#3f75ec]▄[/]  
+    [#61aef8 on #65b2fb]▀[/][#67b7ff on #62affc]▀[/][#5fabfa on #5ba6f8]▀[/][#5aa5f9 on #57a2f8]▀[/][#57a3fb on #58a5ff]▀[/][#5099f8]▄[/] [#4691f4]▄[/][#478ef6 on #4894fe]▀[/][#4791fe on #4088f6]▀[/][#3f87f5 on #3d84f6]▀[/][#3c83f6 on #3b80f5]▀[/][#3c7ff4 on #3d7bf2]▀[/][#3d79f0 on #3f77ef]▀[/][#4178f3 on #3f72ea]▀[/][#4071ec on #4776fa]▀[/][#4369e6]▄[/] 
+  [#64b3fc]▄[/][#63aef9 on #68baff]▀[/][#67b8ff on #5da8f9]▀[/][#5ca6f8 on #5aa5f9]▀[/][#59a4f9 on #56a0f9]▀[/][#559ff8 on #519cf7]▀[/][#55a3ff on #53a1ff]▀[/][#4e97f8]▀[/][#428af5]▄[/][#448df7 on #4895ff]▀[/][#4591fe on #3e86f6]▀[/][#3d85f6 on #3b82f6]▀[/][#3c81f5 on #3c7ef3]▀[/][#3d7df2 on #3e79f0]▀[/][#3e78f0 on #3f75ed]▀[/][#4074ed on #4170ea]▀[/][#406fe9 on #426ce7]▀[/][#466ff1 on #4468e5]▀[/][#4367e3 on #4564e4]▀[/][#4462e1]▄[/]
+ [#62affa]▄[/][#62affa on #67b9ff]▀[/][#62b0fd on #5ba5f8]▀[/][#5aa6f8 on #58a3f9]▀[/][#57a2f9 on #549ff9]▀[/][#539df8 on #509af7]▀[/][#519cfc on #4e99fc]▀[/][#4c95f8 on #4991f7]▀[/][#4891f8 on #448df7]▀[/][#448ffa on #448efe]▀[/][#418bfa on #3c83f4]▀[/][#3c83f5 on #3c80f5]▀[/][#3c7ff4 on #3d7cf2]▀[/][#3e7bf1 on #3e77ef]▀[/][#3f76ee on #4073ec]▀[/][#4072eb on #416ee9]▀[/][#426de8 on #436ae6]▀[/][#4369e5 on #4565e3]▀[/][#4464e2 on #4561e0]▀[/][#4a65eb on #4b60e7]▀[/][#475bdc on #4858da]▀[/]
+[#5faffb]▄[/][#61acfa on #60adfc]▀[/][#61b0ff on #5aa4f9]▀[/][#58a4f8 on #56a1f9]▀[/][#55a0f9 on #539df8]▀[/][#529bf8 on #4f98f8]▀[/][#4e97f8 on #4b94f8]▀[/][#4992f7 on #4790f7]▀[/][#4790fa on #438bf6]▀[/][#438dfb on #3f86f5]▀[/][#3d84f5 on #3c83f6]▀[/][#3b81f6 on #3c7ef3]▀[/][#3d7df3 on #3e7af1]▀[/][#3e78f0 on #3f75ee]▀[/][#4074ed on #4171eb]▀[/][#4170ea on #426ce8]▀[/][#426be7 on #4468e5]▀[/][#4467e4 on #4563e2]▀[/][#4562e1 on #475fdf]▀[/][#475edd on #485adb]▀[/][#4a5be0 on #4b57dc]▀[/][#4955d8 on #4a52d5]▀[/]
+[#5faaf9 on #5ba7f8]▀[/][#60b0ff on #5caaff]▀[/][#57a1f8 on #549ef8]▀[/][#549ef9 on #519bf8]▀[/][#5099f8 on #4d96f8]▀[/][#4c95f8 on #4992f8]▀[/][#4891f7 on #458ef7]▀[/][#448cf7 on #4189f7]▀[/][#4088f6 on #3d85f6]▀[/][#3d84f6 on #3b81f5]▀[/][#3c7ff4 on #3d7cf2]▀[/][#3e7bf1 on #3f77ef]▀[/][#3f76ee on #4073ec]▀[/][#4072ec on #416fe9]▀[/][#426de9 on #436ae6]▀[/][#4369e6 on #4466e3]▀[/][#4565e3 on #4661e1]▀[/][#4660e0 on #475dde]▀[/][#485cdd on #4958da]▀[/][#4957d9 on #4a54d7]▀[/][#4c54da on #4d51d9]▀[/][#4c4ed4 on #4d4bd1]▀[/]
+[#59a4f9 on #56a1f9]▀[/][#58a4fe on #54a0fd]▀[/][#529bf7 on #4f98f7]▀[/][#4e98f8 on #4b94f8]▀[/][#4a93f8 on #4790f7]▀[/][#468ff7 on #438cf7]▀[/][#438af7 on #4087f7]▀[/][#3f86f6 on #3c83f6]▀[/][#3b82f6 on #3c7ef4]▀[/][#3c7df3 on #3d7af1]▀[/][#3e79f0 on #3f76ee]▀[/][#4074ed on #4171eb]▀[/][#4170ea on #426de8]▀[/][#426be7 on #4368e5]▀[/][#4467e4 on #4564e2]▀[/][#4563e1 on #465fdf]▀[/][#475ede on #485bdc]▀[/][#485adb on #4956d9]▀[/][#4a55d8 on #4b52d6]▀[/][#4a50d5 on #4b4dd3]▀[/][#504fdb on #524cdb]▀[/][#4e49d0 on #4f44cd]▀[/]
+[#539ef8 on #509af8]▀[/][#529dfe on #519dff]▀[/][#4c95f7 on #4992f6]▀[/][#4891f7 on #458ef7]▀[/][#458df7 on #428af7]▀[/][#4188f6 on #3e85f6]▀[/][#3d84f6 on #3c81f5]▀[/][#3c80f5 on #3d7cf2]▀[/][#3d7bf1 on #3e78ef]▀[/][#3f77ef on #4073ed]▀[/][#4072ec on #416fea]▀[/][#426ee9 on #436ae7]▀[/][#4369e6 on #4466e4]▀[/][#4565e3 on #4662e1]▀[/][#4660e0 on #475dde]▀[/][#475cdd on #4959db]▀[/][#4958da on #4a54d8]▀[/][#4a53d7 on #4b50d5]▀[/][#4c4fd4 on #4d4bd1]▀[/][#4d4ad1 on #5049d4]▀[/][#5248d5 on #4f42cc]▀[/][#4e42cc]▀[/]
+[#4d96f8]▀[/][#4f9cff on #4891f8]▀[/][#458ef6 on #448efa]▀[/][#438bf7 on #4087f6]▀[/][#3f86f7 on #3c83f6]▀[/][#3c82f6 on #3c7ff4]▀[/][#3d7df3 on #3e7af1]▀[/][#3e79f0 on #3f76ee]▀[/][#3f75ed on #4071eb]▀[/][#4170ea on #426de8]▀[/][#426ce8 on #4369e5]▀[/][#4467e4 on #4564e2]▀[/][#4563e2 on #4660df]▀[/][#475edf on #485bdc]▀[/][#485adc on #4957da]▀[/][#4a56d9 on #4b52d6]▀[/][#4b51d6 on #4c4ed4]▀[/][#4c4dd3 on #4d49d0]▀[/][#4e48cf on #4f45d0]▀[/][#5649dc on #5241cf]▀[/][#5041cc]▀[/] 
+ [#438cf6]▀[/][#4794ff on #3e87f9]▀[/][#3b83f4 on #3d86fc]▀[/][#3b80f5 on #3c7cf0]▀[/][#3d7cf2 on #3e78f0]▀[/][#3f77ef on #4074ed]▀[/][#4073ec on #416fea]▀[/][#426ee9 on #436be7]▀[/][#436ae6 on #4466e4]▀[/][#4466e3 on #4562e1]▀[/][#4661e0 on #475dde]▀[/][#475ddd on #4959db]▀[/][#4958da on #4a55d8]▀[/][#4a54d7 on #4c50d5]▀[/][#4c4fd4 on #4d4cd3]▀[/][#4d4bd2 on #4d47cf]▀[/][#4e46ce on #5647da]▀[/][#5747dd on #513fca]▀[/][#513dc8]▀[/]  
+  [#387df2]▀[/][#3e82f9 on #3a75ee]▀[/][#407ef9 on #407af5]▀[/][#3e73eb on #457bfe]▀[/][#4170ea on #436feb]▀[/][#426ce8 on #4269e4]▀[/][#4468e5 on #4464e2]▀[/][#4563e2 on #4660df]▀[/][#475fdf on #475bdc]▀[/][#485adc on #4957d8]▀[/][#4a56d9 on #4a52d7]▀[/][#4b51d6 on #4b4ed3]▀[/][#4c4dd3 on #504cd6]▀[/][#4d48d0 on #564bdf]▀[/][#5549dc on #5243cf]▀[/][#5240cf]▀[/]    
+     [#4170ef]▀[/][#446cea]▀[/][#486bef on #4664e7]▀[/][#4965e9 on #4860e2]▀[/][#495fe2 on #4759db]▀[/][#4a5adf on #4956da]▀[/][#4c56dd on #4c51d8]▀[/][#4f53df on #4e4ed6]▀[/][#514edb on #4e49d4]▀[/][#5048d4]▀[/][#5145d1]▀[/]      
+[dim #4a5aa0]⠀⠀⠀⠀⠀⠀local-first, always lit⠀⠀⠀⠀⠀⠀[/]""",
     }}
 
 _active_skin: Optional[SkinConfig] = None
-_active_skin_name: str = "default"
+_active_skin_name: str = "devbuddy"
 # Routed multiplex profiles: (name, skin) per home key. ``display.skin`` and ``<home>/skins/*.yaml``
 # are per profile, and the relay display name / TUI skin payload are read under each profile's
 # override — one module slot would be last-writer-wins across profiles. Unscoped keeps the module slot.
@@ -468,8 +512,8 @@ def get_active_skin_name() -> str:
 def init_skin_from_config(config: dict) -> None:
     """Initialize the active skin from CLI config at startup."""
     display = config.get("display") or {}
-    skin_name = display.get("skin", "default") if isinstance(display, dict) else "default"
-    set_active_skin(skin_name.strip() if isinstance(skin_name, str) and skin_name.strip() else "default")
+    skin_name = display.get("skin", "devbuddy") if isinstance(display, dict) else "devbuddy"
+    set_active_skin(skin_name.strip() if isinstance(skin_name, str) and skin_name.strip() else "devbuddy")
 
 
 def _active_branding(key: str, fallback: str) -> str:
