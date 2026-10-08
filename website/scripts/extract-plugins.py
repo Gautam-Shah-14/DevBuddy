@@ -19,7 +19,7 @@ Outputs (both under website/static/api/, CDN-served at /docs/api/):
 - ``plugins-meta.json``   — counts by tier + generatedAt + removedCount
 - ``plugin-catalog.json`` — ``{"entries": [raw YAML mappings], "removed": [...]}`` in the loader's own
   schema; installed Hermes clients fetch this for live catalog refresh
-  (``hermes_cli.plugin_catalog.LIVE_CATALOG_URL``) so new entries and removals reach them without
+  (``devbuddy_cli.plugin_catalog.LIVE_CATALOG_URL``) so new entries and removals reach them without
   updating. Emitting it here means the docs deploy IS the publish step — no second pipeline.
 """
 
@@ -37,7 +37,7 @@ from urllib.parse import urlsplit
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 DEFAULT_CATALOG_DIR = REPO_ROOT / "plugin-catalog"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "website" / "static" / "api"

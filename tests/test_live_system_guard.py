@@ -81,9 +81,9 @@ def test_custom_home_tmpdir_is_relocated_before_pytest_uses_it(tmp_path):
 
 
 def test_default_home_unmarked_tmpdir_is_relocated_before_pytest_uses_it(tmp_path):
-    # Model the operator's default root with a disposable HOME, not ~/.hermes.
+    # Model the operator's default root with a disposable HOME, not ~/.devbuddy.
     operator_home = tmp_path / "operator"
-    scratch = operator_home / ".hermes" / "cache" / "scratch"
+    scratch = operator_home / ".devbuddy" / "cache" / "scratch"
     scratch.mkdir(parents=True)
     env = dict(os.environ, HOME=str(operator_home), TMPDIR=str(scratch))
     env.pop("HERMES_HOME", None)
@@ -92,4 +92,4 @@ def test_default_home_unmarked_tmpdir_is_relocated_before_pytest_uses_it(tmp_pat
         [sys.executable, "-c", "import tempfile, tests.conftest; print(tempfile.gettempdir())"],
         env=env, capture_output=True, text=True, check=True,
     )
-    assert not result.stdout.strip().startswith(str(operator_home / ".hermes"))
+    assert not result.stdout.strip().startswith(str(operator_home / ".devbuddy"))
