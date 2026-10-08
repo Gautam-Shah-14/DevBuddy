@@ -121,10 +121,10 @@ config = {
     },
     "prompt_caching": {"enabled": False},
 }
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 Path(os.environ["HERMES_HOME"], "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
-from hermes_state import SessionDB
+from devbuddy_state import SessionDB
 from agent.moa_loop import MoAClient
 from agent.turn_request_assembly import _prepare_moa_request
 from agent.transports.chat_completions import ChatCompletionsTransport
@@ -186,7 +186,7 @@ print(
             "production_imports": {
                 name: sys.modules[name].__file__
                 for name in [
-                    "hermes_state",
+                    "devbuddy_state",
                     "agent.moa_loop",
                     "agent.auxiliary_client",
                     "agent.turn_request_assembly",

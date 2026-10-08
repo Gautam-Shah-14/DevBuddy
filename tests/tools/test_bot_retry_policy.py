@@ -71,9 +71,9 @@ def _deliver(params):
 
 def _is_hermes_cli(argv) -> bool:
     """Match the delivery CLI by basename — local_delivery_command may
-    resolve the venv-relative hermes next to the interpreter (#93590)."""
+    resolve the venv-relative devbuddy next to the interpreter (#93590)."""
     name = str(argv[0]).rsplit("\\", 1)[-1].rsplit("/", 1)[-1]
-    return name in ("hermes", "hermes.exe")
+    return name in ("devbuddy", "devbuddy.exe")
 
 
 def _transport_calls(calls):

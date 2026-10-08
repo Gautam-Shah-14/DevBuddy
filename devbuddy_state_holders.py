@@ -33,7 +33,10 @@ def read_only_db_uri(db_path) -> str:
 logger = logging.getLogger(__name__)
 
 _IS_WINDOWS = sys.platform == "win32"
-_HERMES_EXECUTABLES = frozenset({"hermes", "hermes-agent", "hermes-acp"})
+_HERMES_EXECUTABLES = frozenset({
+    "hermes", "hermes-agent", "hermes-acp",  # upstream Hermes Agent's own binary names
+    "devbuddy", "devbuddy-legacy", "devbuddy-acp",  # this fork's [project.scripts] entry points
+})
 _HERMES_PYTHON_MODULES = frozenset({"acp_adapter", "devbuddy_cli.main"})
 _HERMES_PYTHON_SCRIPTS = frozenset({"devbuddy_cli/main.py", "run_agent.py"})
 _PYTHON_SHORT_OPTIONS_WITH_OPERANDS = frozenset({"Q", "W", "X"})

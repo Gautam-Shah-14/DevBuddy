@@ -78,7 +78,7 @@ def test_declared_extra_gates_match_dependency_selection():
             environment = {**default_environment(), "sys_platform": system,
                            "platform_system": platform_system, "platform_machine": machine,
                            "python_version": python, "python_full_version": python + ".0"}
-            for extra in metadata["tool"]["hermes"]["extras-platforms"]:
+            for extra in metadata["tool"]["devbuddy"]["extras-platforms"]:
                 selected = any(req.marker is None or req.marker.evaluate(environment)
                                for req in map(Requirement, optional[extra]))
                 assert extras.extra_supported(extra, environment=environment,

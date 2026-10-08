@@ -83,7 +83,7 @@ class Handler(BaseHTTPRequestHandler):
 server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
 threading.Thread(target=server.serve_forever, daemon=True).start()
 url = f"http://127.0.0.1:{server.server_port}/serving-endpoints"
-import hermes_yaml as yaml
+import devbuddy_yaml as yaml
 
 config = {
     "model": {"provider": "fixture-provider", "default": "model-a"},
@@ -99,7 +99,7 @@ config = {
 Path(os.environ["HERMES_HOME"] + "/config.yaml").write_text(
     yaml.safe_dump(config), encoding="utf-8"
 )
-from hermes_cli.runtime_provider import resolve_runtime_provider
+from devbuddy_cli.runtime_provider import resolve_runtime_provider
 from agent.auxiliary_client import resolve_provider_client
 
 try:
@@ -149,8 +149,8 @@ config["providers"]["fixture-provider"]["request_timeout_seconds"] = 15
 Path(os.environ["HERMES_HOME"] + "/config.yaml").write_text(
     yaml.safe_dump(config), encoding="utf-8"
 )
-from hermes_cli.config import load_config_readonly
-from hermes_cli.timeouts import get_provider_request_timeout
+from devbuddy_cli.config import load_config_readonly
+from devbuddy_cli.timeouts import get_provider_request_timeout
 
 out["timeout_resolved"] = get_provider_request_timeout("fixture-provider", "model-b")
 fb2, _ = resolve_provider_client("fixture-provider", model="model-b", raw_codex=True)
@@ -208,7 +208,7 @@ out["blocked"] = blocked
 out["production_imports"] = {
     n: sys.modules[n].__file__
     for n in [
-        "hermes_cli.runtime_provider",
+        "devbuddy_cli.runtime_provider",
         "agent.auxiliary_client",
         "agent.client_lifecycle",
     ]

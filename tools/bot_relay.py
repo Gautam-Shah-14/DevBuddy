@@ -500,18 +500,20 @@ def waiter_command(root: Path | str, envelope: dict) -> str:
 
 
 def _hermes_cli() -> str:
-    """hermes CLI beside this interpreter, then ``shutil.which``, then the bare name
-    (service contexts lack PATH, so a bare "hermes" died with ENOENT).
+    """devbuddy CLI beside this interpreter, then ``shutil.which``, then the bare name
+    (service contexts lack PATH, so a bare "devbuddy" died with ENOENT).
 
     The deliver RPC runs on the target gateway, whose process is the venv python — its bin/Scripts directory
-    holds the matching ``hermes`` entrypoint. A bare ``"hermes"`` relies on PATH, which is exactly what
-    service contexts (systemd units, desktop launchers, non-login SSH shells) do not provide, so delivery
-    died with ENOENT there (#93590). When no sibling exists (e.g. running from a source tree without an
-    installed script), a ``shutil.which`` lookup runs next — it honors whatever PATH the process does have —
-    before falling back to the bare name, preserving today's behavior for interactive shells.
+    holds the matching ``devbuddy`` entrypoint ([project.scripts]). A bare ``"devbuddy"`` relies on PATH,
+    which is exactly what service contexts (systemd units, desktop launchers, non-login SSH shells) do not
+    provide, so delivery died with ENOENT there (#93590). When no sibling exists (e.g. running from a source
+    tree without an installed script), a ``shutil.which`` lookup runs next — it honors whatever PATH the
+    process does have — before falling back to the bare name, preserving today's behavior for interactive
+    shells.
     """
-    sibling = Path(sys.executable or "").parent / ("hermes.exe" if sys.platform == "win32" else "hermes")
-    return str(sibling) if sibling.is_file() else shutil.which("hermes") or "hermes"
+    name = "devbuddy.exe" if sys.platform == "win32" else "devbuddy"
+    sibling = Path(sys.executable or "").parent / name
+    return str(sibling) if sibling.is_file() else shutil.which("devbuddy") or "devbuddy"
 
 
 def local_delivery_command(profile: str, query_file: str) -> list[str]:

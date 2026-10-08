@@ -193,7 +193,7 @@ def test_public_dependency_only_build_needs_no_application_source(installable_pr
 def test_all_extras_build_leaves_out_opt_in_extras(installable_project, tmp_path):
     source, uv, env = installable_project
     manifest = source / "pyproject.toml"
-    manifest.write_text(manifest.read_text() + '\n[tool.hermes]\nopt-in-extras=["other"]\n', encoding="utf-8")
+    manifest.write_text(manifest.read_text() + '\n[tool.devbuddy]\nopt-in-extras=["other"]\n', encoding="utf-8")
     from pm import build_environment
 
     probe = ("import json, importlib.util; print(json.dumps([importlib.util.find_spec(n) is not None "

@@ -164,10 +164,13 @@ class TestRuntimeFtsRebuild:
             ("/usr/local/bin/hermes", "gateway"),
             ("/usr/local/bin/hermes-agent", "serve"),
             ("/usr/local/bin/hermes-acp", "--stdio"),
+            ("/usr/local/bin/devbuddy", "gateway"),
+            ("/usr/local/bin/devbuddy-legacy", "serve"),
+            ("/usr/local/bin/devbuddy-acp", "--stdio"),
             ("/usr/bin/python3", "-m", "devbuddy_cli.main", "gateway"),
             ("/usr/bin/python3", "-m", "acp_adapter"),
             ("/usr/bin/python3", "-Im", "devbuddy_cli.main", "gateway"),
-            ("/usr/bin/python3", "-mhermes_cli.main", "gateway"),
+            ("/usr/bin/python3", "-mdevbuddy_cli.main", "gateway"),
             ("/usr/bin/python3", "-W", "ignore", "-m", "devbuddy_cli.main"),
             ("/usr/bin/python3", "-Xdev", "-m", "devbuddy_cli.main"),
             (
@@ -253,7 +256,7 @@ class TestRuntimeFtsRebuild:
         # PID 222's cmdline is world-readable and looks like Hermes
         cmdline_path = proc_root / "222" / "cmdline"
         cmdline_path.write_bytes(
-            b"python3\x00-m\x00hermes_cli.main\x00chat\x00"
+            b"python3\x00-m\x00devbuddy_cli.main\x00chat\x00"
         )
 
         monkeypatch.setattr(devbuddy_state_holders.os, "getpid", lambda: 111)
