@@ -1,8 +1,8 @@
 # Dot-source only. Prefer the published command; never rescue a broken one
 # through PATH, the user's shared bin, or an obsolete checkout venv.
 function Get-SourceHermes([string]$Root) {
-    foreach ($name in @('hermes.exe', 'hermes.cmd')) {
-        $command = Join-Path $Root ".hermes/bin/$name"
+    foreach ($name in @('devbuddy.exe', 'devbuddy.cmd')) {
+        $command = Join-Path $Root ".devbuddy/bin/$name"
         if (Test-Path -LiteralPath $command) {
             if (-not (Test-Path -LiteralPath $command -PathType Leaf)) {
                 throw "Invalid published launcher: $command"
@@ -11,11 +11,11 @@ function Get-SourceHermes([string]$Root) {
         }
     }
     if (Test-Path -LiteralPath (Join-Path $Root 'pm/lock.json')) {
-        throw "Missing published launcher under $Root/.hermes/bin"
+        throw "Missing published launcher under $Root/.devbuddy/bin"
     }
-    $legacy = Join-Path $Root 'venv/Scripts/hermes.exe'
+    $legacy = Join-Path $Root 'venv/Scripts/devbuddy.exe'
     if (Test-Path -LiteralPath $legacy -PathType Leaf) { return $legacy }
-    throw "No installed Hermes command under $Root"
+    throw "No installed devbuddy command under $Root"
 }
 
 # Hand out a command to DRIVE the next ordinary startup, even when the
@@ -31,11 +31,11 @@ function Get-SourceHermes([string]$Root) {
 # HERMES_DISABLE_LAZY_INSTALLS so a probe can never complete an unfinished
 # update. Only a real startup may heal.
 function Get-SourceHermesForStartup([string]$Root) {
-    foreach ($name in @('hermes.exe', 'hermes.cmd')) {
-        $published = Join-Path $Root ".hermes/bin/$name"
+    foreach ($name in @('devbuddy.exe', 'devbuddy.cmd')) {
+        $published = Join-Path $Root ".devbuddy/bin/$name"
         if (Test-Path -LiteralPath $published -PathType Leaf) { return $published }
     }
-    $legacy = Join-Path $Root 'venv/Scripts/hermes.exe'
+    $legacy = Join-Path $Root 'venv/Scripts/devbuddy.exe'
     if (Test-Path -LiteralPath $legacy -PathType Leaf) { return $legacy }
-    throw "No installed Hermes command to start under $Root"
+    throw "No installed devbuddy command to start under $Root"
 }

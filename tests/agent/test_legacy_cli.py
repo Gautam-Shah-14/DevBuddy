@@ -1,4 +1,4 @@
-"""The packaged ``hermes-agent`` console script honours argv (#54648).
+"""The packaged ``devbuddy-legacy`` console script honours argv (#54648).
 
 A console script calls its target with no arguments; these tests go through the
 target named in pyproject ``[project.scripts]`` exactly the way pip's wrapper does.
@@ -18,7 +18,7 @@ import run_agent
 
 def _run_console_script(monkeypatch, *argv: str):
     pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
-    module, func = tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"]["scripts"]["hermes-agent"].split(":")
+    module, func = tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"]["scripts"]["devbuddy-legacy"].split(":")
     monkeypatch.setattr(sys, "argv", ["hermes-agent", *argv])
     try:
         return getattr(importlib.import_module(module), func)()
