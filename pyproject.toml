@@ -618,8 +618,10 @@ stt-whisper = "(platform_machine != 'ARM64' or sys_platform != 'win32') and (pla
 # NeuTTS excludes Python 3.14.
 neutts = "python_version < '3.14'"
 # KittenTTS: onnxruntime has no Intel macOS wheel; misaki[en]'s torch has no
-# Windows ARM64 wheel.
-kittentts = "(platform_machine != 'ARM64' or sys_platform != 'win32') and (platform_machine != 'x86_64' or sys_platform != 'darwin')"
+# Windows ARM64 wheel. Also python_version >= '3.14' - see the dependency
+# marker comment above (kittentts and neutts pin incompatible soundfile
+# versions, kept mutually exclusive by python floor).
+kittentts = "python_version >= '3.14' and (platform_machine != 'ARM64' or sys_platform != 'win32') and (platform_machine != 'x86_64' or sys_platform != 'darwin')"
 piper = "(platform_machine != 'ARM64' or sys_platform != 'win32') and (platform_machine != 'x86_64' or sys_platform != 'darwin')"
 
 [tool.uv]
