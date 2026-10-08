@@ -483,11 +483,13 @@ def _profile_db(params: dict | None = None, *, writer: bool = False):
 def _canonical_profile_request(name: str) -> str:
     """Canonicalize profile basenames emitted by older session-info payloads.
 
-    ``Path(default_home).name`` was historically sent as a profile id. Those basenames are
+    ``Path(default_home).name`` was historically sent as a profile id - either ``.devbuddy``/``devbuddy``
+    (the current default home basename) or the pre-rename ``.hermes``/``hermes``. Those basenames are
     installation details — unless a real named profile of that name exists (``devbuddy`` is a legal
-    id), in which case it wins; other unknown names keep failing closed in ``_profile_home``.
+    id; ``hermes`` isn't reserved at all), in which case it wins; other unknown names keep failing
+    closed in ``_profile_home``.
     """
-    if name.casefold() in {".devbuddy", "devbuddy"}:
+    if name.casefold() in {".devbuddy", "devbuddy", ".hermes", "hermes"}:
         from devbuddy_cli import profiles as profiles_mod
         # Check the profiles root directly: get_profile_dir rejects "devbuddy" as a
         # reserved name, but a pre-reserved-list install may still carry that dir.
