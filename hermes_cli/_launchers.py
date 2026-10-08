@@ -74,7 +74,7 @@ def installation_command(repo_root: Path, args=(), *, module: str = "hermes_cli.
     if resolve_store_python(root) is None:
         return runtime_command(root, args, module=module, python=python, home=home)
     prefix = [] if module == "hermes_cli.main" else ["--run-module", module]
-    return [str(root / ".hermes" / "bin" / "hermes"), *prefix, *args]
+    return [str(root / ".devbuddy" / "bin" / "hermes"), *prefix, *args]
 
 #: Launcher command names — keep in lockstep with scripts/install.ps1
 #: Publish-UserCommand and hermes_cli/_install_repair.py.
@@ -382,7 +382,7 @@ def stage_launcher(name: str, repo_root: Path, out_dir: Path) -> Path | None:
 def ensure_install_launchers(repo_root: Path, out_dir: Path) -> list[str]:
     """Publish exact-install commands; conveniences follow them across Python repins."""
     root = Path(repo_root).resolve()
-    local = root / ".hermes" / "bin"
+    local = root / ".devbuddy" / "bin"
     local.mkdir(parents=True, exist_ok=True)
     written = [str(path) for name in WINDOWS_BIN_LAUNCHERS
                if (path := stage_launcher(name, root, local)) is not None]
@@ -438,7 +438,7 @@ def expose_cli(project_root: Path | None = None, *, create: bool = True) -> dict
     if resolve_store_python(root) is None:
         return {"ok": True, "skipped": "no-store-python"}
     try:
-        local = root / ".hermes" / "bin"
+        local = root / ".devbuddy" / "bin"
         if len(ensure_install_launchers(root, local)) != len(WINDOWS_BIN_LAUNCHERS):
             return {"ok": False, "error": "source launcher publication failed"}
         dirs = [Path.home() / ".local" / "bin"]

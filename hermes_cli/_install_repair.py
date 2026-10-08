@@ -142,7 +142,7 @@ def ensure_windows_bin_launchers(
         exe = target / f"{name}.exe"
         if not exe.exists():
             return not ((target / f"{name}.cmd").is_file()
-                        and _launcher_present(root / ".hermes" / "bin", name))
+                        and _launcher_present(root / ".devbuddy" / "bin", name))
         return exe_is_venv_bound(exe, venv_dir)
 
     targets: list[Path] = []
@@ -153,7 +153,7 @@ def ensure_windows_bin_launchers(
     # override), so the healthy path must stay at a couple of stat calls.
     if _normalize_windows_path(root.parent) == _normalize_windows_path(home):
         canonical = home / "bin"
-        local = root / ".hermes" / "bin"
+        local = root / ".devbuddy" / "bin"
         if any(not _launcher_present(local, name) for name in _WINDOWS_BIN_LAUNCHERS):
             # Upgrade existing PM installs too: their healthy external launcher
             # predates the exact-install command and may lack the runtime query.

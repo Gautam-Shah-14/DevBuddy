@@ -500,7 +500,7 @@ def _dashboard_plugin_search_dirs() -> List[tuple]:
     # ``true`` / ``yes`` / ``on``) so the gate matches ``hermes_cli/plugins.py`` and the documented user
     # contract.
     if env_var_enabled("HERMES_ENABLE_PROJECT_PLUGINS"):
-        search_dirs.append((Path.cwd() / ".hermes" / "plugins", "project"))
+        search_dirs.append((Path.cwd() / ".devbuddy" / "plugins", "project"))
     return search_dirs
 
 

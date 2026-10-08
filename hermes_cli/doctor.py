@@ -13,7 +13,7 @@ from hermes_constants import display_hermes_home
 
 PROJECT_ROOT = get_project_root()
 HERMES_HOME = get_hermes_home()
-_DHH = display_hermes_home()  # user-facing display path (e.g. ~/.hermes or ~/.hermes/profiles/coder)
+_DHH = display_hermes_home()  # user-facing display path (e.g. ~/.devbuddy or ~/.devbuddy/profiles/coder)
 
 # Load environment variables from ~/.hermes/.env so API key checks work
 _env_path = get_env_path()

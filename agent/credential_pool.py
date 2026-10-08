@@ -776,7 +776,7 @@ def _guarded_global_root(global_path: Optional[Path]) -> Optional[Path]:
     if os.environ.get("PYTEST_CURRENT_TEST"):
         real_home_env = os.environ.get("HOME", "")
         if real_home_env:
-            real_root = Path(real_home_env) / ".hermes" / "auth.json"
+            real_root = Path(real_home_env) / ".devbuddy" / "auth.json"
             try:
                 # Comparing the guard path must not probe the real auth store.
                 if os.path.normcase(os.path.abspath(global_path)) == os.path.normcase(os.path.abspath(real_root)):

@@ -484,7 +484,7 @@ def _auth_file_path() -> Path:
     # Seat belt: under pytest, refuse to touch the real user's auth store (tests that forgot to
     # monkeypatch HERMES_HOME or escaped the hermetic conftest). In production: one dict lookup.
     if (os.environ.get("PYTEST_CURRENT_TEST")
-            and _same_path(path, Path.home() / ".hermes" / "auth.json")):
+            and _same_path(path, Path.home() / ".devbuddy" / "auth.json")):
         raise RuntimeError(
             f"Refusing to touch real user auth store during test run: {path}. "
             "Set HERMES_HOME to a tmp_path in your test fixture, or run "
@@ -521,7 +521,7 @@ def _load_global_auth_store() -> Dict[str, Any]:
     if cache_key is not None and cached is not None and cached[:2] == cache_key:
         return cached[2]
     if os.environ.get("PYTEST_CURRENT_TEST") and os.environ.get("HOME"):
-        real_root = Path(os.environ["HOME"]) / ".hermes" / "auth.json"
+        real_root = Path(os.environ["HOME"]) / ".devbuddy" / "auth.json"
         try:
             if os.path.normcase(os.path.abspath(global_path)) == os.path.normcase(os.path.abspath(real_root)):
                 _global_auth_store_cache = None

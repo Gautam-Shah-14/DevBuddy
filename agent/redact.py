@@ -1093,7 +1093,7 @@ def _is_secret_file_arg(arg: str) -> bool:
     # writes under ``backups/config/`` — same contents, same secrets.
     if parts[-1] != "config.yaml" and not parts[-1].startswith(("config.yaml.good.", "config.yaml.corrupt.")):
         return False
-    return hermes_home or ".hermes" in parts[:-1] or _is_under_hermes_home(path)
+    return hermes_home or ".devbuddy" in parts[:-1] or _is_under_hermes_home(path)
 
 
 def _command_reads_secret_file(command: str | None) -> bool:

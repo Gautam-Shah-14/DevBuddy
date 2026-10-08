@@ -43,7 +43,7 @@ try:
 except ImportError:
     def get_hermes_home() -> Path:  # type: ignore[misc]
         val = (os.environ.get("HERMES_HOME") or "").strip()
-        return Path(val) if val else Path.home() / ".hermes"
+        return Path(val) if val else Path.home() / ".devbuddy"
 
 DEFAULT_TUI_DIR = Path(
     os.environ.get("HERMES_TUI_DIR")

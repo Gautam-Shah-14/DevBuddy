@@ -444,7 +444,7 @@ def classify_sandbox_mirror_target(path: str) -> Optional[dict]:
     # Need at least: sandboxes / <backend> / <task> / home / .hermes / <thing>; inner_idx = the .hermes part.
     inner_idx = next(
         (i + 4 for i, part in enumerate(parts)
-         if part == "sandboxes" and i + 5 < len(parts) and parts[i + 3] == "home" and parts[i + 4] == ".hermes"),
+         if part == "sandboxes" and i + 5 < len(parts) and parts[i + 3] == "home" and parts[i + 4] == ".devbuddy"),
         None,
     )
     if inner_idx is None:

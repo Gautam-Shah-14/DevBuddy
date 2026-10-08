@@ -55,7 +55,7 @@ def _get_project_plugins_dir() -> Optional[Path]:
 
         if not _env_enabled("HERMES_ENABLE_PROJECT_PLUGINS"):
             return None
-        d = Path.cwd() / ".hermes" / "plugins"
+        d = Path.cwd() / ".devbuddy" / "plugins"
         return d if d.is_dir() else None
     except Exception:
         return None

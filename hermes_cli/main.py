@@ -247,7 +247,7 @@ def _early_interface_config_path() -> str:
     home = os.environ.get("HERMES_HOME")
     if home:
         return os.path.join(home, "config.yaml")
-    return os.path.join(os.path.expanduser("~"), ".hermes", "config.yaml")
+    return os.path.join(os.path.expanduser("~"), ".devbuddy", "config.yaml")
 
 
 def _config_default_interface_early() -> str:

@@ -205,7 +205,7 @@ _DEFAULT_EXPORT_INCLUDE_ROOT = frozenset({
 })
 
 # Names that cannot be used as profile aliases
-_RESERVED_NAMES = frozenset({"hermes", "default", "test", "tmp", "root", "sudo"})
+_RESERVED_NAMES = frozenset({"devbuddy", "default", "test", "tmp", "root", "sudo"})
 
 # Hermes subcommands that cannot be used as profile names/aliases
 _HERMES_SUBCOMMANDS = frozenset({
@@ -2168,7 +2168,7 @@ def export_profile(name: str, output_path: str, extra_files: Optional[Dict[str, 
     # Archive base name without extension (.tar.gz appended by the writer).
     base = str(Path(output_path)).removesuffix(".tar.gz").removesuffix(".tgz")
 
-    # The default profile IS ~/.hermes (dir name ".hermes"), so both paths stage a filtered
+    # The default profile IS ~/.hermes (dir name ".devbuddy"), so both paths stage a filtered
     # copy under a temp dir named after the canonical id: root allow-list for default,
     # credential exclusion for named profiles.
     def _ignore_credentials(directory: str, contents: list) -> set:

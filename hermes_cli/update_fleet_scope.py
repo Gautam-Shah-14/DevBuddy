@@ -112,7 +112,7 @@ def systemd_unit_hermes_home(scope_cmd: list, svc_name: str) -> str | None:
         if sep and key == "HERMES_HOME" and value.strip():
             return value.strip()
     if "--user" in scope_cmd:
-        return str(Path.home() / ".hermes")
+        return str(Path.home() / ".devbuddy")
     return None
 
 

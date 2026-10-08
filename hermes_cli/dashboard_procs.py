@@ -178,7 +178,7 @@ def _hermes_home_for_pid(pid: int) -> str | None:
         base = Path(local_appdata) if local_appdata else Path(env.get("USERPROFILE") or Path.home()) / "AppData" / "Local"
         default_home = base / "hermes"
     else:
-        default_home = Path(env.get("HOME") or _pid_passwd_home(pid) or Path.home()) / ".hermes"
+        default_home = Path(env.get("HOME") or _pid_passwd_home(pid) or Path.home()) / ".devbuddy"
     root = profile_root_for_env_home(env_home, default_home)
     fixed_identity = any(env.get(k) for k in ("HERMES_SUPERVISED_CHILD", "HERMES_S6_SUPERVISED_CHILD",
                                                "HERMES_GATEWAY_EXTERNAL_SUPERVISOR")) or is_desktop_ssh_backend_argv(argv)

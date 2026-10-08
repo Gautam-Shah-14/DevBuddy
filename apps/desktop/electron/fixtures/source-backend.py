@@ -86,7 +86,7 @@ def main() -> None:
     python.symlink_to(getattr(sys, "_base_executable", sys.executable))
     Facts(paths.facts_path()).record("python", "fixture", entry.name, {"PATH": [str(python.parent)]},
                                    store, target=current_target(), digest=tree_digest(entry))
-    launchers = ensure_install_launchers(root, root / ".hermes" / "bin")
+    launchers = ensure_install_launchers(root, root / ".devbuddy" / "bin")
     assert launchers
     (root / "desktop_launch_probe.py").write_text(
         "import desktop_backend_proof, json, sys\n"

@@ -115,7 +115,7 @@ def stage_native(args) -> int:
         base_env.setdefault(key, str(Path.home() / directory))
     with tempfile.TemporaryDirectory(prefix=".build-", dir=out) as work:
         env = {**base_env, "HOME": work, "USERPROFILE": work,
-               "HERMES_HOME": str(Path(work) / ".hermes"),
+               "HERMES_HOME": str(Path(work) / ".devbuddy"),
                "HERMES_RUNTIME_DIR": str(out / "tools"),
                "HERMES_PYTHON_SRC_ROOT": str(root),
                "XDG_CACHE_HOME": str(Path(work) / "cache"),

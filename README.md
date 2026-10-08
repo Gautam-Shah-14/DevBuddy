@@ -34,7 +34,27 @@ Use any model you want — [Nous Portal](https://portal.nousresearch.com), OpenR
 
 ## Quick Install
 
-### Linux, macOS, WSL2
+> **Docker is optional, not required.** The CLI (`hermes`) is a plain Python program — it
+> runs directly on your machine against your own local Ollama (or OpenAI/Anthropic/any
+> provider) with no container involved. `docker-compose.yml` in this repo only stands up
+> the *gateway* and *dashboard* services (the always-on messaging-platform bridge and web
+> UI) for people who want Hermes running as a background service reachable from Telegram,
+> Discord, etc. If you just want to chat with it from a terminal, skip Docker entirely.
+
+> **This repo is a fork-in-progress**, not yet packaged under its own installer. There is
+> no hosted one-liner yet — run it from source for now:
+>
+> ```bash
+> git clone <this repo's URL> && cd <repo>
+> source ./activate      # provisions + activates a local Python/Node environment (no Docker)
+> hermes                 # start chatting — defaults to your local Ollama
+> ```
+>
+> See `CONTRIBUTING.md` for the full source-setup walkthrough (Python/Node versions, the
+> `pm` tool-manager, running tests). The sections below describe the installer-based setup
+> inherited from upstream Hermes Agent and still apply once this fork has its own installer.
+
+### Linux, macOS, WSL2 (upstream installer — not yet repointed at this fork)
 
 ```bash
 curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
@@ -58,7 +78,7 @@ for the separate MSIX/App Installer package and its update ownership.
 
 > **Android / Termux:** A signed APT repository is available for aarch64 devices, with a `stable` channel (tagged releases) and a prerelease `canary` channel. The package includes Python, Node.js, and the TUI. Use the [Termux guide](https://hermes-agent.nousresearch.com/docs/getting-started/termux), not the desktop/server installer script.
 >
-> **Windows:** Native Windows is fully supported — the PowerShell one-liner above installs everything. If you'd rather use WSL2, the Linux command works there too. Native Windows install lives under `%LOCALAPPDATA%\hermes`; WSL2 installs under `~/.hermes` as on Linux.
+> **Windows:** Native Windows is fully supported — the PowerShell one-liner above installs everything. If you'd rather use WSL2, the Linux command works there too. Native Windows install lives under `%LOCALAPPDATA%\devbuddy`; WSL2 installs under `~/.devbuddy` as on Linux.
 
 After installation:
 
@@ -119,7 +139,25 @@ hermes update       # Update to the latest version
 hermes doctor       # Diagnose any issues
 ```
 
-📖 **[Full documentation →](https://hermes-agent.nousresearch.com/docs/)**
+📖 **[Full documentation →](https://hermes-agent.nousresearch.com/docs/)** (upstream Hermes docs —
+mostly still accurate for this fork, except anything about where data is stored; see below)
+
+### Data & config location
+
+All local state — `config.yaml`, `.env` secrets, the session database, skills, logs, named
+profiles — lives under `~/.devbuddy` (`%LOCALAPPDATA%\devbuddy` on native Windows), not
+`~/.hermes`. This is controlled by one place in the code
+(`hermes_constants._get_platform_default_hermes_home()`); the `HERMES_HOME` environment
+variable still overrides it the same way it always did, if you want data stored somewhere
+else entirely (a different drive, a synced folder, a container volume, etc.):
+
+```bash
+export HERMES_HOME=/path/to/your/data   # optional override; defaults to ~/.devbuddy
+hermes doctor                            # confirms where it's reading/writing from
+```
+
+`hermes doctor` and `hermes profile list` both print the active home path if you want to
+double-check where things actually landed.
 
 ---
 
@@ -205,7 +243,7 @@ What gets imported:
 
 - **SOUL.md** — persona file
 - **Memories** — MEMORY.md and USER.md entries
-- **Skills** — user-created skills → `~/.hermes/skills/openclaw-imports/`
+- **Skills** — user-created skills → `~/.devbuddy/skills/openclaw-imports/`
 - **Command allowlist** — approval patterns
 - **Messaging settings** — platform configs, allowed users, working directory
 - **API keys** — allowlisted secrets (Telegram, OpenRouter, OpenAI, Anthropic, ElevenLabs)

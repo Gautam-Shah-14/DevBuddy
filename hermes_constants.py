@@ -54,12 +54,12 @@ def _get_platform_default_hermes_home() -> Path:
     if sys.platform == "win32":
         local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
         base = Path(local_appdata) if local_appdata else Path.home() / "AppData" / "Local"
-        return base / ("hermes" + suffix)
-    return Path.home() / (".hermes" + suffix)
+        return base / ("devbuddy" + suffix)
+    return Path.home() / (".devbuddy" + suffix)
 
 
 def sudo_invoker_default_home() -> Path | None:
-    """The invoking user's native ``~/.hermes`` when this process is root under ``sudo``, else None.
+    """The invoking user's native ``~/.devbuddy`` when this process is root under ``sudo``, else None.
 
     sudo strips HERMES_HOME and sets HOME=/root, so the process's own default is root's; the profile
     store and the system service being operated on belong to SUDO_USER.
@@ -72,7 +72,7 @@ def sudo_invoker_default_home() -> Path | None:
     import pwd
 
     try:
-        return Path(pwd.getpwnam(sudo_user).pw_dir) / ".hermes"
+        return Path(pwd.getpwnam(sudo_user).pw_dir) / ".devbuddy"
     except KeyError:  # SUDO_USER not in passwd (chroot/container)
         return None
 
@@ -226,7 +226,7 @@ def get_default_hermes_root(*, home: str | Path | None = None) -> Path:
     result = native_home
     if env_path is not None:
         try:
-            env_path.resolve().relative_to(native_home.resolve())  # under ~/.hermes (normal or profile mode)
+            env_path.resolve().relative_to(native_home.resolve())  # under ~/.devbuddy (normal or profile mode)
         except ValueError:  # Docker/custom root: <root>/profiles/<name> -> <root>, else HERMES_HOME itself
             result = env_path.parent.parent if env_path.parent.name == "profiles" else env_path
     _default_hermes_root_memo = (*memo_key, result)
@@ -242,11 +242,11 @@ _HERMES_HOME_MARKERS = ("config.yaml", ".env", "state.db")
 def _is_hermes_profiles_root(profiles_dir: Path) -> bool:
     """True when *profiles_dir* is provably ``<hermes-home>/profiles``.
 
-    Accepts the classic ``~/.hermes`` layout, a root carrying Hermes-home marker files, a
+    Accepts the classic ``~/.devbuddy`` layout, a root carrying Hermes-home marker files, a
     ``profiles/.deleted`` tombstone dir (only ``profile delete`` creates it), or the default root.
     """
     root = profiles_dir.parent
-    if root.name == ".hermes":
+    if root.name == ".devbuddy":
         return True
     try:
         if (profiles_dir / _DELETED_PROFILES_DIR).is_dir() or any(
@@ -272,7 +272,7 @@ def named_profile_home(path: str | Path) -> Path | None:
         if (candidate.parent.name == "profiles" and not candidate.name.startswith(".")
                 and _is_hermes_profiles_root(candidate.parent)):
             return candidate
-        if candidate.name == ".hermes":  # default home: a coincidental profiles/ ancestor is not a root
+        if candidate.name == ".devbuddy":  # default home: a coincidental profiles/ ancestor is not a root
             return None
     return None
 
@@ -280,7 +280,7 @@ def named_profile_home(path: str | Path) -> Path | None:
 def profile_name_for_home(path: str | Path | None) -> str | None:
     """Return the canonical profile id owning *path*, or ``None`` when it is not a profile home.
 
-    The default home is the Hermes root itself, so its basename is an installation detail (``.hermes``
+    The default home is the Hermes root itself, so its basename is an installation detail (``.devbuddy``
     on POSIX and commonly ``hermes`` on Windows), not the profile id ``default``.
     """
     if path is None or not str(path).strip():
@@ -573,7 +573,7 @@ def _legacy_path_has_content(path: Path) -> bool:
 
 
 def display_hermes_home(home: Path | None = None) -> str:
-    """User-facing ``~/`` display string for HERMES_HOME (``~/.hermes/profiles/coder``).
+    """User-facing ``~/`` display string for HERMES_HOME (``~/.devbuddy/profiles/coder``).
 
     ``home`` overrides the lookup for callers that run before the CLI has applied the sticky
     ``active_profile`` (``get_hermes_home()`` would emit the wrong-profile fallback warning there).

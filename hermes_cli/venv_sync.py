@@ -85,9 +85,9 @@ def publish_launchers(project_root: Path, *, create: bool = True) -> None:
         # source-driver.sh refuses to let --version paper over the gap), so
         # this skip is a half-finished update, never a quiet no-op.
         log.warning("launchers: no managed interpreter under %s; %s not published",
-                    root, root / ".hermes" / "bin")
+                    root, root / ".devbuddy" / "bin")
         return
-    written = ensure_install_launchers(root, root / ".hermes" / "bin")
+    written = ensure_install_launchers(root, root / ".devbuddy" / "bin")
     if len(written) != len(ENTRY_POINTS):
         from pm.package import InstallError
 
@@ -189,7 +189,7 @@ def refuse_foreign_owned_venv(project_root: Path) -> None:
     # A root-run update on a user's checkout is not safe even if a fresh
     # generation would be allocated: it publishes root-owned state for them.
     from pm.environments import selected_venv
-    candidates = [root, root / "venv", root / ".venv", root / ".hermes", selected_venv(root)]
+    candidates = [root, root / "venv", root / ".venv", root / ".devbuddy", selected_venv(root)]
     for venv in (root / "venv", root / ".venv", candidates[-1]):
         for directory in (venv / ("Scripts" if os.name == "nt" else "bin"),
                           *venv.glob("lib/python*/site-packages")):

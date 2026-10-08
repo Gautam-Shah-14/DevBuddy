@@ -797,7 +797,7 @@ class LineAdapter(BasePlatformAdapter):
             from hermes_constants import get_hermes_home
             hermes_home = Path(get_hermes_home()).resolve()
         except Exception:
-            hermes_home = Path.home().joinpath(".hermes").resolve()
+            hermes_home = Path.home().joinpath(".devbuddy").resolve()
         resolved = path.resolve()
         if not any(resolved.is_relative_to(r) for r in (Path(tempfile.gettempdir()).resolve(), Path("/tmp").resolve(), hermes_home)):  # no-tmp: ok — macOS /private/tmp alias in the allowed-roots check, not a write target
             logger.warning("LINE: refusing to serve outside allowed roots: %s", resolved)
