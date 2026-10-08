@@ -1759,6 +1759,17 @@ DEFAULT_CONFIG = {
         "tirith_timeout": 5,
         "tirith_fail_open": True,
         "website_blocklist": {"enabled": False, "domains": [], "shared_files": []},
+        # PII/secret scrubbing of OUTGOING messages before they reach the AI provider (plugins/
+        # pii-guardrails/) - a different boundary than redact_secrets above, which scrubs the
+        # AGENT's own text on egress to monitoring/chat platforms, never the user's own prompt
+        # content on its way to the model. "off": no scanning. "mask": PII/secrets are replaced
+        # with stable placeholders before the request leaves, and restored in the model's reply
+        # before it's shown/stored. "block": like "mask", but the provider only ever sees a
+        # placeholder-substituted request (the real content is never put on the wire) and the
+        # user gets a clear refusal instead of a model-generated reply. Needs `pip install -e
+        # ".[guardrails]"` (Presidio + a spaCy model) - unset until that's installed, regardless
+        # of this value.
+        "pii_guardrails_mode": "off",
         # IDs of supply-chain advisories the user has read and acted on; acked ones stop the startup
         # banner. Add via `hermes doctor --ack <id>`; remove by editing the list. Catalog:
         # devbuddy_cli/security_advisories.py.

@@ -1,0 +1,8 @@
+name: pii-guardrails
+version: "1.0.0"
+description: "Masks PII and secrets (email, phone, SSN, credit card, AWS keys, JWTs, private keys, Indian Aadhaar/PAN/GSTIN) in outgoing messages before they reach the AI provider, restoring them in the model's reply before it's shown or stored. Off by default - security.pii_guardrails_mode: off|mask|block. Needs `pip install -e \".[guardrails]\"` (Presidio + a spaCy model)."
+author: "TokenBurners"
+provides_hooks:
+  - transform_llm_output
+  # Also registers "llm_request" middleware in code (masks api_kwargs["messages"] before the
+  # provider call) - there's no provides_middleware manifest field yet, so it's not listed above.

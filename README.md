@@ -114,6 +114,25 @@ conversation, many slash commands are shared across both interfaces.
 
 ---
 
+## Security & Guardrails
+
+DevBuddy can mask or block PII and secrets (email, phone, SSN, credit card, AWS keys, JWTs,
+private keys, Indian Aadhaar/PAN/GSTIN) in your outgoing messages before they ever reach the
+AI provider, restoring them in the model's reply before it's shown or stored. It's off by
+default. To turn it on:
+
+```bash
+pip install -e ".[guardrails]"
+devbuddy plugins enable pii-guardrails
+devbuddy config set security.pii_guardrails_mode mask   # or "block" to refuse instead
+```
+
+`mask` replaces sensitive values with placeholders before the request leaves your machine and
+swaps them back in the reply; `block` never puts the real content on the wire at all and
+returns a refusal instead. See `plugins/pii-guardrails/` for the implementation.
+
+---
+
 ## Documentation
 
 This fork doesn't have its own docs site yet. [Hermes Agent's own docs](https://hermes-agent.nousresearch.com/docs/)
