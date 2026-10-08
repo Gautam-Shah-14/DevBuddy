@@ -69,7 +69,7 @@ def ensure_windows_bin_launchers(
     interpreter (no-boot-through-venv; ``pyvenv.cfg`` is inert dead
     config). The canonical launcher home is
     the managed binary dir — the default Hermes root's ``bin``
-    (``%LOCALAPPDATA%\\hermes\\bin``, next to the managed uv) — which lives
+    (``%LOCALAPPDATA%\\devbuddy\\bin``, next to the managed uv) — which lives
     OUTSIDE the git checkout so no git operation can ever touch it. It is
     a per-machine dir shared by every profile: ``get_hermes_home()`` would
     point inside ``profiles\\<name>`` under ``hermes -p``, so the anchor

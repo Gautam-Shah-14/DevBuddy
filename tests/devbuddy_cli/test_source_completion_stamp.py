@@ -58,7 +58,7 @@ def test_failed_source_completion_does_not_publish_identity(tmp_path, monkeypatc
 def _verify_bootstrap_receipt(root: Path) -> subprocess.CompletedProcess:
     """The same verifier the Windows install/update E2E runs after an update."""
     script = Path(__file__).resolve().parents[2] / "scripts" / "verify-bootstrap-version-stamp.py"
-    return subprocess.run([sys.executable, "-B", str(script), "--stamp", str(root / ".hermes-bootstrap-complete"),
+    return subprocess.run([sys.executable, "-B", str(script), "--stamp", str(root / ".devbuddy-bootstrap-complete"),
                            "--repo", str(root)], capture_output=True, text=True, encoding="utf-8")
 
 
@@ -69,7 +69,7 @@ def test_publishing_checkout_identity_moves_an_installer_receipt_to_head(tmp_pat
     release = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, encoding="utf-8", check=True).stdout.strip()
     branch = subprocess.run(["git", "branch", "--show-current"], cwd=root, capture_output=True, text=True, encoding="utf-8", check=True).stdout.strip()
     # What install.sh / install.ps1's complete stage leaves behind at the installed release.
-    (root / ".hermes-bootstrap-complete").write_text(json.dumps({
+    (root / ".devbuddy-bootstrap-complete").write_text(json.dumps({
         "schemaVersion": 1, "pinnedCommit": release, "pinnedBranch": branch, "completedAt": "2026-06-19T00:00:00.000Z",
     }), encoding="utf-8")
     subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", "update"], cwd=root, check=True, capture_output=True,
@@ -85,7 +85,7 @@ def test_publishing_checkout_identity_never_invents_an_installer_receipt(tmp_pat
     root = _repo(tmp_path)
 
     assert write_source_stamp(root) is not None
-    assert not (root / ".hermes-bootstrap-complete").exists()
+    assert not (root / ".devbuddy-bootstrap-complete").exists()
 
 
 def test_shallow_checkout_publishes_its_release_after_fetching_the_commit_graph(tmp_path):

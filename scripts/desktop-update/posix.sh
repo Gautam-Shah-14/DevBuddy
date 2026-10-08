@@ -363,7 +363,7 @@ linux_gate() {
   if [ -u "$sb" ] && [ "$(stat -c %u "$sb" 2>/dev/null)" = "0" ]; then GATE=relaunch; return; fi
   # Namespace sandbox usable => Electron never consults the setuid helper,
   # so a non-root chrome-sandbox does not block relaunch (mirrors the
-  # _desktop_linux_userns_sandbox_available() probe in hermes_cli/main.py).
+  # _desktop_linux_userns_sandbox_available() probe in devbuddy_cli/main.py).
   if unshare --user --map-root-user true 2>/dev/null; then GATE=relaunch; return; fi
 
   case "${ELECTRON_DISABLE_SANDBOX:-}" in 1|true|TRUE|True) GATE=relaunch; return ;; esac
@@ -527,7 +527,7 @@ trap finish EXIT
 # #96231; heal-point observation by @ahrazzle / @tokenfires on #95759).
 #
 # Ping-pong coherence with the re-landed forward anchor
-# (hermes_cli/macos_tcc_anchor.ensure_tcc_anchor, which re-anchors whenever
+# (devbuddy_cli/macos_tcc_anchor.ensure_tcc_anchor, which re-anchors whenever
 # `venv/bin/python` is a uv-managed symlink): this heal is gated on the
 # interpreter FAILING its boot probe, so a healthy anchored install is never
 # touched; and when it does restore symlinks, the very `hermes update` run it
@@ -641,12 +641,12 @@ EOF_ALIASES
 
 tcc_pick_update_invoke() { # sets UPDATE_INVOKE; safety net past a failed heal
   # Last-resort class: aliases still dead but the anchored copy boots. The
-  # launchd gateway proves `venv/bin/python -m hermes_cli.main` works when
+  # launchd gateway proves `venv/bin/python -m devbuddy_cli.main` works when
   # every alias entrypoint is bricked — drive the update the same way.
   local bin="$1"
-  UPDATE_INVOKE=("$bin/hermes")
+  UPDATE_INVOKE=("$bin/devbuddy")
   if ! tcc_probe_python "$bin/python3" && tcc_probe_python "$bin/python"; then
-    UPDATE_INVOKE=("$bin/python" -m hermes_cli.main)
+    UPDATE_INVOKE=("$bin/python" -m devbuddy_cli.main)
   fi
 }
 
@@ -759,15 +759,15 @@ start_ui
 LEGACY_INSTALL=0
 [ -d "$INSTALL_ROOT/pm" ] || LEGACY_INSTALL=1
 select_update_invoke() {
-  HERMES_BIN="$INSTALL_ROOT/.hermes/bin/hermes"
+  HERMES_BIN="$INSTALL_ROOT/.devbuddy/bin/devbuddy"
   if [ -x "$HERMES_BIN" ]; then
     UPDATE_INVOKE=("$HERMES_BIN")
     return 0
   fi
-  if [ -f "$INSTALL_ROOT/hermes_cli/_launchers.py" ]; then
+  if [ -f "$INSTALL_ROOT/devbuddy_cli/_launchers.py" ]; then
     local candidate version reported expected
     expected="$(cd "$INSTALL_ROOT" && pwd -P)" || return 1
-    for candidate in "$HOME/.local/bin/hermes" "$HERMES_HOME/bin/hermes"; do
+    for candidate in "$HOME/.local/bin/devbuddy" "$HERMES_HOME/bin/devbuddy"; do
       [ -x "$candidate" ] || continue
       version="$("$candidate" --version 2>/dev/null)" || continue
       reported="$(printf '%s\n' "$version" | sed -n 's/^Install directory: //p')"
@@ -779,7 +779,7 @@ select_update_invoke() {
     done
   fi
   if [ "$LEGACY_INSTALL" -eq 1 ] && [ ! -d "$INSTALL_ROOT/pm" ]; then
-    HERMES_BIN="$INSTALL_ROOT/venv/bin/hermes"
+    HERMES_BIN="$INSTALL_ROOT/venv/bin/devbuddy"
     [ -x "$HERMES_BIN" ] || return 1
     if [ "$(uname)" = Darwin ]; then
       tcc_anchor_heal "$INSTALL_ROOT/venv/bin" || log "TCC anchor rescue failed ($TCC_HEAL_STATE)"

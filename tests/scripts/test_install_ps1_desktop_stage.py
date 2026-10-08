@@ -214,7 +214,7 @@ def test_complete_stage_writes_pinned_install_marker(tmp_path: Path) -> None:
     run = _run(powershell, tmp_path, ["-Stage", "complete", "-Commit", commit, "-Json"])
     assert run.returncode == 0, run.stdout + run.stderr
     assert json.loads(run.stdout.splitlines()[-1])["ok"] is True
-    marker = json.loads((install / ".hermes-bootstrap-complete").read_text(encoding="utf-8-sig"))
+    marker = json.loads((install / ".devbuddy-bootstrap-complete").read_text(encoding="utf-8-sig"))
     assert marker["pinnedCommit"] == commit
     assert marker["pinnedBranch"] == "main"
 

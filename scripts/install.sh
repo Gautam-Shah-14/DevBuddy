@@ -665,11 +665,11 @@ stage_products() {
     if [ "$INCLUDE_DESKTOP" = true ] || desktop_product_present; then
         args+=(--desktop)
     fi
-    (cd "$INSTALL_DIR" && run_logged "Building the hermes command and apps" \
-        "$boot_py" -I -B -X utf8 hermes_cli/source_completion.py "${args[@]}") \
+    (cd "$INSTALL_DIR" && run_logged "Building the devbuddy command and apps" \
+        "$boot_py" -I -B -X utf8 devbuddy_cli/source_completion.py "${args[@]}") \
         || fail "app products or command publication failed"
     wire_shell_path
-    log_success "app products and hermes command ready"
+    log_success "app products and devbuddy command ready"
 }
 
 stage_desktop() {
@@ -724,10 +724,10 @@ stage_complete() {
     [ -n "$commit" ] || commit=$(git -C "$INSTALL_DIR" rev-parse HEAD 2>/dev/null) || commit=""
     if [ -n "$commit" ]; then
         printf '{\n  "schemaVersion": 1,\n  "pinnedCommit": "%s",\n  "pinnedBranch": "%s",\n  "completedAt": "%s"\n}\n' \
-            "$commit" "$BRANCH" "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" > "$INSTALL_DIR/.hermes-bootstrap-complete.tmp"
-        mv -f "$INSTALL_DIR/.hermes-bootstrap-complete.tmp" "$INSTALL_DIR/.hermes-bootstrap-complete"
+            "$commit" "$BRANCH" "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" > "$INSTALL_DIR/.devbuddy-bootstrap-complete.tmp"
+        mv -f "$INSTALL_DIR/.devbuddy-bootstrap-complete.tmp" "$INSTALL_DIR/.devbuddy-bootstrap-complete"
     fi
-    log_success "Hermes Agent install complete. Run: hermes"
+    log_success "DevBuddy install complete. Run: devbuddy"
 }
 
 print_path_reload_hint() {

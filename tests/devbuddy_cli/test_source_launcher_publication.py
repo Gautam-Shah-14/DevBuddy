@@ -45,7 +45,7 @@ def fixture_tree(tmp_path, monkeypatch):
     # Windows resolves its default under LOCALAPPDATA, not HOME.
     if os.name == "nt":
         monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
-    home = tmp_path / ("hermes" if os.name == "nt" else ".hermes")
+    home = tmp_path / ("devbuddy" if os.name == "nt" else ".devbuddy")
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("HERMES_HOME", str(home))
     monkeypatch.delenv("HERMES_RUNTIME_DIR", raising=False)
@@ -116,16 +116,16 @@ def test_launcher_resolves_default_home_at_use_not_publication(tmp_path, monkeyp
     new_user_home = tmp_path / "second-user"
     new_user_home.mkdir()
     monkeypatch.setenv("HOME", str(new_user_home))
-    monkeypatch.setenv("HERMES_HOME", str(new_user_home / ".hermes"))
+    monkeypatch.setenv("HERMES_HOME", str(new_user_home / ".devbuddy"))
     select_generation(repo, "second", "from-second-user")
     env = dict(os.environ)
     env.pop("HERMES_HOME")
     result = subprocess.run([str(launcher)], cwd=tmp_path, env=env,
                             capture_output=True, text=True, encoding="utf-8", timeout=30)
     assert result.returncode == 7, result.stdout + result.stderr
-    assert json.loads(result.stdout)["home"] == str(new_user_home / ".hermes")
+    assert json.loads(result.stdout)["home"] == str(new_user_home / ".devbuddy")
     assert json.loads(result.stdout)["value"] == "from-second-user"
-    assert published_home != new_user_home / ".hermes"
+    assert published_home != new_user_home / ".devbuddy"
 
 
 @pytest.mark.parametrize("publisher", [
@@ -205,16 +205,16 @@ def test_posix_materializer_publishes_only_executable_shell_launchers(tmp_path, 
     assert {p.name for p in launchers} == set(_launchers.ENTRY_POINTS)
     assert all(os.access(p, os.X_OK) for p in launchers)
     assert set(out.iterdir()) == set(launchers)
-    local = repo / ".hermes" / "bin"
+    local = repo / ".devbuddy" / "bin"
     assert {p.name for p in local.iterdir()} == set(_launchers.ENTRY_POINTS)
-    launcher = local / "hermes"
+    launcher = local / "devbuddy"
     expected = launcher.read_bytes()
     launcher.write_bytes(b"\xef\xbb\xbf" + expected if corruption == "bom" else expected.replace(b"\n", b"\r\n"))
     assert _launchers.ensure_install_launchers(repo, out)
     # Shell executables need exact bytes: neither a BOM before #! nor CRLF is
     # interchangeable with the generated script, even if text decoding agrees.
     assert launcher.read_bytes() == expected
-    result = subprocess.run([str(out / "hermes"), "--print-runtime-command"],
+    result = subprocess.run([str(out / "devbuddy"), "--print-runtime-command"],
                             capture_output=True, text=True, encoding="utf-8", timeout=30)
     assert result.returncode == 0, result.stderr
     assert Path(json.loads(result.stdout)[0]).samefile(_interpreter)
@@ -246,17 +246,17 @@ def test_boot_migrates_legacy_conveniences_to_selected_runtime(tmp_path, monkeyp
     out = home / ".local" / "bin"
     out.mkdir(parents=True)
     # Old venv and sibling-ACP wrappers, with an unrelated command sharing bin.
-    (out / "hermes").write_text(f'#!/bin/sh\nexec "{repo}/venv/bin/python" "{repo}/hermes" "$@"\n', encoding="utf-8")
-    (out / "hermes-acp").write_text(
+    (out / "devbuddy").write_text(f'#!/bin/sh\nexec "{repo}/venv/bin/python" "{repo}/devbuddy" "$@"\n', encoding="utf-8")
+    (out / "devbuddy-acp").write_text(
         '#!/usr/bin/env bash\n# Hermes Agent — ACP launcher (written by `hermes update`).\n'
-        f'exec "{out}/hermes" acp "$@"\n', encoding="utf-8")
+        f'exec "{out}/devbuddy" acp "$@"\n', encoding="utf-8")
     foreign = f'#!/bin/sh\n# user note about {repo}\nexit 19\n'
     (out / "hermes-agent").write_text(foreign, encoding="utf-8")
 
     result = _launchers.expose_cli()
     assert result["ok"], result
-    assert set(result["written"]) == {"hermes", "hermes-acp"}
-    for name in ("hermes", "hermes-acp"):
+    assert set(result["written"]) == {"devbuddy", "devbuddy-acp", "devbuddy-legacy"}
+    for name in ("devbuddy", "devbuddy-acp"):
         run = subprocess.run([str(out / name), "quoted argument"], cwd=tmp_path,
                              capture_output=True, text=True, timeout=30, encoding="utf-8")
         assert run.returncode == 7, run.stderr
@@ -277,7 +277,7 @@ def _command_survives_generation_collection(tmp_path, monkeypatch, surface):
     out = tmp_path / "bin"
     out.mkdir()
     _launchers.ensure_install_launchers(repo, out)
-    launcher = next(path for path in out.iterdir() if path.stem == "hermes")
+    launcher = next(path for path in out.iterdir() if path.stem == "devbuddy")
     args = ["café ' quoted", "", "$HOME; not a shell"]
     command = []
     for value in ("old", "new"):
@@ -349,17 +349,17 @@ def test_running_source_launcher_can_republish_itself(tmp_path, monkeypatch, lau
         "from devbuddy_cli._launchers import ensure_install_launchers, ENTRY_POINTS\n"
         "def main():\n"
         "    root = Path(__file__).resolve().parents[1]\n"
-        "    written = ensure_install_launchers(root, root / '.hermes/bin')\n"
+        "    written = ensure_install_launchers(root, root / '.devbuddy/bin')\n"
         "    print('published', len(written), len(ENTRY_POINTS), flush=True)\n"
         "    return 0 if len(written) == len(ENTRY_POINTS) else 1\n",
         encoding="utf-8",
     )
-    out = repo / ".hermes/bin"
+    out = repo / ".devbuddy/bin"
     if launcher_form == "cmd":
         monkeypatch.setattr(_launchers, "_load_script_maker", lambda: None)
     launchers = _launchers.ensure_install_launchers(repo, out)
     assert len(launchers) == len(_launchers.ENTRY_POINTS)
-    command = next(Path(p) for p in launchers if Path(p).stem == "hermes")
+    command = next(Path(p) for p in launchers if Path(p).stem == "devbuddy")
     assert command.suffix == (".cmd" if launcher_form == "cmd" else ".exe")
     result = subprocess.run([str(command)], cwd=tmp_path, capture_output=True,
                             text=True, encoding="utf-8", timeout=30)
@@ -373,7 +373,7 @@ def test_running_source_launcher_can_republish_itself(tmp_path, monkeypatch, lau
 @pytest.mark.platforms("windows")
 def test_repin_without_distlib_retires_stale_native_launcher(tmp_path, monkeypatch):
     repo, home, _interpreter = fixture_tree(tmp_path, monkeypatch)
-    local = repo / ".hermes/bin"
+    local = repo / ".devbuddy/bin"
     original = Path(_launchers.ensure_install_launchers(repo, local)[0])
     assert original.suffix == ".exe"
     new_python = home / "tools" / "repinned" / "python.exe"
@@ -382,8 +382,8 @@ def test_repin_without_distlib_retires_stale_native_launcher(tmp_path, monkeypat
     (home / "tools/facts.json").write_text(
         json.dumps({"packages": {"python": {"entry": "repinned"}}}), encoding="utf-8")
     monkeypatch.setattr(_launchers, "_load_script_maker", lambda: None)
-    result = _launchers.stage_launcher("hermes", repo, local)
-    assert result == local / "hermes.cmd"
+    result = _launchers.stage_launcher("devbuddy", repo, local)
+    assert result == local / "devbuddy.cmd"
     assert not original.exists()  # cmd.exe must not run the old exe first
     assert result is not None and str(new_python) in result.read_text(encoding="utf-8-sig")
 
@@ -400,10 +400,10 @@ def test_windows_repair_upgrades_healthy_old_pm_external_launchers(tmp_path, mon
     for name in _launchers.ENTRY_POINTS:
         (external / f"{name}.exe").write_bytes(b"old PM launcher without a venv binding")
     assert ensure_windows_bin_launchers(managed, user_path_entries=[])
-    local = managed / ".hermes" / "bin"
-    launcher = local / "hermes.exe"
+    local = managed / ".devbuddy" / "bin"
+    launcher = local / "devbuddy.exe"
     if not launcher.exists():
-        launcher = local / "hermes.cmd"
+        launcher = local / "devbuddy.cmd"
     result = subprocess.run([str(launcher), "--print-runtime-command"], capture_output=True,
                             text=True, timeout=30, encoding="utf-8")
     assert result.returncode == 0, result.stderr
@@ -508,18 +508,18 @@ def test_sync_migrates_old_store_wrapper_before_python_collection(tmp_path, monk
         python.symlink_to(interpreter)
         (store / "facts.json").write_text(json.dumps({"schema": 1, "packages": {"python": {"entry": version}}}), encoding="utf-8")
         if version == "python-A":
-            _launchers.mint_launcher("hermes", repo, out, python, None)
+            _launchers.mint_launcher("devbuddy", repo, out, python, None)
         else:
             if create:
                 publish_launchers(repo)
             else:
                 publish_launchers(repo, create=False)
-                assert set(out.iterdir()) == {out / "hermes"}
+                assert set(out.iterdir()) == {out / "devbuddy"}
                 assert not (home / "bin").exists()
                 assert not (home / "config.yaml").exists()
                 assert not (home / "skills").exists()
     shutil.rmtree(store / "python-A")
-    result = subprocess.run([str(out / "hermes")], cwd=tmp_path,
+    result = subprocess.run([str(out / "devbuddy")], cwd=tmp_path,
                             capture_output=True, text=True, timeout=30, encoding="utf-8")
     assert result.returncode == 7, result.stderr
     assert json.loads(result.stdout)["value"] == "ready"

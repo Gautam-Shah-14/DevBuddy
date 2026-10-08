@@ -53,7 +53,7 @@ def test_stage_processes_restore_pinned_git_and_never_fall_back(tmp_path):
     checkout = home / "hermes-agent"
     actual = subprocess.run([str(staged[0]), "-C", str(checkout), "rev-parse", "HEAD"],
                             check=True, capture_output=True, text=True).stdout.strip()
-    marker = json.loads((checkout / ".hermes-bootstrap-complete").read_text(encoding="utf-8-sig"))
+    marker = json.loads((checkout / ".devbuddy-bootstrap-complete").read_text(encoding="utf-8-sig"))
     assert actual == expected == marker["pinnedCommit"]
 
     # Even when system Git is on PATH, an unsupported pin must fail closed.

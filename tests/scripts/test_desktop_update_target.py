@@ -105,7 +105,7 @@ def _run_handoff(tmp_path, target, *, windows=False, inherited_home=True, modern
             bin_dir = install / "venv" / "bin"
             bin_dir.mkdir(parents=True)
             (bin_dir / "python3").symlink_to(sys.executable)
-            hermes = bin_dir / "hermes"
+            hermes = bin_dir / "devbuddy"
             hermes.write_text(
                 f'#!/usr/bin/env bash\nexec {shlex.quote(sys.executable)} -m devbuddy_cli.main "$@"\n',
                 encoding="utf-8",
@@ -266,5 +266,5 @@ def test_earlier_pm_userbin_publication_requires_exact_source_identity(tmp_path,
     result, calls, home, install = _run_handoff(tmp_path, [], modern=True, userbin_only=True, foreign=foreign)
     assert result.returncode == (3 if foreign else 0), result.stdout + result.stderr
     assert len(calls) == (0 if foreign else 1)
-    assert not (install / '.hermes/bin/hermes').exists()
+    assert not (install / '.devbuddy/bin/devbuddy').exists()
     assert not (install / 'venv').exists()

@@ -210,18 +210,18 @@ fi
 # Publish user-facing launchers
 # ============================================================================
 
-echo -e "${CYAN}→${NC} Setting up hermes command..."
+echo -e "${CYAN}→${NC} Setting up devbuddy command..."
 
 # Reuse the bootstrap interpreter only to run the shared launcher writer.
 bin_dir="$HOME/.local/bin"
 if [ "$os" = win32 ]; then
-    bin_dir="$(cygpath -am "${HERMES_HOME:-${LOCALAPPDATA:-$HOME/AppData/Local}/hermes}/bin")"
+    bin_dir="$(cygpath -am "${HERMES_HOME:-${LOCALAPPDATA:-$HOME/AppData/Local}/devbuddy}/bin")"
 fi
-if ! "$boot_py" -I -X utf8 hermes_cli/_launchers.py "$bin_dir"; then
+if ! "$boot_py" -I -X utf8 devbuddy_cli/_launchers.py "$bin_dir"; then
     echo -e "${RED}✗${NC} launcher publication failed" >&2
     exit 1
 fi
-echo -e "${GREEN}✓${NC} Published Hermes commands in $bin_dir"
+echo -e "${GREEN}✓${NC} Published devbuddy commands in $bin_dir"
 
 if [ "$os" != win32 ]; then
     # Determine the appropriate shell config file

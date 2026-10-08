@@ -1533,7 +1533,7 @@ function Invoke-PhaseVerifyStamp {
     Assert-True ($head -match '^[0-9a-f]{40}$') "installed HEAD readable: '$head'"
     Write-Host "  install HEAD: $($head.Substring(0, 12))"
     & python -B (Join-Path $RepoRoot 'scripts\verify-bootstrap-version-stamp.py') `
-        --stamp (Join-Path $InstallDir '.hermes-bootstrap-complete') `
+        --stamp (Join-Path $InstallDir '.devbuddy-bootstrap-complete') `
         --repo $InstallDir --expect-commit $state.current
     if ($LASTEXITCODE -ne 0) { throw "stamp verification failed (exit $LASTEXITCODE)" }
 }

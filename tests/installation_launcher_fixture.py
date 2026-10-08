@@ -19,9 +19,9 @@ def publish_fixture_launcher(root: Path, main_source: str) -> Path:
     (root / "pm").mkdir(exist_ok=True)
     for relative in ("devbuddy_constants.py", "devbuddy_cli/_launchers.py", "pm/environments.py"):
         shutil.copyfile(repository / relative, root / relative)
-    out = root / ".hermes" / "bin"
+    out = root / ".devbuddy" / "bin"
     out.mkdir(parents=True)
-    launcher = mint_launcher("hermes", root, out, Path(sys.executable), None)
+    launcher = mint_launcher("devbuddy", root, out, Path(sys.executable), None)
     assert launcher is not None
     assert not (root / "venv").exists()
     return launcher

@@ -39,7 +39,7 @@ def test_dmg_driver_requires_complete_pm_source_install(tmp_path, missing, expec
     if missing != "app":
         (root / "apps/desktop/release/mac-arm64/Hermes.app").mkdir(parents=True)
     if missing not in {"completion", "historical", "wrong-root-log"}:
-        (root / ".hermes-bootstrap-complete").write_text("completed", encoding="utf-8")
+        (root / ".devbuddy-bootstrap-complete").write_text("completed", encoding="utf-8")
     # The legacy file must not mask a missing PM publication.
     legacy = root / "venv/bin/hermes"
     legacy.parent.mkdir(parents=True)

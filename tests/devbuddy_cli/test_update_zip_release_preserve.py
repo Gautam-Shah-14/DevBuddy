@@ -88,7 +88,7 @@ def test_guard_admits_a_real_installs_ignored_set_and_blocks_only_what_the_swap_
     subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
     subprocess.run(["git", "-C", str(root), "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
                    check=True)
-    for ignored in (".bytecode-fingerprint", ".hermes-bootstrap-complete", ".install_method",
+    for ignored in (".bytecode-fingerprint", ".devbuddy-bootstrap-complete", ".install_method",
                     "hermes_agent.egg-info/PKG-INFO", "devbuddy_cli/__pycache__/main.pyc", "__pycache__/x.pyc",
                     "apps/desktop/release/win-unpacked/Hermes.exe", "apps/desktop/dist/index.html",
                     "apps/desktop/build/icon.ico", "apps/desktop/node_modules/electron/index.js",

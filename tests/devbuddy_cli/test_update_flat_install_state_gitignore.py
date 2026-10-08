@@ -7,7 +7,7 @@ live inside the repo as untracked paths. ``git stash push --include-untracked``
 unlinks it from the working tree under the running gateway, silently stranding
 every transcript when the restore is declined or fails its health check. The
 tracked .gitignore must cover the runtime state set, mirroring the
-.hermes-bootstrap-complete / .install_method precedent (#38529 / #66189).
+.devbuddy-bootstrap-complete / .install_method precedent (#38529 / #66189).
 """
 import os
 import shutil
