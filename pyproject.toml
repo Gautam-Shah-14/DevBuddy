@@ -460,22 +460,22 @@ azure-identity = ["azure-identity==1.25.3"]
 termux = [
   # Baseline Android / Termux path for reliable fresh installs.
   "python-telegram-bot[webhooks]==22.8",
-  "hermes-agent[cron]",
-  "hermes-agent[mcp]",
-  "hermes-agent[honcho]",
-  "hermes-agent[acp]",
+  "devbuddy[cron]",
+  "devbuddy[mcp]",
+  "devbuddy[honcho]",
+  "devbuddy[acp]",
 ]
 termux-all = [
   # Best-effort "install all" profile for Termux. Same policy as [all]:
   # only includes extras that are not prepared on demand by PM.
   # Backends like telegram/slack/dingtalk/feishu/honcho lazy-install at
   # first use, so they're no longer eager-installed here.
-  "hermes-agent[termux]",
-  "hermes-agent[google]",
-  "hermes-agent[homeassistant]",
-  "hermes-agent[sms]",
-  "hermes-agent[web]",
-  "hermes-agent[pty]",
+  "devbuddy[termux]",
+  "devbuddy[google]",
+  "devbuddy[homeassistant]",
+  "devbuddy[sms]",
+  "devbuddy[web]",
+  "devbuddy[pty]",
 ]
 dingtalk = [
   "dingtalk-stream==0.24.3",
@@ -539,16 +539,16 @@ all = [
   # [all], `uv sync --locked` on Windows tried to build it from sdist
   # and failed on `make`. Lazy-install routes that build to first use,
   # where the user is expected to have a toolchain available.
-  "hermes-agent[cron]",
-  "hermes-agent[pty]",
-  "hermes-agent[mcp]",
-  "hermes-agent[uvloop]",
-  "hermes-agent[homeassistant]",
-  "hermes-agent[sms]",
-  "hermes-agent[acp]",
-  "hermes-agent[google]",
-  "hermes-agent[web]",
-  "hermes-agent[youtube]",
+  "devbuddy[cron]",
+  "devbuddy[pty]",
+  "devbuddy[mcp]",
+  "devbuddy[uvloop]",
+  "devbuddy[homeassistant]",
+  "devbuddy[sms]",
+  "devbuddy[acp]",
+  "devbuddy[google]",
+  "devbuddy[web]",
+  "devbuddy[youtube]",
 ]
 
 [dependency-groups]
@@ -625,13 +625,16 @@ piper = "(platform_machine != 'ARM64' or sys_platform != 'win32') and (platform_
 [tool.uv]
 # uv otherwise enables the dev group by default, including in payload builds.
 default-groups = []
-# Widened from 3.14-only: Presidio (the [guardrails] extra's PII-detection
-# backend, see plugins/pii-guardrails/) can't import under Python 3.14 - CPython
-# 3.14 changed typing._eval_type()'s signature and no current pydantic release
-# handles it - so the managed runtime now also supports 3.11-3.13. kittentts and
-# neutts carry their own python_version markers (>= / < '3.14') to stay mutually
-# exclusive now that both branches are actually resolved.
-environments = ["python_version >= '3.11'"]
+# Was ["python_version >= '3.14'"], narrower than requires-python below - so the
+# lock only ever resolved the 3.14 branch, where kittentts and neutts (mutually
+# incompatible soundfile pins) never actually both applied. Presidio (the
+# [guardrails] extra's PII-detection backend, see plugins/pii-guardrails/) can't
+# import under Python 3.14 - CPython 3.14 changed typing._eval_type()'s signature
+# and no current pydantic release handles it - so the managed runtime now also
+# supports 3.11-3.13, which makes this bound equal to requires-python's own floor
+# and therefore redundant; dropped rather than kept as a no-op. kittentts and
+# neutts now carry their own python_version markers (>= / < '3.14') to stay
+# mutually exclusive now that both branches are actually resolved.
 override-dependencies = [
   # discord.py's latest published version, 2.7.1, pins pynacl at <1.6. however, pynacl 1.5.0 has known vulnerabilities.
   # discord.py has updated pynacl to 1.6 on `main`, but has not yet published a patch release.
