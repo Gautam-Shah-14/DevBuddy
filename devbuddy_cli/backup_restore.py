@@ -237,8 +237,9 @@ def _detect_prefix(zf: zipfile.ZipFile) -> str:
     first_parts = {p[0] for p in parts_list if len(p) > 1}
     if len(first_parts) == 1:
         prefix = first_parts.pop()
-        # Only strip if it looks like a devbuddy dir name
-        if prefix in {".devbuddy", "devbuddy"}:
+        # Only strip if it looks like a devbuddy dir name (".hermes"/"hermes" are the
+        # pre-rename spellings; older backups still ship under those names).
+        if prefix in {".devbuddy", "devbuddy", ".hermes", "hermes"}:
             return prefix + "/"
 
     return ""
