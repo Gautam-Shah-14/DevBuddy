@@ -10,7 +10,7 @@ def test_message_pages_identify_the_serving_profile(tmp_path, monkeypatch, servi
     from devbuddy_state import SessionDB
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".devbuddy"
     work_home = default_home / "profiles" / "work" if serving_profile else default_home / "custom-home"
     default_home.mkdir(parents=True)
     work_home.mkdir(parents=True)
@@ -55,7 +55,7 @@ def test_message_pages_type_untyped_failed_turn_rows(tmp_path, monkeypatch):
     from agent.turn_failure_copy import FAILED_TURN_DISPLAY_KIND, FAILED_TURN_NOTICE, PARTIAL_FAILED_TURN_NOTICE
     from devbuddy_state import SessionDB
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".devbuddy"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HERMES_HOME", str(home))
